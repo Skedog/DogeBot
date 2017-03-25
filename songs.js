@@ -836,7 +836,7 @@ var getYouTubeVideoIDFromChatMessage = function(passedInfo) {
 		if (passedInfo.length == 11 && !passedInfo.includes(" ")) {
 			resolve(passedInfo);
 		} else if (passedInfo.includes("http")) {
-			if (passedInfo.includes("youtu.be")) {
+			if (passedInfo.includes("://youtu.be")) {
 				var vars = passedInfo.split('/');
 				var finalVideoID = vars[3];
 			} else {
@@ -852,7 +852,7 @@ var getYouTubeVideoIDFromChatMessage = function(passedInfo) {
 			if (finalVideoID.length == 11) {
 				resolve(finalVideoID);
 			} else {
-				reject('Invaid URL! To request a song, type the following: !sr youtube URL, video ID, or the song name');
+				reject('Invalid URL! To request a song, type the following: !sr youtube URL, video ID, or the song name');
 			}
 		} else if (passedInfo.indexOf('v=') > -1) {
 			var tempSplit = passedInfo.split('?');
