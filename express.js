@@ -3,12 +3,13 @@ var runSQL = require('./runSQL.js');
 const constants = require('./constants.js');
 const twitch = require('./twitch.js');
 
-
 var express = require('express'), app = express(), doT = require('express-dot'), pub = __dirname+'/public', view = __dirname+'/views';
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var checkUserLogin = require('./user-login.js');
 var async = require('async');
+
+const url = require('url');
 
 
 var start = function(dbAndConstants) {
@@ -61,17 +62,13 @@ var connect = function(db,dbConstants) {
 			bodyParser.urlencoded({ extended: true })
 		]));
 
-		var checkIfChannelWasPassedMiddleware = function (req, res, next) {
-			if (req.query.channel) {
-				var templateData = {passedUser: req.query.channel};
-				var pageToRender = req.originalUrl.slice(1).split('?');
-				res.render(pageToRender[0] + '.html', templateData);
-			} else {
-				next()
-			}
+		var renderPageWithChannel = function (req, res, next) {
+			var templateData = {passedUser: req.channel};
+			var pageToRender = req.originalUrl.split('/');
+			res.render(pageToRender[1] + '.html', templateData);
 		}
 
-		var checkIfUserIsLoggedInMiddleware = function (req, res, next) {
+		var checkUserLoginStatus = function (req, res, next) {
 			var token = req.cookies.token;
 			if (req.cookies.userDetails) {
 				var userDetails = req.cookies.userDetails.split(',');
@@ -89,6 +86,12 @@ var connect = function(db,dbConstants) {
 				next();
 			}
 		}
+
+
+		app.param('channel', function(req, res, next, channel) {
+			req.channel = channel;
+			next();
+		})
 
 		app.get('/', function(req, res){
 			token = req.cookies.token;
@@ -117,49 +120,49 @@ var connect = function(db,dbConstants) {
 			}
 		});
 
-		app.get('/dashboard', [checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		app.get('/dashboard', [checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		app.get('/player', [checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		app.get('/player', [checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		app.get('/mobile', [checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		app.get('/mobile', [checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		app.get('/settings', [checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		app.get('/settings', [checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		app.get('/commands', [checkIfChannelWasPassedMiddleware,checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		app.get('/commands/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		app.get('/defaultcommands', [checkIfChannelWasPassedMiddleware,checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		// app.get('/defaultcommands', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
+		// 	next()
+		// }, function (req, res) {
+		// 	res.redirect('/logout');
+		// })
+
+		app.get('/songs/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		app.get('/songs', [checkIfChannelWasPassedMiddleware,checkIfUserIsLoggedInMiddleware], function (req, res, next) {
-			next()
-		}, function (req, res) {
-			res.redirect('/logout');
-		})
-
-		app.get('/songcache', [checkIfChannelWasPassedMiddleware,checkIfUserIsLoggedInMiddleware], function (req, res, next) {
+		app.get('/songcache/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');

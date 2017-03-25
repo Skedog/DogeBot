@@ -107,7 +107,7 @@ it('should test !commands', function() {
 		db = dbAndConstants[0];
 		dbConstants = dbAndConstants[1];
 		return chat.callCommand(db,{say:function() {}},'#ygtskedogtest',userstate,'!commands','!commands').then(res => {
-			expect(res).to.equal('The commands for this channel are available here: http://skedogbot.com/commands?channel=ygtskedogtest');
+			expect(res).to.equal('The commands for this channel are available here: http://skedogbot.com/commands/ygtskedogtest');
 		});
 	});
 });

@@ -10,9 +10,9 @@ var ObjectId = require('mongodb').ObjectId;
 var songlist = function(twitchClient,channel,userstate) {
 	return new Promise((resolve, reject) => {
 		if (constants.testMode) {
-			var msgToSend = 'The song list is available at: ' + constants.testPostURL + '/songs?channel=' + channel.slice(1);
+			var msgToSend = 'The song list is available at: ' + constants.testPostURL + '/songs/' + channel.slice(1);
 		} else {
-			var msgToSend = 'The song list is available at: ' + constants.postURL + '/songs?channel=' + channel.slice(1);
+			var msgToSend = 'The song list is available at: ' + constants.postURL + '/songs/' + channel.slice(1);
 		}
 		var userStr = '@' + userstate['display-name'] + ' -> ';
 		twitchClient.say(channel, userStr + msgToSend);
@@ -23,9 +23,9 @@ var songlist = function(twitchClient,channel,userstate) {
 var songcache = function(twitchClient,channel,userstate) {
 	return new Promise((resolve, reject) => {
 		if (constants.testMode) {
-			var msgToSend = 'The song cache is available at: ' + constants.testPostURL + '/songs?channel=' + channel.slice(1);
+			var msgToSend = 'The song cache is available at: ' + constants.testPostURL + '/songs/' + channel.slice(1);
 		} else {
-			var msgToSend = 'The song cache is available at: ' + constants.postURL + '/songs?channel=' + channel.slice(1);
+			var msgToSend = 'The song cache is available at: ' + constants.postURL + '/songs/' + channel.slice(1);
 		}
 		var userStr = '@' + userstate['display-name'] + ' -> ';
 		twitchClient.say(channel, userStr + msgToSend);

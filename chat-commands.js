@@ -395,10 +395,10 @@ var callCommandsCommand = function(db,twitchClient,channel,userstate,messagePara
 				var msgChannel = channel.slice(1);
 				var msgStr = 'The commands for this channel are available here: ';
 				if (constants.testMode) {
-					var msgURL = constants.testPostURL + '/commands?channel=' + msgChannel;
+					var msgURL = constants.testPostURL + '/commands/' + msgChannel;
 					twitchClient.say(channel, toUser + msgStr + msgURL);
 				} else {
-					var msgURL = constants.postURL + '/commands?channel=' + msgChannel;
+					var msgURL = constants.postURL + '/commands/' + msgChannel;
 					twitchClient.say(channel, toUser + msgStr + msgURL);
 				}
 				resolve(msgStr + msgURL);

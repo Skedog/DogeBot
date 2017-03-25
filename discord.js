@@ -68,7 +68,7 @@ var monitorDiscordChat = function(db) {
 								} else if (sentCommand == '!about') {
 									message.reply('Really? Come on, learn to Google you lazy fuck. Here: http://lmgtfy.com/?q=skedogbot');
 								} else if (sentCommand == '!commands') {
-									message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://skedogbot.com/commands?channel=ygtskedog');
+									message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://skedogbot.com/commands/ygtskedog');
 								}
 							}
 						});
