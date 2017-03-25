@@ -1,0 +1,39 @@
+<div class="container wrapper">
+	<div class="starter-template">
+		<h1>Commands</h1>
+		<div class="commandssection"></div>
+		<table class="datatable"><thead><th>Command</th><th>Text</th><th>Counter</th><th>Permissions Level</th></thead><tbody></tbody></table>
+	</div>
+</div><!-- /.container -->
+<script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script src="js/datatables.js"></script>
+<script>
+	if ('{{=it.passedUser}}' != 'undefined') {
+		var passedChannel = '{{=it.passedUser}}';
+		var data = 'channel=#' + passedChannel;
+	} else {
+		var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
+		var data = 'channel=' + userDetails[2];
+	};
+	$.ajax({
+		url: '/getcommands',
+		data: data,
+		type: 'POST',
+		success: function(data) {
+			if (data != '') {
+				var contentData = '';
+				$.each(data, function(key, value) {
+					contentData = contentData + '<tr><td>' + data[key]['trigger'] + '</td><td>' + data[key]['chatmessage'] + '</td><td>' + data[key]['commandcounter'] + '</td><td>' + data[key]['permissionsLevel'] + '</td></tr>';
+				});
+				$('.datatable tbody').html(contentData);
+				$('.datatable').DataTable({
+					"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
+				});
+				$('.datatable').show();
+			} else {
+				$('.datatable tbody').hide();
+				$('.commandssection').html("You haven't added any commands yet!");
+			};
+		}
+	});
+</script>

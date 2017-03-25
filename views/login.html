@@ -1,0 +1,32 @@
+<div class="container wrapper">
+	<img src="img/gear.gif" alt="" class="loading-gear" />
+</div>
+<script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script>
+Twitch.init({clientId: '{{=it.apiKey}}'}, function(error, statusInit) {
+	var accesstoken = getUrlVars()["access_token"];
+	if (accesstoken != undefined) {
+		var token = Twitch.getToken();
+		var data = 'token=' + token;
+		$.ajax({
+			url: '{{=it.postURL}}/handlelogin',
+			data: data,
+			type: 'POST',
+			success: function(data) {
+				if (data == 'useradded' || data == 'userupdated') {
+					window.location.assign("/dashboard");
+				};
+			}
+		});
+	} else {
+		var error = getUrlVars()["error"];
+		if (error == undefined) {
+			Twitch.login({
+				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions']
+			});
+		} else {
+			window.location.assign("/error");
+		}
+	};
+});
+</script>

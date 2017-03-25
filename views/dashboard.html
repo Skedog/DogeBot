@@ -1,0 +1,77 @@
+<div class="container wrapper">
+	<div class="starter-template">
+		<div>
+			<h1>Dashboard</h1>
+			<p class="lead"></p>
+			<p>This is the intro dashboard for users when they are logged in. You can have the bot join/leave your channel using the buttons below!</p>
+			<button type="button" class="botStatusBtn">Join Channel</button>
+			<!-- <button type="button" class="partButton">Leave Channel</button> -->
+			<div class="messagesFromBot"></div>
+		</div>
+	</div>
+</div>
+<script>
+	$(document).ready(function() {
+		var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
+		var loggedInChannel = userDetails[2];
+		var postData = 'channel=' + loggedInChannel;
+		$('.botStatusBtn').click(function(e) {
+			if ($(this).text() == 'Join Channel') {
+				$.ajax({
+					url: '/joinchannel',
+					data: postData,
+					type: 'POST',
+					success: function(data) {
+						if (data == 'joined') {
+							$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
+							setTimeout(function(){
+								$('.messagesFromBot').fadeOut("slow");
+							},2000);
+						} else {
+							$('.messagesFromBot').html('<p>' + data + '</p>').fadeIn("fast");
+							setTimeout(function(){
+								$('.messagesFromBot').fadeOut("slow");
+							},2000);
+						};
+					}
+				});
+				$(this).text('Leave Channel');
+			} else {
+				$.ajax({
+					url: '/partchannel',
+					data: postData,
+					type: 'POST',
+					success: function(data) {
+						if (data == 'parted') {
+							$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
+							setTimeout(function(){
+								$('.messagesFromBot').fadeOut("slow");
+							},2000);
+						} else {
+							$('.messagesFromBot').html('<p>' + data + '</p>').fadeIn("fast");
+							setTimeout(function(){
+								$('.messagesFromBot').fadeOut("slow");
+							},2000);
+						};
+					}
+				});
+				$(this).text('Join Channel');
+			}
+		});
+		function checkChannelStatus(data) {
+			$.ajax({
+				url: '/checkchannelstatus',
+				data: postData,
+				type: 'POST',
+				success: function(data) {
+					if (data === true) {
+						$('.botStatusBtn').text('Leave Channel');
+					} else {
+						$('.botStatusBtn').text('Join Channel');
+					};
+				}
+			});
+		};
+		checkChannelStatus(postData);
+	});
+</script>
