@@ -7,6 +7,7 @@ var list = require('./list-commands.js');
 var regulars = require('./regulars-functions.js');
 var api = require('./api-functions.js');
 var songs = require('./songs.js');
+var permissions = require('./permissions.js');
 const constants = require('./constants.js');
 const commandDelayTimerArray = {};
 
@@ -300,37 +301,53 @@ var buildUserAddedCommandMessage = function(db,twitchClient,channel,userstate,me
 	return new Promise((resolve, reject) => {
 		var messageParams = message.split(' '), arrayOfMessages = results[0].listArray, commandMessage = results[0].chatmessage;
 		if (commandMessage.includes('$(list)')) {
-			switch(messageParams[1]) {
-				case 'add':
-					list.add(db,twitchClient,channel,userstate,messageParams,results).then(res => {
-						resolve(res);
-					}).catch(err => {
-						reject(err);
-					});
-					break;
-				case 'edit':
-					list.edit(db,twitchClient,channel,userstate,messageParams,results).then(res => {
-						resolve(res);
-					}).catch(err => {
-						reject(err);
-					});
-					break;
-				case 'delete':
-				case 'remove':
-					list.remove(db,twitchClient,channel,userstate,messageParams,results).then(res => {
-						resolve(res);
-					}).catch(err => {
-						reject(err);
-					});
-					break;
-				default:
-					list.getListCommandItem(db,twitchClient,channel,userstate,messageParams,results).then(res => {
-						resolve(res);
-					}).catch(err => {
-						reject(err);
-					});
-					break;
-			};
+			permissions.getCommandPermissionLevel(db,'!commands',['!commands','add'],channel).then(addCommandPermissionLevel => {
+				permissions.getUserPermissionLevel(db,channel,userstate).then(currentUserPermissionLevel => {
+					switch(messageParams[1]) {
+						case 'add':
+							if (currentUserPermissionLevel >= addCommandPermissionLevel) {
+								list.add(db,twitchClient,channel,userstate,messageParams,results).then(res => {
+									resolve(res);
+								}).catch(err => {
+									reject(err);
+								});
+							} else {
+								reject();
+							};
+							break;
+						case 'edit':
+							if (currentUserPermissionLevel >= addCommandPermissionLevel) {
+								list.edit(db,twitchClient,channel,userstate,messageParams,results).then(res => {
+									resolve(res);
+								}).catch(err => {
+									reject(err);
+								});
+							} else {
+								reject();
+							};
+							break;
+						case 'delete':
+						case 'remove':
+							if (currentUserPermissionLevel >= addCommandPermissionLevel) {
+								list.remove(db,twitchClient,channel,userstate,messageParams,results).then(res => {
+									resolve(res);
+								}).catch(err => {
+									reject(err);
+								});
+							} else {
+								reject();
+							};
+							break;
+						default:
+							list.getListCommandItem(db,twitchClient,channel,userstate,messageParams,results).then(res => {
+								resolve(res);
+							}).catch(err => {
+								reject(err);
+							});
+							break;
+					};
+				});
+			});
 		} else {
 			var messageToSend = commandMessage.replace('&apos;',"'");
 			messageToSend = messageParams[1] ?

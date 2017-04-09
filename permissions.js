@@ -61,7 +61,7 @@ var getUserPermissionLevel = function(db,channel,userstate) {
 				if (isReg) {
 					resolve(1);
 				} else {
-					reject('Failed to getUserPermissionLevel');
+					resolve(0);
 				}
 			});
 		}
