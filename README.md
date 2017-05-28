@@ -11,7 +11,7 @@ Just go to [skedogbot.com](http://skedogbot.com) and click login - this will ask
 * !wrongsong: Removes the last song requested by the user calling the command.
 
 ### All Default Commands
-* !8ball: Returns a random '8-Ball' type of message
+* ~~!8ball: Returns a random '8-Ball' type of message~~ - Disabled due to broken API
 * !bf4stats **_${username}_**: Returns **_${username}_**'s rank, k/d and full stats link
 * !commands: Returns a link to the user added commands for the channel
   * !command: Alias for !commands
@@ -23,14 +23,14 @@ Just go to [skedogbot.com](http://skedogbot.com) and click login - this will ask
   * !song: Alias for !currentsong
 * !firstseen **_${username}_**: Returns when **_${username}_** was first seen in the channel
 * !followage **_${username}_**: Returns how long **_${username}_** has been following the channel
-* !game: Returns the game currently being played on the channel
+* ~~!game: Returns the game currently being played on the channel~~ - Disabled due to broken API
 * !lastseen **_${username}_**: Returns when **_${username}_** was first seen in the channel
 * !pause: Pauses the music
 * !play: Plays the music
 * !playlistrequest **_${playlist}_**: Allows users to request x amount of songs from a YouTube playlist.
   * !pr: Alias for !playlistrequest
 * !promote **_${queue position}_**: Promotes **_${queue position}_** to be the next song played.
-* !qotd: Returns a *funny* quote of the day
+* ~~!qotd: Returns a *funny* quote of the day~~ - Disabled due to broken API
 * !regulars: Used to add and remove regulars from the channel
   * !regular: Alias for !regulars
   * !regulars add **_${username}_**: Add **_${username}_** as a regular for the channel
@@ -47,7 +47,7 @@ Just go to [skedogbot.com](http://skedogbot.com) and click login - this will ask
 * !songrequest **_${song}_**: Adds the song to the song list. Can be a URL, videoID, or song title.
   * !sr: Alias for !songrequest
 * !uptime: Returns the uptime
-* !viewers: Returns the current number of viewers
+* ~~!viewers: Returns the current number of viewers~~ - Disabled due to broken API
 * !volume: Returns the volume for the currently playing song
 * !winner: Returns a random user from the viewer list as a 'winner'
 * !wrongsong: Removes the last song requested by the user calling the command.

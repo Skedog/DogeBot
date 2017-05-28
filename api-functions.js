@@ -2,10 +2,17 @@ var request = require('request');
 
 var uptime = function(twitchClient,channel,userstate) {
 	return new Promise((resolve, reject) => {
-		request('https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/uptime?units=3', function (error, response, body) {
+		var url = 'https://decapi.me/twitch/uptime?channel=' + channel.slice(1);
+		request(url, function (error, response, body) {
 			if (!error && response.statusCode == 200) {
-				twitchClient.say(channel, body + '!');
-				resolve(body + '!');
+				editedBody = body.replace('.','');
+				if (editedBody.includes('Channel is not live')) {
+					twitchClient.say(channel, channel.slice(1) + ' is not live!');
+					resolve(editedBody + '!');
+				} else {
+					twitchClient.say(channel, channel.slice(1) + ' has been live for ' + editedBody + '!');
+					resolve(editedBody + '!');
+				}
 			} else {
 				reject(error);
 			}
@@ -20,13 +27,13 @@ var followage = function(twitchClient,channel,userstate,messageParams) {
 		} else {
 			var userToCheck = userstate['display-name'];
 		}
-		var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/followers/' + userToCheck;
+		var url = 'https://beta.decapi.me/twitch/followage/' + channel.slice(1) + '/' + userToCheck;
 		request(url, function (error, response, body) {
 			if (!error && response.statusCode == 200) {
-				if (body.includes('isn\'t following')) {
-					twitchClient.say(channel, body + '! BibleThump');
+				if (body.includes('Follow not found')) {
+					twitchClient.say(channel, userToCheck + ' is not following! BibleThump');
 				} else {
-					twitchClient.say(channel, body + '!');
+					twitchClient.say(channel, userToCheck + ' has been following for ' + body + '!');
 				}
 				resolve(body);
 			} else {
@@ -38,44 +45,49 @@ var followage = function(twitchClient,channel,userstate,messageParams) {
 
 var game = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
-		var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/status?format=%5B0%5D+is+currently+playing+%5B1%5D'
-		request(url, function (error, response, body) {
-			if (!error && response.statusCode == 200) {
-				var userStr = '@' + userstate['display-name'] + ' -> ';
-				twitchClient.say(channel, userStr + body + '!');
-				resolve(body);
-			} else {
-				reject(error);
-			}
-		});
+		var userStr = '@' + userstate['display-name'] + ' -> ';
+		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		resolve('!game is broken');
+		// var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/status?format=%5B0%5D+is+currently+playing+%5B1%5D'
+		// request(url, function (error, response, body) {
+		// 	if (!error && response.statusCode == 200) {
+		// 		var userStr = '@' + userstate['display-name'] + ' -> ';
+		// 		twitchClient.say(channel, userStr + body + '!');
+		// 		resolve(body);
+		// 	} else {
+		// 		reject(error);
+		// 	}
+		// });
 	});
 }
 
 var viewerCount = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
-		var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/status?format=%5B0%5D+currently+is+streaming+for+%5B2%5D+viewers'
-		request(url, function (error, response, body) {
-			if (!error && response.statusCode == 200) {
-				var userStr = '@' + userstate['display-name'] + ' -> ';
-				twitchClient.say(channel, userStr + body + '!');
-				resolve(body);
-			} else {
-				reject(error);
-			}
-		});
+		var userStr = '@' + userstate['display-name'] + ' -> ';
+		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		resolve('!viewers is broken');
+		// var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/status?format=%5B0%5D+currently+is+streaming+for+%5B2%5D+viewers'
+		// request(url, function (error, response, body) {
+		// 	if (!error && response.statusCode == 200) {
+		// 		var userStr = '@' + userstate['display-name'] + ' -> ';
+		// 		twitchClient.say(channel, userStr + body + '!');
+		// 		resolve(body);
+		// 	} else {
+		// 		reject(error);
+		// 	}
+		// });
 	});
 }
 
 var randomViewer = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
-		var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/viewers/random?format=The+winner+is+%5B0%5D'
+		var url = 'https://2g.be/twitch/randomviewer.php?channel=' + channel.slice(1);
 		request(url, function (error, response, body) {
 			if (!error && response.statusCode == 200) {
-				editedBody = body.replace(' (mod)','');
-				if (editedBody.includes('revlobot') || editedBody.includes('skedogbot') || editedBody.includes(channel.slice(1))) {
+				if (body.includes('revlobot') || body.includes('skedogbot') || body.includes(channel.slice(1))) {
 					resolve(randomViewer(twitchClient,channel,userstate,messageParams));
 				} else {
-					twitchClient.say(channel, editedBody + '!');
+					twitchClient.say(channel, 'The winner is ' + body + '!');
 					resolve(body);
 				}
 			} else {
@@ -87,16 +99,19 @@ var randomViewer = function(twitchClient,channel,userstate,messageParams) {
 
 var quoteOfTheDay = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
-		var url = 'https://api.rtainc.co/twitch/brainyquote?format=%22%5B0%5D%22&type=funny'
-		request(url, function (error, response, body) {
-			if (!error && response.statusCode == 200) {
-				var userStr = '@' + userstate['display-name'] + ' -> ';
-				twitchClient.say(channel, userStr + 'Quote of the day: ' + body);
-				resolve(body);
-			} else {
-				reject(error);
-			}
-		});
+		var userStr = '@' + userstate['display-name'] + ' -> ';
+		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		resolve('!qotd is broken');
+		// var url = 'https://api.rtainc.co/twitch/brainyquote?format=%22%5B0%5D%22&type=funny'
+		// request(url, function (error, response, body) {
+		// 	if (!error && response.statusCode == 200) {
+		// 		var userStr = '@' + userstate['display-name'] + ' -> ';
+		// 		twitchClient.say(channel, userStr + 'Quote of the day: ' + body);
+		// 		resolve(body);
+		// 	} else {
+		// 		reject(error);
+		// 	}
+		// });
 	});
 }
 
@@ -126,16 +141,19 @@ var bf4stats = function(twitchClient,channel,userstate,messageParams) {
 
 var eightBall = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
-		var url = 'https://api.rtainc.co/twitch/8ball?format=[0]'
-		request(url, function (error, response, body) {
-			if (!error && response.statusCode == 200) {
-				var userStr = '@' + userstate['display-name'] + ' -> ';
-				twitchClient.say(channel, userStr + body);
-				resolve(body);
-			} else {
-				reject(error);
-			}
-		});
+		var userStr = '@' + userstate['display-name'] + ' -> ';
+		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		resolve('!8ball is broken');
+		// var url = 'https://api.rtainc.co/twitch/8ball?format=[0]'
+		// request(url, function (error, response, body) {
+		// 	if (!error && response.statusCode == 200) {
+		// 		var userStr = '@' + userstate['display-name'] + ' -> ';
+		// 		twitchClient.say(channel, userStr + body);
+		// 		resolve(body);
+		// 	} else {
+		// 		reject(error);
+		// 	}
+		// });
 	});
 }
 
