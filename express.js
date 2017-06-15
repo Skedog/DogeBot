@@ -174,7 +174,7 @@ var connect = function(db,dbConstants) {
 		});
 
 		app.get('/currentsonginfo', function(req, res){
-			var templateData = {passedUser: req.query.channel,layout:false};
+			var templateData = {passedUser: req.query.channel,showText: req.query.showText,layout:false};
 			res.render('currentsonginfo.html', templateData);
 		});
 

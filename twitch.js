@@ -174,7 +174,7 @@ var startTimedMessages = function(db,dbConstants) {
 			if (results) {
 				if (intervalStarted === false) {
 					this[channelToUse+'_interval'] = setInterval(function() {
-						var messages = ["Enjoying the stream? Be sure to follow so you don't miss the next one! <3","Be a part of this community all the time, join us on Discord! https://discord.gg/0r521W1zwE8L9Cv2","Wanna chat? Twitter is the best way to get in touch with me! Send me your memes! http://www.twitter.com/ygtskedog","Wanna give me free money? Bookmark my Amazon affiliate link, and use it when you make a purchase! http://amzn.to/1hc1N2k","Want to subscribe to the channel, even though I am not a Twitch partner yet? Check out my Patreon! http://bit.ly/2aBF79a"];
+						var messages = ["Enjoying the stream? Be sure to follow so you don't miss the next one! <3","Be a part of this community all the time, join us on Discord! http://ske.dog/discord","Wanna chat? Twitter is the best way to get in touch with me! Send me your memes! http://ske.dog/twitter","Wanna give me free money? Bookmark my Amazon affiliate link, and use it when you make a purchase! http://ske.dog/amazon","Want to subscribe to the channel, even though I am not a Twitch partner yet? Check out my Patreon! http://ske.dog/patreon","We now have a Chrome extension for the stream! It shows you when Skedog is live AND it auto applies the Amazon affiliate code! Check it out! http://ske.dog/amazon"];
 						functions.getRandomItemFromArray(messages).then(msgToSend => {
 							twitchClient.say(channelToUse,msgToSend[1]);
 							var currentdate = new Date();

@@ -21,7 +21,11 @@ function getNewSongInfo() {
 		data: data,
 		type: 'POST',
 		success: function(data) {
-			$('.commandssection').html(data[0]['songTitle']);
+			if ('{{=it.showText}}' == 'true') {
+				$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
+			} else {
+				$('.commandssection').html(data[0]['songTitle']);
+			}
 		}
 	});
 };
