@@ -138,7 +138,7 @@ var connect = function(db,dbConstants) {
 			res.redirect('/logout');
 		})
 
-		app.get('/settings', [checkUserLoginStatus], function (req, res, next) {
+		app.get('/song-settings', [checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');

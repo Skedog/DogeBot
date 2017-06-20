@@ -2,18 +2,21 @@
 @import url("bootstrap.min.css");
 @import url("pace.css");
 body {/*padding-top: 50px;*/background:url(/img/bg.png) 0 0 repeat #dddddd;}
+a {color:#215f94;}
 .wrapper {background:#F2F2F2;box-shadow:0 2px 5px 0 rgba(0,0,0,0.12);border-radius: 5px 5px 5px 5px;
 -moz-border-radius: 5px 5px 5px 5px;
 -webkit-border-radius: 5px 5px 5px 5px;}
 .navbar {border:none;}
-.navbar-inverse {background:#242424;border-bottom: 4px solid #525252;}
+.navbar-inverse {background:#242424;border-bottom: 4px solid #525252;background:url(/img/bg-dark.png) 0 0 repeat #dddddd;}
 .navbar-inverse .navbar-brand {color:#999;}
 .navbar-inverse .navbar-nav>li>a {-webkit-transition: background-color 0.2s; /* For Safari 3.1 to 6.0 */
     transition: background-color 0.2s;}
-.navbar-inverse .navbar-nav>li>a:hover, .navbar-inverse .navbar-nav>li>a:focus {background-color:#004EAC;}
+.navbar-inverse .navbar-nav>li>a:hover, .navbar-inverse .navbar-nav>li>a:focus {background-color:#215f94;}
 .loading-gear {margin:20px auto;display: block;}
-.starter-template {padding: 40px 15px;text-align: center;}
+.starter-template {padding: 20px 15px;text-align: center;}
 .datatable {display:none;text-align: left;}
+
+.navbar-inverse .navbar-brand:hover, .navbar-inverse .navbar-brand:focus {color:#215f94;}
 
 .dropdown {position: relative;display: inline-block;}
 
@@ -30,10 +33,21 @@ body {/*padding-top: 50px;*/background:url(/img/bg.png) 0 0 repeat #dddddd;}
 #settings label span {width:45%;display: block;float:left;}
 #settings input[type="submit"] {clear:both;margin:0 auto;display: block;}
 
-.mobile-buttons button {width:50%;float:left;height:50px;margin-top: 20px;}
+.mobile-buttons button {width:49%;float:left;height:50px;margin:0 0 20px 10px;}
 .player-songlist {float:right;width:50%;padding:10px;box-sizing:border-box;}
 .player-page {float:left;width:50%;padding:10px;box-sizing:border-box;}
+.player-page button {margin-left:10px;}
 iframe#player {width:100%;height:300px;}
+
+.threecol > div {background:url(/img/bg-buttons.png) 0 0 repeat #dddddd;float:left;width:32.4%;box-sizing:border-box;padding:15px 10px 10px 10px;margin:0 10px 10px 0;color:#fff;border-bottom:25px solid #215f94;}
+
+.blue-highlight {color:#428bca;}
+
+.blue-styled-button {background:#215f94;padding:10px 30px;border:0;border:1px solid rgba(0,0,0,0.3);border-radius:5px;color:#fff;border-bottom-width:3px;margin:10px 0;outline:0;}
+.blue-styled-button:hover {background:#276BA5;}
+
+.starter-template h1 {margin: 10px;color:#215f94;font-weight: bold;}
+.starter-template h4 {margin: 20px 0;}
 
 @media screen and (max-width:1000px) {
 	.player-songlist,.player-page {float:none;margin:0 auto;width:100%;}
