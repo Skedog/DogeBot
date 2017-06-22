@@ -17,6 +17,8 @@
 		channelToPass = userDetails[2];
 	};
 	var data = 'channel=' + channelToPass;
+	var firstSongInQueue = '';
+	var secondSongInQueue = '';
 	$.ajax({
 		url: '/getsonglist',
 		data: data,
@@ -25,6 +27,9 @@
 			if (data) {
 				var contentData = '';
 				$.each(data, function(key, value) {
+					if (key == 1) {
+						secondSongInQueue = data[key]['songID'];
+					};
 					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 				});
 				$('.datatable tbody').html(contentData);
@@ -32,10 +37,30 @@
 					"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
 				});
 				$('.datatable').show();
+				this['checkSkippedSongsInterval'] = setInterval(function() {
+					checkForSkippedSongs(channelToPass,data.length,secondSongInQueue);
+				}, 3000);
 			} else {
 				$('.datatable tbody').hide();
 				$('.commandssection').html("Currently no songs in the queue for " + channelToPass.slice(1) + "!");
 			};
 		}
 	});
+	function checkForSkippedSongs(channelToPass,numberOfSongs,secondSongInQueue) {
+		var data = 'channel=' + channelToPass;
+		$.ajax({
+			url: '/getsonglist',
+			data: data,
+			type: 'POST',
+			cache: false,
+			success: function(data) {
+				if (data[0] != undefined) {
+					if (data.length == numberOfSongs && data[1]['songID'] == secondSongInQueue) {
+					} else {
+						location.reload();
+					};
+				};
+			}
+		});
+	};
 </script>

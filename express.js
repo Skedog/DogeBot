@@ -46,10 +46,19 @@ var connect = function(db,dbConstants) {
 					mw(req, res, cb);
 				}, next);
 			};
-		}
+		};
+
+		var wwwRedirect = function(req, res, next) {
+		    if (req.headers.host.slice(0, 4) === 'www.') {
+		        var newHost = req.headers.host.slice(4);
+		        return res.redirect(301, req.protocol + '://' + newHost + req.originalUrl);
+		    }
+		    next();
+		};
 
 		app.set('views', __dirname+'/views');
 		app.set('view engine', 'dot');
+		app.set('trust proxy', true);
 		app.engine('html', doT.__express);
 		app.use('/css',express.static(__dirname+'/public/css'));
 		app.use('/img',express.static(__dirname+'/public/img'));
@@ -93,7 +102,7 @@ var connect = function(db,dbConstants) {
 			next();
 		})
 
-		app.get('/', function(req, res){
+		app.get('/', [wwwRedirect], function(req, res){
 			token = req.cookies.token;
 			if (req.cookies.userDetails) {
 				var userDetails = req.cookies.userDetails.split(',');

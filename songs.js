@@ -483,7 +483,11 @@ var checkIfSongIsTooLong = function(db,channel,songLength) {
 				minutes = minutes[0].split(' ');
 				minutes = minutes[0].replace('PT','');
 			} else {
-				var minutes = 0;
+				if (songLength == 'PT0S') {
+					reject('failed length');
+				} else {
+					var minutes = 0;
+				}
 			}
 			if ((channelMaxSongLength == 0) || (minutes <= channelMaxSongLength && channelMaxSongLength != 0) && !(songLength.includes("H"))) {
 				resolve('good');
@@ -840,7 +844,7 @@ var getYouTubeVideoIDFromChatMessage = function(passedInfo) {
 				var vars = passedInfo.split('/');
 				var finalVideoID = vars[3];
 			} else {
-				if (passedInfo.includes("?")) {
+				if (passedInfo.includes("?") && passedInfo.includes("v")) {
 					var tempSplit = passedInfo.split('?');
 					var query = functions.parseQuery(tempSplit[1]);
 					var finalVideoID = query['v'];
