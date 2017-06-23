@@ -27,7 +27,6 @@ var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
 var loggedInChannel = userDetails[2];
 var data = 'channel=' + loggedInChannel;
 $(document).ready(function() {
-	loadSonglist();
 	$.ajaxSetup({ cache: false });
 	$('.volBtn').click(function(e) {
 		e.preventDefault();
@@ -100,7 +99,11 @@ function loadSonglist() {
 		success: function(data) {
 			if (data != '') {
 				var contentData = '';
+				$('.datatable').DataTable().destroy();
 				$.each(data, function(key, value) {
+					if (key == 0) {
+						$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested By:</strong> ' + data[0]['whoRequested']);
+					}
 					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 				});
 				$('.datatable tbody').html(contentData);
@@ -125,7 +128,7 @@ function loadPlayer() {
 		success: function(data) {
 			if (data[0] != undefined) {
 				buildPlayer(data[0]['songID']);
-				getCurrentSongInfo();
+				loadSonglist();
 			} else {
 				$('#player').html('Currently no songs in the queue!');
 			};
@@ -152,10 +155,6 @@ function getCurrentSongInfo() {
 		cache: false,
 		success: function(data) {
 			$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested By:</strong> ' + data[0]['whoRequested']);
-			if (data[0]['songID'] == currentPlayingID[1]) {
-			} else {
-				location.reload();
-			};
 		}
 	});
 }
@@ -171,10 +170,9 @@ function loadNextSong() {
 				console.log(data);
 			} else {
 				player.loadVideoById(data);
-				getCurrentSongInfo();
 				$('.togglePlay').text('Pause');
+				loadSonglist();
 			};
-			loadSonglist();
 		}
 	});
 }
