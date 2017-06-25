@@ -96,6 +96,54 @@ var connect = function(db,dbConstants) {
 			}
 		}
 
+		var checkUserModStatus = function(req) {
+			return new Promise((resolve, reject) => {
+				if (req.cookies.userDetails) {
+					var userDetails = req.cookies.userDetails.split(',');
+					if (req.channel != undefined) {
+						var channelToCheckMods = req.channel; //from URL, never has #
+					} else if (req.body.channel != undefined) {
+						var channelToCheckMods = req.body.channel.substring(1); //has #, needs to be removed
+					} else {
+						var channelToCheckMods = userDetails[2].substring(1); //has #, needs to be removed
+					}
+					var twitchUserID = userDetails[3];
+					if (!!twitchUserID) {
+						runSQL('select','channels',{twitchUserID:parseInt(twitchUserID)},'',db).then(results => { //select logged in channel to get username
+							if (results) {
+								loggedInChannel = results[0]['ChannelName'].substring(1);
+								twitchClient.mods(channelToCheckMods).then(modRes => {
+									var a = modRes.indexOf(loggedInChannel);
+									if (a > -1) {
+										if (req.originalUrl.includes('/')) {
+											resolve(req.originalUrl.split('/'));
+										} else {
+											resolve(req.originalUrl);
+										}
+									} else {
+										if (channelToCheckMods == loggedInChannel) {
+											if (req.originalUrl.includes('/')) {
+												resolve(req.originalUrl.split('/'));
+											} else {
+												resolve(req.originalUrl);
+											}
+										} else {
+											//username isn't in the mod list, they are not a mod
+											resolve('');
+										}
+									};
+								}).catch(function(err) {
+									reject(err);
+								});
+							}
+						})
+					}
+				} else {
+					resolve('');
+				}
+			});
+		}
+
 
 		app.param('channel', function(req, res, next, channel) {
 			req.channel = channel;
@@ -153,17 +201,45 @@ var connect = function(db,dbConstants) {
 			res.redirect('/logout');
 		})
 
+		app.get('/moderation/:channel*?', function(req, res){
+			checkUserModStatus(req).then(results => {
+				if (results) {
+					res.render(results[1] + '.html',{passedUser: req.channel});
+				} else {
+					res.redirect('/dashboard');
+				}
+			}).catch(function(err) {
+				log.error(err);
+			});
+		}, function (req, res) {
+			res.redirect('/logout');
+		})
+
+		app.post('/removesong', function(req, res) {
+			checkUserModStatus(req).then(results => {
+				if (results) {
+					dataToUse = {};
+					var query2 = {channel:req.body.channel,songID:req.body.songToRemove};
+					runSQL('delete','songs',query2,dataToUse,db).then(results => {
+						res.send('song removed');
+					});
+				} else {
+					res.send('error');
+				}
+			}).catch(function(err) {
+				res.send('error');
+			});
+		})
+
 		app.get('/commands/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})
 
-		// app.get('/defaultcommands', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
-		// 	next()
-		// }, function (req, res) {
-		// 	res.redirect('/logout');
-		// })
+		app.get('/loggedinnav', function(req, res){
+			res.render('loggedinnav.html', {layout:false});
+		});
 
 		app.get('/songs/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
 			next()
@@ -376,7 +452,6 @@ var connect = function(db,dbConstants) {
 				sessionData["token"] = token;
 				runSQL('add','sessions',{},sessionData,db).then(results => {});
 				//handle user adding and updating
-				//this needs to be updated to use userID instead of channel name
 				runSQL('select','channels',{twitchUserID:twitchUserID},'',db).then(results => {
 					if (!results) {
 						//channel doesn't exist, add it

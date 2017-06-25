@@ -14,7 +14,8 @@ a {color:#215f94;}
 .navbar-inverse .navbar-nav>li>a:hover, .navbar-inverse .navbar-nav>li>a:focus {background-color:#215f94;}
 .loading-gear {margin:20px auto;display: block;}
 .starter-template {padding: 20px 15px;text-align: center;}
-.datatable {display:none;text-align: left;}
+.datatable {display:none;text-align: left;width:100%;}
+.datatable td:before {width:auto!important;}
 
 .navbar-inverse .navbar-brand:hover, .navbar-inverse .navbar-brand:focus {color:#215f94;}
 
@@ -49,11 +50,17 @@ iframe#player {width:100%;height:300px;}
 .starter-template h1 {margin: 10px;color:#215f94;font-weight: bold;}
 .starter-template h4 {margin: 20px 0;}
 
+.moderation-songlist {float:right;width:50%;padding:10px;box-sizing:border-box;}
+.chatbox {width:350px;height:500px;float:left;}
+.chatbox iframe {width:100%;height:100%;}
+
 @media screen and (max-width:1199px) {
 	.player-songlist,.player-page {float:none;margin:0 auto;width:100%;}
 	#settings label {width:100%;text-align: center;}
 	.threecol > div {width:48%;height:324px;}
 	.threecol > div img {max-width:100%;}
+	.chatbox {width:100%;height:500px;}
+	.moderation-songlist {float:none;width:100%;clear:both;}
 }
 
 @media screen and (min-width:768px) {
@@ -69,6 +76,60 @@ iframe#player {width:100%;height:300px;}
 
 	.threecol > div {width:100%;height:auto;}
 	.mobile-buttons button.blue-styled-button {margin:10px 0 0 0;}
+
+
+
+
+	/* Force table to not be like tables anymore */
+		table, thead, tbody, th, td, tr {
+			display: block;
+		}
+
+		/* Hide table headers (but not display: none;, for accessibility) */
+		thead tr {
+			position: absolute;
+			top: -9999px;
+			left: -9999px;
+		}
+
+		tr { border: 1px solid #ccc; }
+
+		td {
+			/* Behave  like a "row" */
+			border: none;
+			border-bottom: 1px solid #eee;
+			position: relative;
+			padding-left: 50%;
+		}
+
+		td:before {
+			/* Now like a table header */
+			position: absolute;
+			/* Top/left values mimic padding */
+			top: 0;
+			left: 6px;
+			width: 45%;
+			padding-right: 10px;
+			white-space: nowrap;
+		}
+
+		/*
+		Label the data
+		*/
+		.songs td:nth-of-type(1):before { content: "#"; }
+		.songs td:nth-of-type(2):before { content: "Title"; }
+		.songs td:nth-of-type(3):before { content: "Video ID"; }
+		.songs td:nth-of-type(4):before { content: "Requested By"; }
+
+		.songcache td:nth-of-type(1):before { content: "#"; }
+		.songcache td:nth-of-type(2):before { content: "Title"; }
+		.songcache td:nth-of-type(3):before { content: "Video ID"; }
+
+		.moderation td:nth-of-type(1):before { content: "#"; }
+		.moderation td:nth-of-type(2):before { content: "Title"; }
+		.moderation td:nth-of-type(3):before { content: "Video ID"; }
+		.moderation td:nth-of-type(4):before { content: "Requested By"; }
+		.moderation td:nth-of-type(5):before { content: "Remove"; }
 }
 @media screen and (max-width:650px) {
 	.player-songlist {display: none;}

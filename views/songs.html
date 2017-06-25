@@ -3,11 +3,10 @@
 		<img src="/img/commands.png" alt="" />
 		<h1>Songlist</h1>
 		<div class="commandssection"></div>
-		<table class="datatable"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th></thead><tbody></tbody></table>
+		<table class="datatable songs"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th></thead><tbody></tbody></table>
 	</div>
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
-<script src="/js/datatables.js"></script>
 <script>
 	var channelToPass = '';
 	if ('{{=it.passedUser}}' != 'undefined') {
@@ -19,33 +18,7 @@
 	var data = 'channel=' + channelToPass;
 	var firstSongInQueue = '';
 	var secondSongInQueue = '';
-	$.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			if (data) {
-				var contentData = '';
-				$.each(data, function(key, value) {
-					if (key == 1) {
-						secondSongInQueue = data[key]['songID'];
-					};
-					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
-				});
-				$('.datatable tbody').html(contentData);
-				$('.datatable').DataTable({
-					"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
-				});
-				$('.datatable').show();
-				this['checkSkippedSongsInterval'] = setInterval(function() {
-					checkForSkippedSongs(channelToPass,data.length,secondSongInQueue);
-				}, 3000);
-			} else {
-				$('.datatable tbody').hide();
-				$('.commandssection').html("Currently no songs in the queue for " + channelToPass.slice(1) + "!");
-			};
-		}
-	});
+	loadSonglist(data,'songs');
 	function checkForSkippedSongs(channelToPass,numberOfSongs,secondSongInQueue) {
 		var data = 'channel=' + channelToPass;
 		$.ajax({
