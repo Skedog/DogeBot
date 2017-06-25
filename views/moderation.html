@@ -5,50 +5,46 @@
 		<div class="moderation-messages"></div>
 		<div class="moderation-panels">
 			<div class="chatbox"></div>
-			<div class="moderation-songlist">
+			<div class="moderation-songlist songlist">
 				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th><th>Remove</th></thead><tbody></tbody></table>
 			</div>
+		</div>
+		<div class="details">
+			<div class="messagesFromBot clear"></div>
 		</div>
 	</div>
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
-	var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-	function loadModerationPanels(channel) {
-		var chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channel + '/chat"></iframe>';
+	function loadModerationPanels(channelName) {
+		if (channelName.includes('#')) {channelName = channelName.slice(1);};
+		var chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
 		$('.chatbox').html(chatPanel);
 	};
-
-	if ('{{=it.passedUser}}' != 'undefined') {
-		channelToPass = '#{{=it.passedUser}}';
-		loadModerationPanels(channelToPass.slice(1));
-	} else {
-		var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-		channelToPass = userDetails[2];
-		loadModerationPanels(userDetails[2].slice(1));
-	};
-	var songlistData = 'channel=' + channelToPass;
-	var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-	var loggedInChannel = userDetails[2];
-	function removeSong(songToRemove) {
-		$.ajax({
-			url: '/removesong',
-			data: 'songToRemove=' + songToRemove + '&channel=' + channelToPass + '&loggedInChannel=' + loggedInChannel,
-			type: 'POST',
-			success: function(data) {
-				if (data == 'song removed') {
-					loadSonglist(songlistData,'moderation');
+	getChannelName('{{=it.passedUser}}').then(channelName => {
+		loadModerationPanels(channelName);
+		buildChannelDataString(channelName).then(channelData => {
+			var loggedInChannel = userDetails[2];
+			loadSonglist(channelData,'moderation').then(songlist => {
+				if (songlist) {
+					var dataTableStartSize = '5';
+					buildDataTable(songlist,'.datatable',dataTableStartSize);
+					checkForSonglistChanges(channelData,songlist,dataTableStartSize,'moderation');
 				} else {
-					$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn("fast");
-					setTimeout(function(){
-						$('.messagesFromBot').fadeOut("slow");
-					},2000);
+					$('.datatable tbody').hide();
+					$('.songlist').html("Currently no songs in the queue!");
 				};
-			}
+			});
+			$('body').on('click', '.removeButton', function(e) {
+				removeSong($(this).attr('id'),channelName,loggedInChannel).then(removeSongData => {
+					if (removeSongData != 'song removed') {
+						$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn("fast");
+						setTimeout(function(){
+							$('.messagesFromBot').fadeOut("slow");
+						},2000);
+					};
+				});
+			});
 		});
-	};
-	loadSonglist(songlistData,'moderation');
-	$('body').on("click", '.removeButton', function(e) {
-		removeSong($(this).attr('id'));
 	});
 </script>

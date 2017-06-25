@@ -13,7 +13,7 @@
 			<div class="currentsong"></div>
 			<div class="currentvolume"></div>
 		</div>
-		<div class="player-songlist">
+		<div class="player-songlist songlist">
 			<table class="datatable"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th></thead><tbody></tbody></table>
 		</div>
 	</div>
@@ -23,147 +23,97 @@
 <script src="/js/datatables.js"></script>
 <script>
 var player;
-var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-var loggedInChannel = userDetails[2];
-var data = 'channel=' + loggedInChannel;
-$(document).ready(function() {
-	$.ajaxSetup({ cache: false });
-	$('.volBtn').click(function(e) {
-		e.preventDefault();
-		var direction = $(this).attr('id');
-		var data = 'channel=' + loggedInChannel;
-		$.ajax({
-			url: '/getvolume',
-			data: data,
-			type: 'POST',
-			success: function(data) {
-				var oldVol = data[0]['volume'];
+var channelData = '';
+getChannelName('{{=it.passedUser}}').then(channelName => {
+	buildChannelDataString(channelName).then(channelRes => {
+		channelData = channelRes;
+		$.ajaxSetup({ cache: false });
+
+		$('.volBtn').click(function(e) {
+			e.preventDefault();
+			var direction = $(this).attr('id');
+			getVolume(channelData).then(currentVolume => {
 				var newVol = 0;
 				if (direction == 'up') {
-					if (oldVol < 90) {
-						newVol = Number(oldVol) + 10;
+					if (currentVolume < 90) {
+						newVol = Number(currentVolume) + 10;
 					} else {
 						newVol = 100;
 					};
 				} else {
-					if (oldVol > 10) {
-						newVol = oldVol - 10;
+					if (currentVolume > 10) {
+						newVol = currentVolume - 10;
 					} else {
 						newVol = 10;
 					};
 				};
-				var channelInfo = 'channel=' + loggedInChannel;
-				$.ajax({
-					url: '/updatevolume',
-					data: channelInfo + '&volume=' + newVol,
-					type: 'POST',
-					success: function(data) {
-						player.setVolume(newVol);
-					}
+				updateVolume(channelData,newVol).then(newVol => {
+					player.setVolume(newVol);
+					volumeReader();
 				});
-			}
+			});
 		});
-	});
-	$('.skipBtn').click(function(e) {
-		e.preventDefault();
-		loadNextSong();
-	});
-	$('.togglePlay').click(function(e) {
-		e.preventDefault();
-		var channelInfo = 'channel=' + loggedInChannel;
-		if ($(this).text() == 'Pause') {
-			player.pauseVideo();
-			$(this).text('Play');
-			$.ajax({
-				url: '/updatemusicstatus',
-				data: channelInfo + '&musicStatus=pause',
-				type: 'POST'
-			});
-		} else {
-			player.playVideo();
-			$(this).text('Pause');
-			$.ajax({
-				url: '/updatemusicstatus',
-				data: channelInfo + '&musicStatus=play',
-				type: 'POST'
-			});
-		};
+
+		$('.togglePlay').click(function(e) {
+			e.preventDefault();
+			if ($(this).text() == 'Pause') {
+				player.pauseVideo();
+				$(this).text('Play');
+				updateMusicStatus(channelData,'pause');
+			} else {
+				player.playVideo();
+				$(this).text('Pause');
+				updateMusicStatus(channelData,'play');
+			};
+		});
 	});
 });
 
-function loadSonglist() {
-	$.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			if (data != '') {
-				var contentData = '';
-				$('.datatable').DataTable().destroy();
-				$.each(data, function(key, value) {
-					if (key == 0) {
-						$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested By:</strong> ' + data[0]['whoRequested']);
-					}
-					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
-				});
-				$('.datatable tbody').html(contentData);
-				$('.datatable').DataTable({
-					"lengthMenu": [[5, 25, 50, -1], [5, 25, 50, "All"]]
-				});
-				$('.datatable').show();
-			} else {
-				$('.datatable tbody').hide();
-				$('.player-songlist').html("Currently no songs in the queue!");
-			};
-		}
-	});
-}
+$('.skipBtn').click(function(e) {
+	e.preventDefault();
+	loadNextSong();
+});
 
 function loadPlayer() {
-	var data = 'channel=' + loggedInChannel;
 	$.ajax({
 		url: '/getsonglist',
-		data: data,
+		data: channelData,
 		type: 'POST',
 		success: function(data) {
 			if (data[0] != undefined) {
-				buildPlayer(data[0]['songID']);
-				loadSonglist();
+
+				player = new YT.Player('player', {
+					videoId: data[0]['songID'],
+					events: {
+						'onReady': onPlayerReady,
+						'onStateChange': onPlayerStateChange
+					}
+				});
+
+				loadSonglist(channelData,'').then(songlist => {
+					if (songlist) {
+						var dataTableStartSize = '5';
+						buildDataTable(songlist,'.datatable',dataTableStartSize);
+						checkForSonglistChanges(channelData,songlist,dataTableStartSize);
+					} else {
+						$('.datatable tbody').hide();
+						$('.songlist').html("Currently no songs in the queue!");
+					};
+				});
 			} else {
 				$('#player').html('Currently no songs in the queue!');
+				this['checkSkippedSongsInterval'] = setInterval(function() {
+					checkForSkippedSongs();
+				}, 1000);
 			};
-		}
-	});
-}
-
-function buildPlayer(videoID) {
-	player = new YT.Player('player', {
-		videoId: videoID,
-		events: {
-			'onReady': onPlayerReady,
-			'onStateChange': onPlayerStateChange
-		}
-	});
-};
-
-function getCurrentSongInfo() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		cache: false,
-		success: function(data) {
-			$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested By:</strong> ' + data[0]['whoRequested']);
 		}
 	});
 }
 
 function loadNextSong() {
-	var data = 'channel=' + loggedInChannel;
 	$.ajax({
 		url: '/loadnextsong',
-		data: data,
+		data: channelData,
 		type: 'POST',
 		success: function(data) {
 			if (data == 'empty') {
@@ -171,31 +121,27 @@ function loadNextSong() {
 			} else {
 				player.loadVideoById(data);
 				$('.togglePlay').text('Pause');
-				loadSonglist();
+				loadSonglist(channelData,'');
 			};
 		}
 	});
 }
-
-function onYouTubeIframeAPIReady() {
-	loadPlayer();
-};
 
 function onPlayerReady(event) {
 	event.target.playVideo();
 	checkMusicStatus();
 	this['musicStatusInterval'] = setInterval(function() {
 		checkMusicStatus();
-	}, 3000);
+	}, 1000);
 
 	volumeReader();
-	setInterval(function(){volumeReader()}, 3000);
+	setInterval(function(){volumeReader()}, 1000);
 
 
 	checkForSkippedSongs();
 	this['checkSkippedSongsInterval'] = setInterval(function() {
 		checkForSkippedSongs();
-	}, 3000);
+	}, 1000);
 };
 
 function onPlayerStateChange(event) {
@@ -204,65 +150,61 @@ function onPlayerStateChange(event) {
 	};
 }
 
-function stopVideo() {
-	player.stopVideo();
-};
-
-function isNumeric(n) {
-	return !isNaN(parseFloat(n)) && isFinite(n);
-};
-
 function volumeReader() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getvolume',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			var oldVol = data[0]['volume'];
-			player.setVolume(oldVol);
-			$('.currentvolume').html('<strong>Current Volume: </strong>' + oldVol);
-		}
+	getVolume(channelData).then(currentVolume => {
+		player.setVolume(currentVolume);
+		$('.currentvolume').html('<strong>Current Volume: </strong>' + currentVolume);
 	});
 };
 
 function checkMusicStatus() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getmusicstatus',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			var databaseMusicStatus = data[0]['musicStatus'];
-			if (databaseMusicStatus == 'pause') {
-				player.pauseVideo();
-				$('.togglePlay').text('Play');
-			} else {
-				player.playVideo();
-				$('.togglePlay').text('Pause');
-			};
-		}
+	getMusicStatus(channelData).then(musicStatus => {
+		if (musicStatus[0]['musicStatus'] == 'pause') {
+			player.pauseVideo();
+			$('.togglePlay').text('Play');
+		} else {
+			player.playVideo();
+			$('.togglePlay').text('Pause');
+		};
 	});
 };
 
 function checkForSkippedSongs() {
-	var data = 'channel=' + loggedInChannel;
-	var currentPlayingID = player.getVideoUrl().split('v=');
-	$.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		cache: false,
-		success: function(data) {
-			if (data[0] != undefined) {
-				if (data[0]['songID'] == currentPlayingID[1]) {
+	if (player) {
+		var currentPlayingID = player.getVideoUrl().split('v=');
+		$.ajax({
+			url: '/getsonglist',
+			data: channelData,
+			type: 'POST',
+			cache: false,
+			success: function(data) {
+				if (data[0] != undefined) {
+					if (data[0]['songID'] == currentPlayingID[1]) {
+					} else {
+						player.loadVideoById(data[0]['songID']);
+					};
 				} else {
+					player.loadVideoById('');
+				};
+			}
+		});
+	} else {
+		$.ajax({
+			url: '/getsonglist',
+			data: channelData,
+			type: 'POST',
+			cache: false,
+			success: function(data) {
+				if (data) {
 					location.reload();
 				};
-			} else {
-				player.loadVideoById('');
-			};
-		}
-	});
+			}
+		});
+	}
 };
+
+function onYouTubeIframeAPIReady() {
+	loadPlayer();
+};
+
 </script>

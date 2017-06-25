@@ -15,197 +15,85 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-var player;
-var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-var loggedInChannel = userDetails[2];
-var data = 'channel=' + loggedInChannel;
-$(document).ready(function() {
+var channelData = '';
+getChannelName('{{=it.passedUser}}').then(channelName => {
+	buildChannelDataString(channelName).then(channelRes => {
+		channelData = channelRes;
+		loadSonglist(channelData,'');
+		$.ajaxSetup({ cache: false });
 
-
-	checkMusicStatus();
-	this['musicStatusInterval'] = setInterval(function() {
-		checkMusicStatus();
-	}, 3000);
-
-	volumeReader();
-	setInterval(function(){volumeReader()}, 3000);
-
-	getCurrentSongInfo();
-	setInterval(function(){getCurrentSongInfo()}, 3000);
-
-	$.ajaxSetup({ cache: false });
-	$('.volBtn').click(function(e) {
-		e.preventDefault();
-		var direction = $(this).attr('id');
-		var data = 'channel=' + loggedInChannel;
-		$.ajax({
-			url: '/getvolume',
-			data: data,
-			type: 'POST',
-			success: function(data) {
-				var oldVol = data[0]['volume'];
+		$('.volBtn').click(function(e) {
+			e.preventDefault();
+			var direction = $(this).attr('id');
+			getVolume(channelData).then(currentVolume => {
 				var newVol = 0;
 				if (direction == 'up') {
-					if (oldVol < 90) {
-						newVol = Number(oldVol) + 10;
+					if (currentVolume < 90) {
+						newVol = Number(currentVolume) + 10;
 					} else {
 						newVol = 100;
 					};
 				} else {
-					if (oldVol > 10) {
-						newVol = oldVol - 10;
+					if (currentVolume > 10) {
+						newVol = currentVolume - 10;
 					} else {
 						newVol = 10;
 					};
 				};
-				var channelInfo = 'channel=' + loggedInChannel;
-				$.ajax({
-					url: '/updatevolume',
-					data: channelInfo + '&volume=' + newVol,
-					type: 'POST',
-					success: function(data) {
-					}
+				updateVolume(channelData,newVol).then(newVol => {
+					volumeReader();
 				});
-			}
+			});
 		});
-	});
-	$('.skipBtn').click(function(e) {
-		e.preventDefault();
-		loadNextSong();
-	});
-	$('.togglePlay').click(function(e) {
-		e.preventDefault();
-		var channelInfo = 'channel=' + loggedInChannel;
-		if ($(this).text() == 'Pause') {
-			$(this).text('Play');
+
+		$('.togglePlay').click(function(e) {
+			e.preventDefault();
+			if ($(this).text() == 'Pause') {
+				$(this).text('Play');
+				updateMusicStatus(channelData,'pause');
+			} else {
+				$(this).text('Pause');
+				updateMusicStatus(channelData,'play');
+			};
+		});
+
+		$('.skipBtn').click(function(e) {
+			e.preventDefault();
 			$.ajax({
-				url: '/updatemusicstatus',
-				data: channelInfo + '&musicStatus=pause',
-				type: 'POST'
+				url: '/loadnextsong',
+				data: channelData,
+				type: 'POST',
+				success: function(data) {
+					loadSonglist(channelData,'');
+				}
 			});
-		} else {
-			$(this).text('Pause');
-			$.ajax({
-				url: '/updatemusicstatus',
-				data: channelInfo + '&musicStatus=play',
-				type: 'POST'
-			});
-		};
+		});
 	});
 });
 
-function loadPlayer() {
-	var data = 'channel=' + loggedInChannel;
-	var testing = $.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			if (data[0] != undefined) {
-				buildPlayer(data[0]['songID']);
-				getCurrentSongInfo();
-			} else {
-				$('#player').html('Currently no songs in the queue!');
-			};
-		}
-	});
-}
+this['checkSkippedSongsInterval'] = setInterval(function() {
+	loadSonglist(channelData,'');
+}, 1000);
 
-function buildPlayer(videoID) {
-	player = new YT.Player('player', {
-		height: '390',
-		width: '640',
-		videoId: videoID,
-		events: {
-			'onReady': onPlayerReady,
-			'onStateChange': onPlayerStateChange
-		}
-	});
-};
+this['musicStatusInterval'] = setInterval(function() {
+	checkMusicStatus();
+}, 1000);
 
-function getCurrentSongInfo() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		cache: false,
-		success: function(data) {
-			$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested By:</strong> ' + data[0]['whoRequested']);
-		}
-	});
-}
-
-function loadNextSong() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/loadnextsong',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			if (data == 'empty') {
-				console.log(data);
-			} else {
-				getCurrentSongInfo();
-				$('.togglePlay').text('Pause');
-			};
-		}
-	});
-	$('#songlistframe').attr('src','http://skedog.com/sr/songlist');
-}
-
-function isNumeric(n) {
-	return !isNaN(parseFloat(n)) && isFinite(n);
-};
+setInterval(function(){volumeReader()}, 1000);
 
 function volumeReader() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getvolume',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			var oldVol = data[0]['volume'];
-			$('.currentvolume').html('<strong>Current Volume: </strong>' + oldVol);
-		}
+	getVolume(channelData).then(currentVolume => {
+		$('.currentvolume').html('<strong>Current Volume: </strong>' + currentVolume);
 	});
 };
 
 function checkMusicStatus() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getmusicstatus',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			var databaseMusicStatus = data[0]['musicStatus'];
-			if (databaseMusicStatus == 'pause') {
-				$('.togglePlay').text('Play');
-			} else {
-				$('.togglePlay').text('Pause');
-			};
-		}
-	});
-};
-
-function checkForSkippedSongs() {
-	var data = 'channel=' + loggedInChannel;
-	var currentPlayingID = player.getVideoUrl().split('v=');
-	$.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		cache: false,
-		success: function(data) {
-			if (data[0] != undefined) {
-				if (data[0]['songID'] == currentPlayingID[1]) {
-				} else {
-					location.reload();
-				};
-			} else {
-				player.loadVideoById('');
-			};
-		}
+	getMusicStatus(channelData).then(musicStatus => {
+		if (musicStatus[0]['musicStatus'] == 'pause') {
+			$('.togglePlay').text('Play');
+		} else {
+			$('.togglePlay').text('Pause');
+		};
 	});
 };
 </script>

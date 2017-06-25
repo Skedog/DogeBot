@@ -14,80 +14,81 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/validator.min.js"></script>
 <script>
-var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-var loggedInChannel = userDetails[2];
-$(document).ready(function() {
-	var data = 'channel=' + loggedInChannel;
-	$.ajax({
-		url: '/getsettings',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			$('#duplicateSongDelay').val(data[0].duplicateSongDelay);
-			$('#songNumberLimit').val(data[0].songNumberLimit);
-			$('#maxSongLength').val(data[0].maxSongLength);
-		}
-	});
-	var failedField = false;
-	var validateField = function(fieldToCheck) {
-		return new Promise((resolve, reject) => {
-			if (fieldToCheck.is('#maxSongLength')) {
-				if (fieldToCheck.val() > 59) {
-					fieldToCheck.css({
-						'background-color':'#ff5252'
-					});
-					$('.messagesFromBot').html('<p>' + 'Max song length cannot be larger than 59 minutes!' + '</p>').fadeIn("fast");
-					setTimeout(function(){
-						$('.messagesFromBot').fadeOut("slow");
-					},2000);
-					reject('failed check');
-				}
+getChannelName('{{=it.passedUser}}').then(channelName => {
+	buildChannelDataString(channelName).then(channelData => {
+		$.ajax({
+			url: '/getsettings',
+			data: channelData,
+			type: 'POST',
+			success: function(data) {
+				$('#duplicateSongDelay').val(data[0].duplicateSongDelay);
+				$('#songNumberLimit').val(data[0].songNumberLimit);
+				$('#maxSongLength').val(data[0].maxSongLength);
 			}
-			if (!validator.isNumeric(fieldToCheck.val())) {
+		});
+		var failedField = false;
+		$('#settings').children('label').children('input[type="text"]').keyup(function(e) {
+			validateSettingsField($(this)).then(test => {
+				failedField = false;
+			}).catch(err => {
+				failedField = true;
+			});
+		});
+
+		$('#settings').submit(function(e) {
+			e.preventDefault();
+			var duplicateSongDelay = $('#duplicateSongDelay').val();
+			var songNumberLimit = $('#songNumberLimit').val();
+			var maxSongLength = $('#maxSongLength').val();
+			var canUpdate = true;
+			var specialMessage = '';
+			$('#settings').children('label').children('input[type="text"]').each(function(){
+				validateSettingsField($(this)).catch(err => {
+					failedField = true;
+					return false;
+				});
+			});
+			if (!failedField) {
+				var data = channelData + '&duplicateSongDelay=' + duplicateSongDelay + '&songNumberLimit=' + songNumberLimit + '&maxSongLength=' + maxSongLength;
+				$.ajax({
+					url: '/updatesettings',
+					data: data,
+					type: 'POST',
+					success: function(data) {
+						$('.messagesFromBot').html('<p>' + 'Settings updated!' + '</p>').fadeIn("fast");
+						setTimeout(function(){
+							$('.messagesFromBot').fadeOut("slow");
+						},2000);
+					}
+				});
+			}
+		});
+	});
+});
+
+var validateSettingsField = function(fieldToCheck) {
+	return new Promise((resolve, reject) => {
+		if (fieldToCheck.is('#maxSongLength')) {
+			if (fieldToCheck.val() > 59) {
 				fieldToCheck.css({
 					'background-color':'#ff5252'
 				});
+				$('.messagesFromBot').html('<p>' + 'Max song length cannot be larger than 59 minutes!' + '</p>').fadeIn("fast");
+				setTimeout(function(){
+					$('.messagesFromBot').fadeOut("slow");
+				},2000);
 				reject('failed check');
-			} else {
-				fieldToCheck.removeAttr('style');
-				resolve('done');
 			}
-		});
-	};
-	$('#settings').children('label').children('input[type="text"]').keyup(function(e) {
-		validateField($(this)).then(test => {
-			failedField = false;
-		}).catch(err => {
-			failedField = true;
-		});
-	});
-	$('#settings').submit(function(e) {
-		e.preventDefault();
-		var duplicateSongDelay = $('#duplicateSongDelay').val();
-		var songNumberLimit = $('#songNumberLimit').val();
-		var maxSongLength = $('#maxSongLength').val();
-		var canUpdate = true;
-		var specialMessage = '';
-		$('#settings').children('label').children('input[type="text"]').each(function(){
-			validateField($(this)).catch(err => {
-				failedField = true;
-				return false;
+		}
+		if (!validator.isNumeric(fieldToCheck.val())) {
+			fieldToCheck.css({
+				'background-color':'#ff5252'
 			});
-		});
-		if (!failedField) {
-			var data = 'channel=' + loggedInChannel + '&duplicateSongDelay=' + duplicateSongDelay + '&songNumberLimit=' + songNumberLimit + '&maxSongLength=' + maxSongLength;
-			$.ajax({
-				url: '/updatesettings',
-				data: data,
-				type: 'POST',
-				success: function(data) {
-					$('.messagesFromBot').html('<p>' + 'Settings updated!' + '</p>').fadeIn("fast");
-					setTimeout(function(){
-						$('.messagesFromBot').fadeOut("slow");
-					},2000);
-				}
-			});
+			reject('failed check');
+		} else {
+			fieldToCheck.removeAttr('style');
+			resolve('done');
 		}
 	});
-});
+};
 </script>

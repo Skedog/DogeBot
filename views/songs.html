@@ -3,37 +3,23 @@
 		<img src="/img/commands.png" alt="" />
 		<h1>Songlist</h1>
 		<div class="commandssection"></div>
-		<table class="datatable songs"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th></thead><tbody></tbody></table>
+		<table class="datatable songlist"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th></thead><tbody></tbody></table>
 	</div>
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
-	var channelToPass = '';
-	if ('{{=it.passedUser}}' != 'undefined') {
-		channelToPass = '#{{=it.passedUser}}'
-	} else {
-		var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-		channelToPass = userDetails[2];
-	};
-	var data = 'channel=' + channelToPass;
-	var firstSongInQueue = '';
-	var secondSongInQueue = '';
-	loadSonglist(data,'songs');
-	function checkForSkippedSongs(channelToPass,numberOfSongs,secondSongInQueue) {
-		var data = 'channel=' + channelToPass;
-		$.ajax({
-			url: '/getsonglist',
-			data: data,
-			type: 'POST',
-			cache: false,
-			success: function(data) {
-				if (data[0] != undefined) {
-					if (data.length == numberOfSongs && data[1]['songID'] == secondSongInQueue) {
-					} else {
-						location.reload();
-					};
+	getChannelName('{{=it.passedUser}}').then(channelName => {
+		buildChannelDataString(channelName).then(channelData => {
+			loadSonglist(channelData,'').then(songlist => {
+				if (songlist) {
+					var dataTableStartSize = '25';
+					buildDataTable(songlist,'.datatable',dataTableStartSize);
+					checkForSonglistChanges(channelData,songlist,dataTableStartSize);
+				} else {
+					$('.datatable tbody').hide();
+					$('.songlist').html("Currently no songs in the queue!");
 				};
-			}
+			});
 		});
-	};
+	});
 </script>

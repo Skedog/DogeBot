@@ -9,24 +9,21 @@ $(document).ready(function() {
 });
 
 function getNewSongInfo() {
-	if ('{{=it.passedUser}}' != 'undefined') {
-		var passedChannel = '{{=it.passedUser}}';
-		var data = 'channel=#' + passedChannel;
-	} else {
-		var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
-		var data = 'channel=' + userDetails[2];
-	};
-	$.ajax({
-		url: '/getcurrentsongforobs',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			if ('{{=it.showText}}' == 'true') {
-				$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
-			} else {
-				$('.commandssection').html(data[0]['songTitle']);
-			}
-		}
+	getChannelName('{{=it.passedUser}}').then(channelName => {
+		buildChannelDataString(channelName).then(channelData => {
+			$.ajax({
+				url: '/getcurrentsongforobs',
+				data: channelData,
+				type: 'POST',
+				success: function(data) {
+					if ('{{=it.showText}}' == 'true') {
+						$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
+					} else {
+						$('.commandssection').html(data[0]['songTitle']);
+					}
+				}
+			});
+		});
 	});
 };
 </script>
