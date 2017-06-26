@@ -101,7 +101,6 @@ var connect = function(db,dbConstants) {
 				var token = req.cookies.token;
 				if (req.cookies.userDetails) {
 					var userDetails = req.cookies.userDetails.split(',');
-					var currentChannel = userDetails[2];
 					var twitchUserID = userDetails[3];
 					checkUserLogin(db,token,twitchUserID).then(isLoggedIn => {
 						resolve(true);
@@ -122,9 +121,17 @@ var connect = function(db,dbConstants) {
 						if (req.channel != undefined) {
 							var channelToCheckMods = req.channel; //from URL, never has #
 						} else if (req.body.channel != undefined) {
-							var channelToCheckMods = req.body.channel.substring(1); //has #, needs to be removed
+							if (req.body.channel.includes('#')) {
+								var channelToCheckMods = req.body.channel.substring(1); //has #, needs to be removed
+							} else {
+								var channelToCheckMods = req.body.channel;
+							}
 						} else {
-							var channelToCheckMods = userDetails[2].substring(1); //has #, needs to be removed
+							if (userDetails[2].includes('#')) {
+								var channelToCheckMods = userDetails[2].substring(1); //has #, needs to be removed
+							} else {
+								var channelToCheckMods = userDetails[2];
+							}
 						}
 						var twitchUserID = userDetails[3];
 						if (!!twitchUserID) {
@@ -241,7 +248,19 @@ var connect = function(db,dbConstants) {
 			checkModStatus(req).then(results => {
 				if (results) {
 					dataToUse = {};
-					var query2 = {channel:req.body.channel,songID:req.body.songToRemove};
+					if (req.channel) {
+						if (req.channel.includes('#')) {
+							var query2 = {channel:req.channel,songID:req.body.songToRemove};
+						} else {
+							var query2 = {channel:'#' + req.channel,songID:req.body.songToRemove};
+						}
+					} else {
+						if (req.body.channel.includes('#')) {
+							var query2 = {channel:req.body.channel,songID:req.body.songToRemove};
+						} else {
+							var query2 = {channel:'#' + req.body.channel,songID:req.body.songToRemove};
+						}
+					}
 					runSQL('delete','songs',query2,dataToUse,db).then(results => {
 						res.send('song removed');
 					});
