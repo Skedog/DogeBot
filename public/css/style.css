@@ -56,6 +56,9 @@ iframe#player {width:100%;height:300px;}
 
 .clear {clear:both;}
 
+.control-buttons.moderation {float:left;margin-left: 20px;}
+.control-buttons.moderation .blue-styled-button {margin:10px;}
+
 @media screen and (max-width:1199px) {
 	.player-songlist,.player-page {float:none;margin:0 auto;width:100%;}
 	#settings label {width:100%;text-align: center;}
@@ -63,6 +66,8 @@ iframe#player {width:100%;height:300px;}
 	.threecol > div img {max-width:100%;}
 	.chatbox {width:100%;height:500px;}
 	.moderation-songlist {float:none;width:100%;clear:both;}
+
+	.control-buttons.moderation {float:none;margin:0 auto;}
 }
 
 @media screen and (min-width:768px) {

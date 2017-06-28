@@ -8,6 +8,10 @@
 			<div class="moderation-songlist songlist">
 				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th><th>Remove</th></thead><tbody></tbody></table>
 			</div>
+			<div class="control-buttons moderation clear">
+				<button type="button" class="blue-styled-button volBtn" id="up">Volume +</button>
+				<button type="button" class="blue-styled-button volBtn" id="down">Volume -</button>
+			</div>
 		</div>
 		<div class="details">
 			<div class="messagesFromBot clear"></div>
@@ -43,6 +47,29 @@
 							$('.messagesFromBot').fadeOut("slow");
 						},2000);
 					};
+				});
+			});
+			$('.volBtn').click(function(e) {
+				e.preventDefault();
+				var direction = $(this).attr('id');
+				getVolume(channelData).then(currentVolume => {
+					var newVol = 0;
+					if (direction == 'up') {
+						if (currentVolume < 90) {
+							newVol = Number(currentVolume) + 10;
+						} else {
+							newVol = 100;
+						};
+					} else {
+						if (currentVolume > 10) {
+							newVol = currentVolume - 10;
+						} else {
+							newVol = 10;
+						};
+					};
+					updateVolume(channelData,newVol).then(newVol => {
+						volumeReader();
+					});
 				});
 			});
 		});

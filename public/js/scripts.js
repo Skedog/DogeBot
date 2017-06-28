@@ -188,8 +188,10 @@ function checkIfInChannel(channelName) {
 function getChannelName(urlUser) {
 	return new Promise((resolve, reject) => {
 		if (urlUser != 'undefined') {
+			passedUser = urlUser;
 			resolve(urlUser);
 		} else {
+			passedUser = userDetails[2];
 			resolve(userDetails[2]);
 		};
 	});
@@ -277,6 +279,8 @@ function updateMusicStatus(channelData,musicStatus) {
 	});
 }
 
+var passedUser = ''; //this is needed to make the window resize function below work
+
 $(document).ready(function() {
 	setTimeout(function() {
 		if ($( window ).width() < 767) {
@@ -285,12 +289,21 @@ $(document).ready(function() {
 	}, 100);
 	$( window ).resize(function() {
 		if ($( window ).width() > 767) {
-	        // if (!$.fn.DataTable.isDataTable('.datatable')) {
-	        	$('.datatable').DataTable().destroy();
-	        	$('.datatable').DataTable({
-	        		"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
-	        	});
-	        // } else {}
+			getChannelName(passedUser).then(channelName => {
+				buildChannelDataString(channelName).then(channelData => {
+					var loggedInChannel = userDetails[2];
+					loadSonglist(channelData,'moderation').then(songlist => {
+						if (songlist) {
+							var dataTableStartSize = '5';
+							buildDataTable(songlist,'.datatable',dataTableStartSize);
+							checkForSonglistChanges(channelData,songlist,dataTableStartSize,'moderation');
+						} else {
+							$('.datatable tbody').hide();
+							$('.songlist').html("Currently no songs in the queue!");
+						};
+					});
+				});
+			});
 	    } else {
 	    	$('.datatable').DataTable().destroy();
 	    }
