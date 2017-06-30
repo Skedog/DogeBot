@@ -1,7 +1,6 @@
 <div class="container wrapper">
 	<div class="starter-template">
-		<img src="/img/playlists.png" alt="" />
-		<h1>Player</h1>
+		<h1><img src="/img/playlists.png" alt="" />Player</h1>
 		<div class="player-page">
 			<div id="player"></div>
 			<div class="buttons">
@@ -14,7 +13,7 @@
 			<div class="currentvolume"></div>
 		</div>
 		<div class="player-songlist songlist">
-			<table class="datatable"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th></thead><tbody></tbody></table>
+			<table class="datatable"><thead><th>#</th><th>Title</th><th>Requested</th></thead><tbody></tbody></table>
 		</div>
 	</div>
 </div>
@@ -24,6 +23,7 @@
 <script>
 var player;
 var channelData = '';
+passedPage = 'player';
 getChannelName('{{=it.passedUser}}').then(channelName => {
 	buildChannelDataString(channelName).then(channelRes => {
 		channelData = channelRes;
@@ -89,12 +89,11 @@ function loadPlayer() {
 						'onStateChange': onPlayerStateChange
 					}
 				});
-
-				loadSonglist(channelData,'').then(songlist => {
+				loadSonglist(channelData,'player').then(songlist => {
 					if (songlist) {
-						var dataTableStartSize = '5';
+						dataTableStartSize = '5';
 						buildDataTable(songlist,'.datatable',dataTableStartSize);
-						checkForSonglistChanges(channelData,songlist,dataTableStartSize);
+						checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
 					} else {
 						$('.datatable tbody').hide();
 						$('.songlist').html("Currently no songs in the queue!");
@@ -121,7 +120,7 @@ function loadNextSong() {
 			} else {
 				player.loadVideoById(data);
 				$('.togglePlay').text('Pause');
-				loadSonglist(channelData,'');
+				loadSonglist(channelData,'player');
 			};
 		}
 	});

@@ -1,18 +1,26 @@
 <div class="container wrapper">
 	<div class="starter-template">
-		<img src="/img/commands.png" alt="" />
-		<h1>Moderation Panel</h1>
+		<h1><img src="/img/commands.png" alt="" /> Moderation Panel</h1>
 		<div class="moderation-messages"></div>
-		<div class="moderation-panels">
-			<div class="chatbox"></div>
-			<div class="moderation-songlist songlist">
-				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested By</th><th>Remove</th></thead><tbody></tbody></table>
-			</div>
+		<div class="song-container">
 			<div class="control-buttons moderation clear">
-				<button type="button" class="blue-styled-button volBtn" id="up">Volume +</button>
-				<button type="button" class="blue-styled-button volBtn" id="down">Volume -</button>
+				<div class="volumeContainer clear clearfix">
+					<h3>Volume</h3>
+					<div class="slider clear">
+						<input type="range" id="volumeRange" value="" max="100" min="0" onchange="updateRangeVolume(this.value)" />
+						<input type="text" name="volumeInput" id="volumeInput" disabled />
+					</div>
+					<div class="buttons clear">
+						<button type="button" class="blue-styled-button volBtn" id="up">Volume +10</button>
+						<button type="button" class="blue-styled-button volBtn" id="down">Volume -10</button>
+					</div>
+				</div>
+			</div>
+			<div class="moderation-songlist songlist">
+				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Requested</th><th>Remove</th></thead><tbody></tbody></table>
 			</div>
 		</div>
+		<div class="chatbox"></div>
 		<div class="details">
 			<div class="messagesFromBot clear"></div>
 		</div>
@@ -25,19 +33,33 @@
 		var chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
 		$('.chatbox').html(chatPanel);
 	};
+	function updateRangeVolume(newVol) {
+		$('#volumeInput').val(newVol);
+		getChannelName('{{=it.passedUser}}').then(channelName => {
+			buildChannelDataString(channelName).then(channelData => {
+				updateVolume(channelData,newVol).then(newVol => {
+				});
+			});
+		});
+	}
 	getChannelName('{{=it.passedUser}}').then(channelName => {
 		loadModerationPanels(channelName);
 		buildChannelDataString(channelName).then(channelData => {
 			var loggedInChannel = userDetails[2];
-			loadSonglist(channelData,'moderation').then(songlist => {
+			passedPage = 'moderation';
+			loadSonglist(channelData,passedPage).then(songlist => {
 				if (songlist) {
-					var dataTableStartSize = '5';
+					dataTableStartSize = 'All';
 					buildDataTable(songlist,'.datatable',dataTableStartSize);
 					checkForSonglistChanges(channelData,songlist,dataTableStartSize,'moderation');
 				} else {
 					$('.datatable tbody').hide();
 					$('.songlist').html("Currently no songs in the queue!");
 				};
+			});
+			getVolume(channelData).then(currentVolume => {
+				$('#volumeInput').val(currentVolume);
+				$('#volumeRange').val(currentVolume);
 			});
 			$('body').on('click', '.removeButton', function(e) {
 				removeSong($(this).attr('id'),channelName,loggedInChannel).then(removeSongData => {
@@ -67,11 +89,20 @@
 							newVol = 10;
 						};
 					};
+					$('#volumeInput').val(newVol);
+					$('#volumeRange').val(newVol);
 					updateVolume(channelData,newVol).then(newVol => {
 						volumeReader();
 					});
 				});
 			});
+			this['checkSonglistHeightChange'] = setInterval(function() {
+				if ($( window ).width() > 767) {
+					$('.chatbox,.song-container').height($( window ).height()-235);
+				} else {
+					$('.chatbox,.song-container').removeAttr('style');
+				}
+			}, 1000);
 		});
 	});
 </script>

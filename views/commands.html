@@ -1,7 +1,6 @@
 <div class="container wrapper">
 	<div class="starter-template">
-		<img src="/img/commands.png" alt="" />
-		<h1>Your Commands</h1>
+		<h1><img src="/img/commands.png" alt="" />Your Commands</h1>
 		<div class="commandssection"></div>
 		<table class="datatable"><thead><th>Command</th><th>Text</th><th>Counter</th><th>Permissions Level</th></thead><tbody></tbody></table>
 	</div>
@@ -12,7 +11,7 @@
 	getChannelName('{{=it.passedUser}}').then(channelName => {
 		getCommands(channelName).then(commandsData => {
 			if (commandsData) {
-				var dataTableStartSize = '25';
+				dataTableStartSize = '25';
 				buildDataTable(commandsData,'.datatable',dataTableStartSize);
 			} else {
 				$('.datatable tbody').hide();

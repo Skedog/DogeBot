@@ -63,12 +63,15 @@ function loadSonglist(data,page) {
 					var contentData = '';
 					$.each(data, function(key, value) {
 						if (key == 0) {
-							$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested By:</strong> ' + data[0]['whoRequested']);
+							$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested:</strong> ' + data[0]['whoRequested']);
 						}
+						console.log(page);
 						if (page == 'moderation') {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="Remove" id="' + data[key]['songID'] + '" class="removeButton" /></td></tr>';
+							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
+						} else if (page == 'player') {
+							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 						} else {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';;
+							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 						};
 					});
 					resolve(contentData);
@@ -135,6 +138,10 @@ function buildDataTable(passedData,elementToUse,startSize) {
 	} else if (startSize == '5') {
 		$(elementToUse).DataTable({
 			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]]
+		});
+	} else if (startSize == 'All') {
+		$(elementToUse).DataTable({
+			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]]
 		});
 	}
 	$(elementToUse).show();
@@ -280,6 +287,9 @@ function updateMusicStatus(channelData,musicStatus) {
 }
 
 var passedUser = ''; //this is needed to make the window resize function below work
+var passedPage = ''; //this is needed to make the window resize function below work
+var dataTableStartSize = '';
+var isCache = false;
 
 $(document).ready(function() {
 	setTimeout(function() {
@@ -292,16 +302,26 @@ $(document).ready(function() {
 			getChannelName(passedUser).then(channelName => {
 				buildChannelDataString(channelName).then(channelData => {
 					var loggedInChannel = userDetails[2];
-					loadSonglist(channelData,'moderation').then(songlist => {
-						if (songlist) {
-							var dataTableStartSize = '5';
-							buildDataTable(songlist,'.datatable',dataTableStartSize);
-							checkForSonglistChanges(channelData,songlist,dataTableStartSize,'moderation');
-						} else {
-							$('.datatable tbody').hide();
-							$('.songlist').html("Currently no songs in the queue!");
-						};
-					});
+					if (isCache) {
+						loadSongCache(channelData).then(songCache => {
+							if (songCache) {
+								buildDataTable(songCache,'.datatable',dataTableStartSize);
+							} else {
+								$('.datatable tbody').hide();
+								$('.songcache').html("Currently no songs in the cache!");
+							};
+						});
+					} else {
+						loadSonglist(channelData,passedPage).then(songlist => {
+							if (songlist) {
+								buildDataTable(songlist,'.datatable',dataTableStartSize);
+								checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
+							} else {
+								$('.datatable tbody').hide();
+								$('.songlist').html("Currently no songs in the queue!");
+							};
+						});
+					};
 				});
 			});
 	    } else {

@@ -1,7 +1,6 @@
 <div class="container wrapper">
 	<div class="starter-template">
-		<img src="/img/commands.png" alt="" />
-		<h1>Songcache</h1>
+		<h1><img src="/img/commands.png" alt="" />Songcache</h1>
 		<div class="commandssection"></div>
 		<table class="datatable songcache"><thead><th>#</th><th>Title</th><th>Video ID</th></thead><tbody></tbody></table>
 	</div>
@@ -9,11 +8,12 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/datatables.js"></script>
 <script>
+	isCache = true;
 	getChannelName('{{=it.passedUser}}').then(channelName => {
 		buildChannelDataString(channelName).then(channelData => {
 			loadSongCache(channelData).then(songCache => {
 				if (songCache) {
-					var dataTableStartSize = '25';
+					dataTableStartSize = '25';
 					buildDataTable(songCache,'.datatable',dataTableStartSize);
 				} else {
 					$('.datatable tbody').hide();
