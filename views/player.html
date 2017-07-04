@@ -2,6 +2,9 @@
 	<div class="starter-template">
 		<h1><img src="/img/playlists.png" alt="" />Player</h1>
 		<div class="player-page">
+			<div class="delay-container">
+				<label for="delay"><span>Delay: </span><input type="text" name="delay" id="delay" class="delay" /></label>
+			</div>
 			<div id="player"></div>
 			<div class="buttons">
 				<button type="button" class="blue-styled-button togglePlay">Pause</button>
@@ -24,6 +27,14 @@
 var player;
 var channelData = '';
 passedPage = 'player';
+if ('{{=it.passedUser}}' != 'undefined') {
+	$('.buttons,.currentsong,.currentvolume').remove();
+	$('.player-page').addClass('playerFull');
+	$('.player-songlist').remove();
+	$('.delay').val(readCookie('userDelay'));
+} else {
+	$('.delay-container').remove();
+}
 getChannelName('{{=it.passedUser}}').then(channelName => {
 	buildChannelDataString(channelName).then(channelRes => {
 		channelData = channelRes;
@@ -67,11 +78,16 @@ getChannelName('{{=it.passedUser}}').then(channelName => {
 			};
 		});
 	});
+
 });
 
 $('.skipBtn').click(function(e) {
 	e.preventDefault();
 	loadNextSong();
+});
+
+$('.delay').keyup(function(e) {
+	document.cookie = "userDelay=" + $('.delay').val();
 });
 
 function loadPlayer() {
@@ -81,7 +97,6 @@ function loadPlayer() {
 		type: 'POST',
 		success: function(data) {
 			if (data[0] != undefined) {
-
 				player = new YT.Player('player', {
 					videoId: data[0]['songID'],
 					events: {
@@ -115,9 +130,7 @@ function loadNextSong() {
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			if (data == 'empty') {
-				console.log(data);
-			} else {
+			if (data != 'empty') {
 				player.loadVideoById(data);
 				$('.togglePlay').text('Pause');
 				loadSonglist(channelData,'player');
@@ -128,9 +141,9 @@ function loadNextSong() {
 
 function onPlayerReady(event) {
 	event.target.playVideo();
-	checkMusicStatus();
+	checkMusicStatus(true);
 	this['musicStatusInterval'] = setInterval(function() {
-		checkMusicStatus();
+		checkMusicStatus(false);
 	}, 1000);
 
 	volumeReader();
@@ -145,7 +158,11 @@ function onPlayerReady(event) {
 
 function onPlayerStateChange(event) {
 	if (event.data == 0) {
-		loadNextSong();
+		if ('{{=it.passedUser}}' == 'undefined') {
+			loadNextSong();
+		} else {
+			location.reload();
+		}
 	};
 }
 
@@ -156,15 +173,39 @@ function volumeReader() {
 	});
 };
 
-function checkMusicStatus() {
+function checkMusicStatus(firstLoad) {
 	getMusicStatus(channelData).then(musicStatus => {
-		if (musicStatus[0]['musicStatus'] == 'pause') {
-			player.pauseVideo();
-			$('.togglePlay').text('Play');
+		if ('{{=it.passedUser}}' == 'undefined' || firstLoad) {
+			if (musicStatus[0]['musicStatus'] == 'pause') {
+				player.pauseVideo();
+				$('.togglePlay').text('Play');
+			} else {
+				player.playVideo();
+				$('.togglePlay').text('Pause');
+			};
 		} else {
-			player.playVideo();
-			$('.togglePlay').text('Pause');
-		};
+			if ($('.delay').val() != '') {
+				if (musicStatus[0]['musicStatus'] == 'pause') {
+					setTimeout(function() {
+						player.pauseVideo();
+						$('.togglePlay').text('Play');
+					},$('.delay').val() * 1000);
+				} else {
+					setTimeout(function() {
+						player.playVideo();
+						$('.togglePlay').text('Pause');
+					},$('.delay').val() * 1000);
+				};
+			} else {
+				if (musicStatus[0]['musicStatus'] == 'pause') {
+					player.pauseVideo();
+					$('.togglePlay').text('Play');
+				} else {
+					player.playVideo();
+					$('.togglePlay').text('Pause');
+				};
+			};
+		}
 	});
 };
 
@@ -178,9 +219,14 @@ function checkForSkippedSongs() {
 			cache: false,
 			success: function(data) {
 				if (data[0] != undefined) {
-					if (data[0]['songID'] == currentPlayingID[1]) {
-					} else {
-						player.loadVideoById(data[0]['songID']);
+					if (data[0]['songID'] != currentPlayingID[1]) {
+						if ('{{=it.passedUser}}' == 'undefined') {
+							player.loadVideoById(data[0]['songID']);
+						} else {
+							setTimeout(function() {
+								location.reload();
+							},$('.delay').val() * 1000);
+						}
 					};
 				} else {
 					player.loadVideoById('');
@@ -205,5 +251,4 @@ function checkForSkippedSongs() {
 function onYouTubeIframeAPIReady() {
 	loadPlayer();
 };
-
 </script>

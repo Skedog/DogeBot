@@ -212,12 +212,6 @@ var connect = function(db,dbConstants) {
 			res.redirect('/logout');
 		})
 
-		app.get('/player', [checkUserLoginStatus], function (req, res, next) {
-			next()
-		}, function (req, res) {
-			res.redirect('/logout');
-		})
-
 		app.get('/mobile', [checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {
@@ -240,6 +234,12 @@ var connect = function(db,dbConstants) {
 			}).catch(function(err) {
 				res.redirect('/logout');
 			});
+		}, function (req, res) {
+			res.redirect('/logout');
+		})
+
+		app.get('/player/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
+			next()
 		}, function (req, res) {
 			res.redirect('/logout');
 		})

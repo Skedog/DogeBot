@@ -46,12 +46,16 @@ table.dataTable tbody tr.even {background:#dadada;}
 .player-page {float:left;width:50%;padding:10px;box-sizing:border-box;}
 .player-page button {margin-left:10px;}
 iframe#player {width:100%;height:300px;}
+.player-page.playerFull {width:100%;}
+.player-page.playerFull iframe#player {height:500px;}
 
 .threecol > div {background:url(/img/bg-buttons.png) 0 0 repeat #dddddd;float:left;width:32.4%;box-sizing:border-box;padding:15px 10px 10px 10px;margin:0 10px 10px 0;color:#fff;border-bottom:25px solid #215f94;}
 
 .starter-template h1 {margin: 10px;color:#215f94;font-weight: bold;}
 .starter-template h1 img {margin-right: 10px;width:100px;}
 .starter-template h4 {margin: 20px 0;}
+
+.delay-container {margin:10px 0;}
 
 /* Moderation */
 .moderation-songlist {float:left;width:100%;padding:10px;box-sizing:border-box;}
