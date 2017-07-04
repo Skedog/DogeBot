@@ -147,7 +147,9 @@ function onPlayerReady(event) {
 	}, 1000);
 
 	volumeReader();
-	setInterval(function(){volumeReader()}, 1000);
+	if ('{{=it.passedUser}}' == 'undefined') {
+		setInterval(function(){volumeReader()}, 1000);
+	}
 
 
 	checkForSkippedSongs();
