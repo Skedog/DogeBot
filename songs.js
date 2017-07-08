@@ -5,6 +5,7 @@ var YouTube = require('youtube-node');
 var async = require('async');
 var stats = require('./stats.js');
 var ObjectId = require('mongodb').ObjectId;
+var messageHandler = require('./chat-messages.js');
 
 /* - - - - - EXPORT FUNCTIONS - - - - - - */
 
@@ -16,7 +17,7 @@ var songlist = function(twitchClient,channel,userstate) {
 			var msgToSend = 'The song list is available at: ' + constants.postURL + '/songs/' + channel.slice(1);
 		}
 		var userStr = '@' + userstate['display-name'] + ' -> ';
-		twitchClient.say(channel, userStr + msgToSend);
+		messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 		resolve(msgToSend);
 	});
 }
@@ -29,7 +30,7 @@ var songcache = function(twitchClient,channel,userstate) {
 			var msgToSend = 'The song cache is available at: ' + constants.postURL + '/songcache/' + channel.slice(1);
 		}
 		var userStr = '@' + userstate['display-name'] + ' -> ';
-		twitchClient.say(channel, userStr + msgToSend);
+		messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 		resolve(msgToSend);
 	});
 }
@@ -43,7 +44,7 @@ var currentSong = function(db,twitchClient,channel,userstate) {
 				var msgToSend = 'No song currently requested!';
 			}
 			var userStr = '@' + userstate['display-name'] + ' -> ';
-			twitchClient.say(channel, userStr + msgToSend);
+			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 			resolve(msgToSend);
 		});
 	});
@@ -58,7 +59,7 @@ var volume = function(db,twitchClient,channel,userstate,messageParams) {
 				var userStr = '@' + userstate['display-name'] + ' -> ';
 			}
 			var msgToSend = 'The current volume is: ' + results[0]['volume'];
-			twitchClient.say(channel, userStr + msgToSend);
+			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 			resolve(msgToSend);
 		});
 	});
@@ -74,7 +75,7 @@ var updateVolume = function(db,twitchClient,channel,userstate,messageParams) {
 				runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
 					var userStr = '@' + userstate['display-name'] + ' -> ';
 					var msgToSend = 'The volume has been updated to ' + newVolume + '!';
-					twitchClient.say(channel, userStr + msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 					resolve(msgToSend);
 				});
 			}
@@ -89,7 +90,7 @@ var play = function(db,twitchClient,channel,userstate) {
 		runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
 			var userStr = '@' + userstate['display-name'] + ' -> ';
 			var msgToSend = 'Music is now playing!';
-			twitchClient.say(channel, userStr + msgToSend);
+			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 			resolve(msgToSend);
 		});
 	});
@@ -102,7 +103,7 @@ var pause = function(db,twitchClient,channel,userstate) {
 		runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
 			var userStr = '@' + userstate['display-name'] + ' -> ';
 			var msgToSend = 'Music has been paused!';
-			twitchClient.say(channel, userStr + msgToSend);
+			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 			resolve(msgToSend);
 		});
 	});
@@ -128,7 +129,7 @@ var skip = function(db,twitchClient,channel,userstate) {
 					runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
 						var userStr = '@' + userstate['display-name'] + ' -> ';
 						var msgToSend = songTitle + ' has been skipped!';
-						twitchClient.say(channel, userStr + msgToSend);
+						messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 						resolve(msgToSend);
 					});
 				})
@@ -148,7 +149,7 @@ var wrongSong = function(db,twitchClient,channel,userstate) {
 				runSQL('delete','songs',query,'',db).then(results => {
 					var userStr = '@' + userstate['display-name'] + ' -> ';
 					var msgToSend = songTitle + ' has been removed!';
-					twitchClient.say(channel, userStr + msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 					resolve(msgToSend);
 				});
 			}
@@ -174,7 +175,7 @@ var remove = function(db,twitchClient,channel,userstate,messageParams) {
 							runSQL('delete','songs',query,'',db).then(results => {
 								var userStr = '@' + userstate['display-name'] + ' -> ';
 								var msgToSend = 'The song ' + songTitle + ' has been removed!';
-								twitchClient.say(channel, userStr + msgToSend);
+								messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 								resolve(msgToSend);
 							});
 							break;
@@ -183,7 +184,7 @@ var remove = function(db,twitchClient,channel,userstate,messageParams) {
 				} else {
 					var userStr = '@' + userstate['display-name'] + ' -> ';
 					var msgToSend = 'The song you tried to remove doesn\'t exist!';
-					twitchClient.say(channel, userStr + msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 					resolve(msgToSend);
 				}
 			});
@@ -212,12 +213,12 @@ var remove = function(db,twitchClient,channel,userstate,messageParams) {
 						} else {
 							var msgToSend = userStr + 'None of the songs you tried to remove exist!';
 						}
-						twitchClient.say(channel, msgToSend);
+						messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 						resolve(msgToSend);
 					});
 				} else {
 					var msgToSend = userStr + 'There are no songs in the queue, so no songs were removed!';
-					twitchClient.say(channel, msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend);
 				}
 			});
@@ -229,7 +230,7 @@ var remove = function(db,twitchClient,channel,userstate,messageParams) {
 			runSQL('deleteall','songs',query,'',db).then(results => {
 				var userStr = '@' + userstate['display-name'] + ' -> ';
 				var msgToSend = userStr + 'Songs removed!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				resolve(msgToSend);
 			}).catch(err => {
 				reject('Found no songs requested by: ' + userToRemove);
@@ -259,7 +260,7 @@ var promote = function(db,twitchClient,channel,userstate,messageParams) {
 								runSQL('update','channels',query,dataToUse,db).then(results => {
 									var userStr = '@' + userstate['display-name'] + ' -> ';
 									var msgToSend = 'Song #' + indexToMove + ' has been promoted!';
-									twitchClient.say(channel, userStr + msgToSend);
+									messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 									resolve(msgToSend);
 								});
 							});
@@ -299,7 +300,7 @@ var shuffle = function(db,twitchClient,channel,userstate) {
 				}, function(err) {
 					var userStr = '@' + userstate['display-name'] + ' -> ';
 					var msgToSend = 'Songs shuffled!';
-					twitchClient.say(channel, userStr + msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 					resolve(msgToSend);
 				})
 			}
@@ -316,18 +317,18 @@ var requestSongs = function(db,twitchClient,channel,userstate,messageParams) {
 		if (searchTerm.includes(',') && !searchTerm.includes(' ')) {
 			var songsToAdd = searchTerm.split(',');
 			requestCommaListOfSongs(db,channel,userstate,songsToAdd).then(msgToSend => {
-				twitchClient.say(channel,userStr + msgToSend + '!');
+				messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend + '!',false,'');
 				resolve(msgToSend + '!');
 			})
 		} else {
 			if (searchTerm) {
 				requestSingleSong(db,channel,userstate,searchTerm).then(msgToSend => {
-					twitchClient.say(channel,userStr + msgToSend + '!');
+					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend + '!',false,'');
 					resolve(msgToSend + '!');
 				})
 			} else {
 				msgToSend = 'To request a song, type the following: !sr youtube URL, video ID, or the song name'
-				twitchClient.say(channel,userStr + msgToSend + '!');
+				messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend + '!',false,'');
 				reject(msgToSend + '!');
 			}
 		}
@@ -347,14 +348,14 @@ var requestPlaylist = function(db,twitchClient,channel,userstate,messageParams) 
 				if (error) {
 					if (error['code'] == 404) {
 						var msgToSend = 'Playlist not found!';
-						twitchClient.say(channel,userStr + msgToSend);
+						messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 						reject('Playlist not found!');
 					} else {
 						reject(error);
 					}
 				} else {
 					var msgToSend = 'Gathering playlist data, please wait...';
-					twitchClient.say(channel,userStr + msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 					var firstPageOfIDs = '';
 					var totalResults = result['pageInfo']['totalResults'];
 					var nextpageToken = result['nextPageToken'];
@@ -387,7 +388,7 @@ var requestPlaylist = function(db,twitchClient,channel,userstate,messageParams) 
 				}
 			})
 		}).catch(err => {
-			twitchClient.say(channel,userStr + err);
+			messageHandler.sendMessage(twitchClient,channel,userStr + err,false,'');
 			reject(err);
 		});
 	});

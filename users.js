@@ -1,5 +1,6 @@
 var runSQL = require('./runSQL.js');
 var moment = require('moment');
+var messageHandler = require('./chat-messages.js');
 
 var lastSeen = function(db,twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
@@ -16,7 +17,7 @@ var lastSeen = function(db,twitchClient,channel,userstate,messageParams) {
 					} else {
 						var msgToSend = messageParams[1] + ' was last seen ' + formattedDate + '.';
 					}
-					twitchClient.say(channel,msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend);
 				}
 			}).catch(function(err) {
@@ -35,7 +36,7 @@ var firstSeen = function(db,twitchClient,channel,userstate,messageParams) {
 					var firstSeenDate = moment(results[0]['firstSeen']);
 					var formattedDate = firstSeenDate.format('MMMM Do YYYY, h:mm:ss a');
 					var msgToSend = messageParams[1] + ' was first seen on ' + formattedDate + '.';
-					twitchClient.say(channel,msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend);
 				}
 			}).catch(function(err) {

@@ -7,6 +7,7 @@ var maintenance = require('./maintenance-functions.js');
 var functions = require('./general-functions.js');
 var stats = require('./stats.js');
 const constants = require('./constants.js');
+var messageHandler = require('./chat-messages.js');
 
 var connect = function(db,dbConstants) {
 	return new Promise((resolve, reject) => {
@@ -111,7 +112,7 @@ var monitorWhispers = function(db,dbConstants) {
 		var messageParams = message.split(' ');
 		var sentCommand = messageParams[0];
 		if ((!self && message.startsWith("!")) && (from.toLowerCase() == '#ygtskedog')) {
-			log.info('got a whisper from ' + from + ' that says: ' + message + ' .');
+			log.info('got a whisper from ' + from + ' that says: ' + message + '.');
 			if (sentCommand == '!clearsongcache') {
 				if (messageParams[1]) {
 					maintenance.clearSongCache(db,'#' + messageParams[1]).then(res => {
@@ -148,6 +149,14 @@ var monitorWhispers = function(db,dbConstants) {
 						twitchClient.whisper(from, 'Error deleting channel ' + messageParams[1] + ': ' + err);
 					})
 				}
+			} else if (sentCommand == '!mute') {
+				if (messageParams[1]) {
+					messageHandler.muteMessages(twitchClient,'#' + messageParams[1],true,from);
+				}
+			} else if (sentCommand == '!unmute') {
+				if (messageParams[1]) {
+					messageHandler.unmuteMessages(twitchClient,'#' + messageParams[1],true,from);
+				}
 			}
 		}
 	});
@@ -169,7 +178,7 @@ var startTimedMessages = function(db,dbConstants) {
 					this[channelToUse+'_interval'] = setInterval(function() {
 						var messages = ["Enjoying the stream? Be sure to follow so you don't miss the next one! <3","Be a part of this community all the time, join us on Discord! http://ske.dog/discord","Wanna chat? Twitter is the best way to get in touch with me! http://ske.dog/twitter","Wanna give me free money? Bookmark my Amazon affiliate link, and use it when you make a purchase! http://ske.dog/amazon","Did you know Skedog has a sub button now?! Click on subscribe above! !prime","We now have a Chrome extension for the stream! It shows you when Skedog is live AND it auto applies the Amazon affiliate code! Check it out! http://ske.dog/ext"];
 						functions.getRandomItemFromArray(messages).then(msgToSend => {
-							twitchClient.say(channelToUse,msgToSend[1]);
+							messageHandler.sendMessage(twitchClient,channel,msgToSend[1],false,'');
 							var currentdate = new Date();
 							log.info('LOG CUSTOM: Timed message sent - ' + (currentdate.getMonth()+1)  + "/" + currentdate.getDate() + "/" + currentdate.getFullYear() + " @ "  + currentdate.getHours() + ":"  + currentdate.getMinutes() + ":" + currentdate.getSeconds())
 							intervalStarted = true;

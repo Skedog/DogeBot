@@ -6,6 +6,7 @@ var users = require('./users.js');
 var list = require('./list-commands.js');
 var regulars = require('./regulars-functions.js');
 var api = require('./api-functions.js');
+var messageHandler = require('./chat-messages.js');
 var songs = require('./songs.js');
 var permissions = require('./permissions.js');
 const constants = require('./constants.js');
@@ -72,7 +73,7 @@ var callUserAddedCommand = function(db,twitchClient,channel,userstate,message,re
 	return new Promise((resolve, reject) => {
 		buildUserAddedCommandMessage(db,twitchClient,channel,userstate,message,results).then(res => {
 			increaseCommandCounter(db,message,channel,results[0].commandcounter,res).then(res => {
-				twitchClient.say(channel, res);
+				messageHandler.sendMessage(twitchClient,channel,res,false,'');
 				resolve(res);
 			}).catch(err => {
 				reject('failed to increase counter');
@@ -290,6 +291,20 @@ var callDefaultCommand = function(db,twitchClient,channel,userstate,message,resu
 					reject(err);
 				});
 				break;
+			case '!mute':
+				messageHandler.muteMessages(twitchClient,channel,false,'').then(res => {
+					resolve(res);
+				}).catch(err => {
+					reject(err);
+				});
+				break;
+			case '!unmute':
+				messageHandler.unmuteMessages(twitchClient,channel,false,'').then(res => {
+					resolve(res);
+				}).catch(err => {
+					reject(err);
+				});
+				break;
 			default:
 				log.error('missing a break; inside switch for callDefaultCommand!');
 				break;
@@ -413,10 +428,10 @@ var callCommandsCommand = function(db,twitchClient,channel,userstate,messagePara
 				var msgStr = 'The commands for this channel are available here: ';
 				if (constants.testMode) {
 					var msgURL = constants.testPostURL + '/commands/' + msgChannel;
-					twitchClient.say(channel, toUser + msgStr + msgURL);
+					messageHandler.sendMessage(twitchClient,channel,toUser + msgStr + msgURL,false,'');
 				} else {
 					var msgURL = constants.postURL + '/commands/' + msgChannel;
-					twitchClient.say(channel, toUser + msgStr + msgURL);
+					messageHandler.sendMessage(twitchClient,channel,toUser + msgStr + msgURL,false,'');
 				}
 				resolve(msgStr + msgURL);
 				break;

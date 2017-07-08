@@ -1,6 +1,7 @@
 var runSQL = require('./runSQL.js');
 var permissions = require('./permissions.js');
 var functions = require('./general-functions.js');
+var messageHandler = require('./chat-messages.js');
 
 var add = function(db,twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
@@ -20,7 +21,7 @@ var add = function(db,twitchClient,channel,userstate,messageParams) {
 					dataToUse["aliasFor"] = '';
 					runSQL('add','commands',{},dataToUse,db).then(res => {
 						var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' has been added!';
-						twitchClient.say(channel, msgToSend);
+						messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 						resolve(msgToSend);
 					}).catch(err => {
 						reject(err);
@@ -30,7 +31,7 @@ var add = function(db,twitchClient,channel,userstate,messageParams) {
 				}
 			} else {
 				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' already exists!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				reject(msgToSend);
 			}
 		}).catch(err => {
@@ -50,14 +51,14 @@ var edit = function(db,twitchClient,channel,userstate,messageParams) {
 				dataToUse["chatmessage"] = messageToAdd;
 				runSQL('update','commands',{channel:channel,trigger:messageParams[2]},dataToUse,db).then(res => {
 					var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' has been updated!';
-					twitchClient.say(channel, msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend);
 				}).catch(err => {
 					reject(err);
 				});
 			} else {
 				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' doesn\'t exist!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				reject(msgToSend);
 			}
 		}).catch(err => {
@@ -72,14 +73,14 @@ var remove = function(db,twitchClient,channel,userstate,messageParams) {
 			if (results) {
 				runSQL('delete','commands',{channel:channel,trigger:messageParams[2]},'',db).then(res => {
 					var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' has been deleted!';
-					twitchClient.say(channel, msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend)
 				}).catch(err => {
 					reject(err);
 				});
 			} else {
 				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' doesn\'t exist!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				reject(msgToSend);
 			}
 		}).catch(err => {
@@ -103,7 +104,7 @@ var setPermissions = function(db,twitchClient,channel,userstate,messageParams) {
 							dataToUse["permissionsLevel"] = permissionLevelToSet;
 							runSQL('update','commands',query,dataToUse,db).then(results => {
 								var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' permissions have been updated!';
-								twitchClient.say(channel, msgToSend);
+								messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 								resolve(msgToSend);
 							}).catch(err => {
 								reject(err);
@@ -115,7 +116,7 @@ var setPermissions = function(db,twitchClient,channel,userstate,messageParams) {
 				});
 			} else {
 				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' doesn\'t exist!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				reject('Updating permissions failed');
 			}
 		});

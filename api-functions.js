@@ -1,4 +1,5 @@
 var request = require('request');
+var messageHandler = require('./chat-messages.js');
 
 var uptime = function(twitchClient,channel,userstate) {
 	return new Promise((resolve, reject) => {
@@ -7,10 +8,10 @@ var uptime = function(twitchClient,channel,userstate) {
 			if (!error && response.statusCode == 200) {
 				editedBody = body.replace('.','');
 				if (editedBody.includes('Channel is not live')) {
-					twitchClient.say(channel, channel.slice(1) + ' is not live!');
+					messageHandler.sendMessage(twitchClient,channel,channel.slice(1) + ' is not live!',false,'');
 					resolve(editedBody + '!');
 				} else {
-					twitchClient.say(channel, channel.slice(1) + ' has been live for ' + editedBody + '!');
+					messageHandler.sendMessage(twitchClient,channel,channel.slice(1) + ' has been live for ' + editedBody + '!',false,'');
 					resolve(editedBody + '!');
 				}
 			} else {
@@ -31,9 +32,9 @@ var followage = function(twitchClient,channel,userstate,messageParams) {
 		request(url, function (error, response, body) {
 			if (!error && response.statusCode == 200) {
 				if (body.includes('Follow not found')) {
-					twitchClient.say(channel, userToCheck + ' is not following! BibleThump');
+					messageHandler.sendMessage(twitchClient,channel,userToCheck + ' is not following! BibleThump',false,'');
 				} else {
-					twitchClient.say(channel, userToCheck + ' has been following for ' + body + '!');
+					messageHandler.sendMessage(twitchClient,channel,userToCheck + ' has been following for ' + body + '!',false,'');
 				}
 				resolve(body);
 			} else {
@@ -46,7 +47,7 @@ var followage = function(twitchClient,channel,userstate,messageParams) {
 var game = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
 		var userStr = '@' + userstate['display-name'] + ' -> ';
-		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		messageHandler.sendMessage(twitchClient,channel,userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!',false,'');
 		resolve('!game is broken');
 		// var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/status?format=%5B0%5D+is+currently+playing+%5B1%5D'
 		// request(url, function (error, response, body) {
@@ -64,7 +65,7 @@ var game = function(twitchClient,channel,userstate,messageParams) {
 var viewerCount = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
 		var userStr = '@' + userstate['display-name'] + ' -> ';
-		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		messageHandler.sendMessage(twitchClient,channel,userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!',false,'');
 		resolve('!viewers is broken');
 		// var url = 'https://api.rtainc.co/twitch/channels/' + channel.slice(1) + '/status?format=%5B0%5D+currently+is+streaming+for+%5B2%5D+viewers'
 		// request(url, function (error, response, body) {
@@ -87,7 +88,7 @@ var randomViewer = function(twitchClient,channel,userstate,messageParams) {
 				if (body.includes('revlobot') || body.includes('skedogbot') || body.includes(channel.slice(1))) {
 					resolve(randomViewer(twitchClient,channel,userstate,messageParams));
 				} else {
-					twitchClient.say(channel, 'The winner is ' + body + '!');
+					messageHandler.sendMessage(twitchClient,channel,'The winner is ' + body + '!',false,'');
 					resolve(body);
 				}
 			} else {
@@ -100,7 +101,7 @@ var randomViewer = function(twitchClient,channel,userstate,messageParams) {
 var quoteOfTheDay = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
 		var userStr = '@' + userstate['display-name'] + ' -> ';
-		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		messageHandler.sendMessage(twitchClient,channel,userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!',false,'');
 		resolve('!qotd is broken');
 		// var url = 'https://api.rtainc.co/twitch/brainyquote?format=%22%5B0%5D%22&type=funny'
 		// request(url, function (error, response, body) {
@@ -130,7 +131,7 @@ var bf4stats = function(twitchClient,channel,userstate,messageParams) {
 				var rank = json.stats.rank;
 				var msgToSend = playerName + ' has a ' + kd + ' k/d and is rank ' + rank + '! More stats here: ' + statsLink;
 				var userStr = '@' + userstate['display-name'] + ' -> ';
-				twitchClient.say(channel, userStr + msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
 				resolve(msgToSend);
 			} else {
 				reject(error);
@@ -142,7 +143,7 @@ var bf4stats = function(twitchClient,channel,userstate,messageParams) {
 var eightBall = function(twitchClient,channel,userstate,messageParams) {
 	return new Promise((resolve, reject) => {
 		var userStr = '@' + userstate['display-name'] + ' -> ';
-		twitchClient.say(channel, userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!');
+		messageHandler.sendMessage(twitchClient,channel,userStr + 'Sorry, the API used for this command is broken and an alternative has yet to be found!',false,'');
 		resolve('!8ball is broken');
 		// var url = 'https://api.rtainc.co/twitch/8ball?format=[0]'
 		// request(url, function (error, response, body) {

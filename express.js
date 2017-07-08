@@ -558,6 +558,8 @@ var connect = function(db,dbConstants) {
 											case "!shuffle":
 											case "!lastseen":
 											case "!firstseen":
+											case "!mute":
+											case "!unmute":
 												newData = [{"channel": userToAdd,"permissionLevel": 3}];
 												break;
 											default:

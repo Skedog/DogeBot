@@ -1,4 +1,5 @@
 var runSQL = require('./runSQL.js');
+var messageHandler = require('./chat-messages.js');
 
 var checkIfUserIsRegular = function(db,userstate,channel) {
 	return new Promise((resolve, reject) => {
@@ -20,7 +21,7 @@ var add = function(db,twitchClient,channel,userstate,messageParams) {
 		runSQL('select','regulars',query,'',db).then(results => {
 			if (results) {
 				var msgToSend = userstate['display-name'] + ' -> ' + messageParams[2] + ' is already a regular!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				reject(msgToSend);
 			} else {
 				var regularToAdd = messageParams[2];
@@ -29,7 +30,7 @@ var add = function(db,twitchClient,channel,userstate,messageParams) {
 				dataToUse["channel"] = channel;
 				runSQL('add','regulars',{},dataToUse,db).then(res => {
 					var msgToSend = userstate['display-name'] + ' -> ' + messageParams[2] + ' has been added as a regular!'
-					twitchClient.say(channel, msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend);
 				}).catch(function(err) {
 					reject(err);
@@ -47,13 +48,13 @@ var remove = function(db,twitchClient,channel,userstate,messageParams) {
 		runSQL('select','regulars',query,'',db).then(results => {
 			if (!results) {
 				var msgToSend = userstate['display-name'] + ' -> ' + messageParams[2] + ' isn\'t a regular!';
-				twitchClient.say(channel, msgToSend);
+				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 				reject(msgToSend);
 			} else {
 				var query = {channel:channel,username:messageParams[2].toLowerCase()};
 				runSQL('delete','regulars',query,'',db).then(res => {
 					var msgToSend = userstate['display-name'] + ' -> ' + messageParams[2] + ' has been removed as a regular!'
-					twitchClient.say(channel, msgToSend);
+					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
 					resolve(msgToSend);
 				}).catch(function(err) {
 					reject(err);
