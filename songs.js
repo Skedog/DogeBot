@@ -3,6 +3,7 @@ var runSQL = require('./runSQL.js');
 var functions = require('./general-functions.js');
 var YouTube = require('youtube-node');
 var async = require('async');
+var stats = require('./stats.js');
 var ObjectId = require('mongodb').ObjectId;
 
 /* - - - - - EXPORT FUNCTIONS - - - - - - */
@@ -542,6 +543,7 @@ var addSongToSonglistAndCache = function(db,channel,userstate,YTData) {
 				addOrUpdateSongCache(db,channel,dataToAdd),
 				runSQL('add','songs',{},dataToAdd,db)
 			]).then(res => {
+				stats.updateUserSongRequestCounter(channel,userstate["username"],db);
 				resolve('added');
 			}).catch(function(err) {
 				reject(err);

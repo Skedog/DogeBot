@@ -5,6 +5,7 @@ var chat = require('./chat-commands.js');
 var permissions = require('./permissions.js');
 var maintenance = require('./maintenance-functions.js');
 var functions = require('./general-functions.js');
+var stats = require('./stats.js');
 const constants = require('./constants.js');
 
 var connect = function(db,dbConstants) {
@@ -78,41 +79,15 @@ var joinSingleChannel = function(channelToJoin) {
 
 var monitorChat = function(db,dbConstants) {
 	twitchClient.on("chat", function(channel, userstate, message, self) {
-		if (!self) {
-			//track number of chat messages seen
-			runSQL('select','chatmessages',{channel:channel},'',db).then(results => {
-				if (results) {
-					var dataToUse = {};
-					dataToUse["numberOfMessages"] = results[0]['numberOfMessages']+1;
-					runSQL('update','chatmessages',{channel:channel},dataToUse,db);
-				} else {
-					var dataToUse = {};
-					dataToUse["channel"] = channel;
-					dataToUse["numberOfMessages"] = 1;
-					runSQL('add','chatmessages',{},dataToUse,db);
-				}
-			});
-		};
 		if (!self && message.startsWith("!")) {
-			//track number of commands called
-			runSQL('select','commandmessages',{channel:channel},'',db).then(results => {
-				if (results) {
-					var dataToUse = {};
-					dataToUse["numberOfCommands"] = results[0]['numberOfCommands']+1;
-					runSQL('update','commandmessages',{channel:channel},dataToUse,db);
-				} else {
-					var dataToUse = {};
-					dataToUse["channel"] = channel;
-					dataToUse["numberOfCommands"] = 1;
-					runSQL('add','commandmessages',{},dataToUse,db);
-				}
-			});
 			var messageParams = message.split(' '), sentCommand = messageParams[0];
 			permissions.getCommandPermissionLevel(db,sentCommand,messageParams,channel).then(res => {
 				Promise.all([
 					permissions.canUserCallCommand(db,userstate,res,channel),
 					chat.checkAndSetCommandDelayTimer(channel, sentCommand, 3)
 				]).then(res => {
+					stats.addCounterStat('commandmessages',1,channel,db);
+					stats.updateUserCommandCounter(channel,userstate['username'],db);
 					chat.callCommand(db,twitchClient,channel,userstate,message,sentCommand).then(res => {
 						log.info(channel + ': ' + res);
 					}).catch(function(err) {
@@ -124,7 +99,10 @@ var monitorChat = function(db,dbConstants) {
 			}).catch(function(err) {
 				log.info(err);
 			});
-		}
+		} else if (!self) {
+			stats.addCounterStat('chatmessages',1,channel,db);
+			stats.updateUserMessageCounter(channel,userstate['username'],db);
+		};
 	});
 }
 
@@ -177,20 +155,7 @@ var monitorWhispers = function(db,dbConstants) {
 
 var monitorUsersInChat = function(db,dbConstants) {
 	twitchClient.on("join", function (channel, username, self) {
-		runSQL('select','chatusers',{channel:channel,userName:username},'',db).then(results => {
-			if (results) {
-				var dataToUse = {};
-				dataToUse["lastSeen"] = new Date();
-				runSQL('update','chatusers',{channel:channel,userName:username},dataToUse,db);
-			} else {
-				var dataToUse = {};
-				dataToUse["userName"] = username;
-				dataToUse["channel"] = channel;
-				dataToUse["lastSeen"] = new Date();
-				dataToUse["firstSeen"] = new Date();
-				runSQL('add','chatusers',{},dataToUse,db);
-			}
-		});
+		stats.addTrackedUser(channel,username,db);
 	});
 }
 
