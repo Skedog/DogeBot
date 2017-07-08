@@ -78,7 +78,35 @@ var joinSingleChannel = function(channelToJoin) {
 
 var monitorChat = function(db,dbConstants) {
 	twitchClient.on("chat", function(channel, userstate, message, self) {
+		if (!self) {
+			//track number of chat messages seen
+			runSQL('select','chatmessages',{channel:channel},'',db).then(results => {
+				if (results) {
+					var dataToUse = {};
+					dataToUse["numberOfMessages"] = results[0]['numberOfMessages']+1;
+					runSQL('update','chatmessages',{channel:channel},dataToUse,db);
+				} else {
+					var dataToUse = {};
+					dataToUse["channel"] = channel;
+					dataToUse["numberOfMessages"] = 1;
+					runSQL('add','chatmessages',{},dataToUse,db);
+				}
+			});
+		};
 		if (!self && message.startsWith("!")) {
+			//track number of commands called
+			runSQL('select','commandmessages',{channel:channel},'',db).then(results => {
+				if (results) {
+					var dataToUse = {};
+					dataToUse["numberOfCommands"] = results[0]['numberOfCommands']+1;
+					runSQL('update','commandmessages',{channel:channel},dataToUse,db);
+				} else {
+					var dataToUse = {};
+					dataToUse["channel"] = channel;
+					dataToUse["numberOfCommands"] = 1;
+					runSQL('add','commandmessages',{},dataToUse,db);
+				}
+			});
 			var messageParams = message.split(' '), sentCommand = messageParams[0];
 			permissions.getCommandPermissionLevel(db,sentCommand,messageParams,channel).then(res => {
 				Promise.all([
