@@ -152,14 +152,14 @@ var monitorUsersInChat = function(db,dbConstants) {
 		runSQL('select','chatusers',{channel:channel,userName:username},'',db).then(results => {
 			if (results) {
 				var dataToUse = {};
-				dataToUse["lastSeen"] = new Date().getTime();
+				dataToUse["lastSeen"] = new Date();
 				runSQL('update','chatusers',{channel:channel,userName:username},dataToUse,db);
 			} else {
 				var dataToUse = {};
 				dataToUse["userName"] = username;
 				dataToUse["channel"] = channel;
-				dataToUse["lastSeen"] = new Date().getTime();
-				dataToUse["firstSeen"] = new Date().getTime();
+				dataToUse["lastSeen"] = new Date();
+				dataToUse["firstSeen"] = new Date();
 				runSQL('add','chatusers',{},dataToUse,db);
 			}
 		});

@@ -511,7 +511,7 @@ var addOrUpdateSongCache = function(db,channel,dataToAdd) {
 				if (results) {
 					query = {channel:channel,songID:dataToAdd['songID']};
 					dataToUse = {};
-					dataToUse["whenRequested"] = currentTimeInMS;
+					dataToUse["whenRequested"] = currentdate;
 					runSQL('update','songcache',query,dataToUse,db).then(results => {
 						resolve('updated cache');
 					});
@@ -535,7 +535,7 @@ var addSongToSonglistAndCache = function(db,channel,userstate,YTData) {
 		dataToAdd["songLength"] = YTData[0]["songLength"];
 		dataToAdd["whoRequested"] = userstate["display-name"];
 		dataToAdd["channel"] = channel;
-		dataToAdd["whenRequested"] = datetime;
+		dataToAdd["whenRequested"] = currentdate;
 		getNewSongSortOrder(db,channel).then(newSongSortOrder => {
 			dataToAdd["sortOrder"] = newSongSortOrder;
 			Promise.all([
