@@ -128,6 +128,39 @@ function getCommands(channelName) {
 	});
 }
 
+function getDefaultCommands(channelName) {
+	return new Promise((resolve, reject) => {
+		buildChannelDataString(channelName).then(channelData => {
+			$.ajax({
+				url: '/getdefaultcommands',
+				data: channelData,
+				type: 'POST',
+				success: function(data) {
+					if (data != '') {
+						var contentData = '';
+						var permissionData = '';
+						$.each(data, function(key, value) {
+							permissionData = '';
+							$.each(data[key]['permissionsPerChannel'], function(key2, value2) {
+								if (value2['channel'] == channelName) {
+									permissionData = permissionData + value2['permissionLevel'];
+								};
+							});
+							var trigger = data[key]['trigger'];
+							if (!data[key]['isAlias']) {
+								contentData = contentData + '<tr><td>' + channelName + '</td><td>' + trigger + '</td><td>' + permissionData + '</td></tr>';
+							};
+						});
+						resolve(contentData);
+					} else {
+						resolve(false);
+					};
+				}
+			});
+		});
+	});
+}
+
 function buildDataTable(passedData,elementToUse,startSize) {
 	$('.datatable').DataTable().destroy();
 	$(elementToUse + ' tbody').html(passedData);

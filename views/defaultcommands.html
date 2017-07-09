@@ -1,0 +1,24 @@
+<div class="container wrapper">
+	<div class="starter-template">
+		<h1><img src="/img/commands.png" alt="" />Your Commands</h1>
+		<div class="commandssection"></div>
+		<table class="datatable"><thead><th>Channel Name</th><th>Command</th><th>Permission Level</th></thead><tbody></tbody></table>
+	</div>
+</div><!-- /.container -->
+<script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script src="/js/datatables.js"></script>
+<script>
+	getChannelName('{{=it.passedUser}}').then(channelName => {
+		getDefaultCommands(channelName).then(commandsData => {
+			if (commandsData) {
+				dataTableStartSize = 'All';
+				buildDataTable(commandsData,'.datatable',dataTableStartSize);
+			} else {
+				$('.datatable tbody').hide();
+				$('.commandssection').html("You haven't added any commands yet!");
+			};
+		}).catch(function(err) {
+			console.log(err);
+		});
+	});
+</script>

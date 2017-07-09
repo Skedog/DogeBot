@@ -278,6 +278,12 @@ var connect = function(db,dbConstants) {
 			res.redirect('/logout');
 		})
 
+		app.get('/defaultcommands/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
+			next()
+		}, function (req, res) {
+			res.redirect('/logout');
+		})
+
 		app.get('/loggedinnav', function(req, res){
 			res.render('loggedinnav.html', {layout:false});
 		});
@@ -541,6 +547,7 @@ var connect = function(db,dbConstants) {
 						dataToUse["maxSongLength"] = 12; //stored in minutes - max length per song
 						dataToUse["songNumberLimit"] = 10; //how many songs per user
 						dataToUse["duplicateSongDelay"] = 20; //stored in hours - hours before allowing duplicate song
+						dataToUse["isSilent"] = false;
 						runSQL('add','channels',{},dataToUse,db).then(results => {
 							runSQL('select','defaultCommands',{},'',db).then(results => {
 								if (results) {
@@ -592,6 +599,8 @@ var connect = function(db,dbConstants) {
 							runSQL('updateall','chatusers',{channel:results[0].ChannelName},dataToUse,db);
 							runSQL('updateall','songs',{channel:results[0].ChannelName},dataToUse,db);
 							runSQL('updateall','songcache',{channel:results[0].ChannelName},dataToUse,db);
+							runSQL('updateall','chatmessages',{channel:results[0].ChannelName},dataToUse,db);
+							runSQL('updateall','commandmessages',{channel:results[0].ChannelName},dataToUse,db);
 
 							var query = {};
 							var dataToUse = {};

@@ -87,7 +87,7 @@ var callUserAddedCommand = function(db,twitchClient,channel,userstate,message,re
 var callDefaultCommand = function(db,twitchClient,channel,userstate,message,results) {
 	return new Promise((resolve, reject) => {
 		var messageParams = message.split(' ');
-		switch(messageParams[0].toLowerCase()) {
+		switch(results[0]['trigger']) {
 			case '!commands':
 			case '!command':
 				callCommandsCommand(db,twitchClient,channel,userstate,messageParams).then(res => {
