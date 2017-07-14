@@ -63,6 +63,7 @@ var connect = function(db,dbConstants) {
 		app.use('/css',express.static(__dirname+'/public/css'));
 		app.use('/img',express.static(__dirname+'/public/img'));
 		app.use('/js',express.static(__dirname+'/public/js'));
+		app.use('/favicon.ico', express.static('public/img/favicon.ico'));
 
 		app.use(parallel([
 			allowCrossDomain,
