@@ -323,6 +323,7 @@ var passedUser = ''; //this is needed to make the window resize function below w
 var passedPage = ''; //this is needed to make the window resize function below work
 var dataTableStartSize = '';
 var isCache = false;
+var isCommands = false;
 
 $(document).ready(function() {
 	setTimeout(function() {
@@ -343,6 +344,18 @@ $(document).ready(function() {
 								$('.datatable tbody').hide();
 								$('.songcache').html("Currently no songs in the cache!");
 							};
+						});
+					} else if (isCommands) {
+						getCommands(channelName).then(commandsData => {
+							if (commandsData) {
+								dataTableStartSize = '25';
+								buildDataTable(commandsData,'.datatable',dataTableStartSize);
+							} else {
+								$('.datatable tbody').hide();
+								$('.commandssection').html("You haven't added any commands yet!");
+							};
+						}).catch(function(err) {
+							console.log(err);
 						});
 					} else {
 						loadSonglist(channelData,passedPage).then(songlist => {
