@@ -65,7 +65,6 @@ function loadSonglist(data,page) {
 						if (key == 0) {
 							$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested:</strong> ' + data[0]['whoRequested']);
 						}
-						console.log(page);
 						if (page == 'moderation') {
 							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
 						} else if (page == 'player') {
@@ -92,7 +91,6 @@ function loadSongCache(data) {
 			success: function(data) {
 				if (data != '') {
 					var contentData = '';
-					$('.datatable').DataTable().destroy();
 					$.each(data, function(key, value) {
 						contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td></tr>';
 					});
@@ -330,6 +328,39 @@ $(document).ready(function() {
 		if ($( window ).width() < 767) {
 			$('.datatable').DataTable().destroy();
 		}
+		getChannelName(passedUser).then(channelName => {
+			checkIfInChannel(channelName).then(inChannel => {
+				if (inChannel) {
+					$('.botStatusBtn').text('Leave Channel');
+				} else {
+					$('.botStatusBtn').text('Join Channel');
+				};
+			});
+			$('.botStatusBtn').on( "click", function() {
+				if ($(this).text() == 'Join Channel') {
+					joinChannel(channelName).then(joinResponse => {
+						if (joinResponse == 'joined') {
+							$('.botStatusBtn').text('Leave Channel');
+							$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
+							setTimeout(function(){
+								$('.messagesFromBot').fadeOut("slow");
+							},2000);
+						}
+					});
+				} else {
+					leaveChannel(channelName).then(leaveResponse => {
+						if (leaveResponse == 'parted') {
+							$('.botStatusBtn').text('Join Channel');
+							$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
+							setTimeout(function(){
+								$('.messagesFromBot').fadeOut("slow");
+							},2000);
+						}
+					});
+
+				}
+			});
+		});
 	}, 100);
 	$( window ).resize(function() {
 		if ($( window ).width() > 767) {

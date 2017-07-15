@@ -13,6 +13,7 @@
 					<div class="buttons clear">
 						<button type="button" class="blue-styled-button volBtn" id="up">Volume +10</button>
 						<button type="button" class="blue-styled-button volBtn" id="down">Volume -10</button>
+						<!-- <button type="button" class="blue-styled-button shuffleBtn" id="shuffle">Shuffle Songs</button> -->
 					</div>
 				</div>
 			</div>
@@ -51,7 +52,7 @@
 				if (songlist) {
 					dataTableStartSize = 'All';
 					buildDataTable(songlist,'.datatable',dataTableStartSize);
-					checkForSonglistChanges(channelData,songlist,dataTableStartSize,'moderation');
+					checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
 				} else {
 					$('.datatable tbody').hide();
 					$('.songlist').html("Currently no songs in the queue!");

@@ -5,48 +5,14 @@
 			<p>This is the intro dashboard for users when they are logged in. You can have the bot join/leave your channel using the button below!</p>
 			<p>Use the navigation above to get started. For a full list of default commands, go <a href="https://github.com/Skedog/SkedogBot#all-default-commands" target="_blank">here</a>.</p>
 			<div class="channel-status">
-				<div class="button">
+				<!-- <div class="button">
 					<button type="button" class="botStatusBtn blue-styled-button">Join Channel</button>
 				</div>
 				<div class="details">
 					<div class="messagesFromBot"></div>
-				</div>
+				</div> -->
 			</div>
 		</div>
 	</div>
 </div>
-<script>
-	getChannelName('{{=it.passedUser}}').then(channelName => {
-		$('.botStatusBtn').click(function(e) {
-			if ($(this).text() == 'Join Channel') {
-				joinChannel(channelName).then(joinResponse => {
-					if (joinResponse == 'joined') {
-						$(this).text('Leave Channel');
-						$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
-						setTimeout(function(){
-							$('.messagesFromBot').fadeOut("slow");
-						},2000);
-					}
-				});
-			} else {
-				leaveChannel(channelName).then(leaveResponse => {
-					if (leaveResponse == 'parted') {
-						$(this).text('Join Channel');
-						$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
-						setTimeout(function(){
-							$('.messagesFromBot').fadeOut("slow");
-						},2000);
-					}
-				});
-
-			}
-		});
-		checkIfInChannel(channelName).then(inChannel => {
-			if (inChannel) {
-				$('.botStatusBtn').text('Leave Channel');
-			} else {
-				$('.botStatusBtn').text('Join Channel');
-			};
-		});
-	});
-</script>
+<script>getChannelName('{{=it.passedUser}}').then(channelName => {});</script>

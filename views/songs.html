@@ -2,7 +2,7 @@
 	<div class="starter-template">
 		<h1><img src="/img/commands.png" alt="" />Songlist</h1>
 		<div class="commandssection"></div>
-		<table class="datatable songlist"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested</th></thead><tbody></tbody></table>
+		<table class="datatable songs"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested</th></thead><tbody></tbody></table>
 	</div>
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
@@ -15,8 +15,8 @@
 					buildDataTable(songlist,'.datatable',dataTableStartSize);
 					checkForSonglistChanges(channelData,songlist,dataTableStartSize);
 				} else {
-					$('.songlist').html("Currently no songs in the queue!");
-					$('.songlist').show();
+					$('.songs').html("Currently no songs in the queue!");
+					$('.songs').show();
 				};
 			});
 		});

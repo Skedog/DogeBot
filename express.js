@@ -286,7 +286,33 @@ var connect = function(db,dbConstants) {
 		})
 
 		app.get('/loggedinnav', function(req, res){
-			res.render('loggedinnav.html', {layout:false});
+			checkLoginStatus(req).then(results => {
+				if (req.cookies.userDetails) {
+					var userDetails = req.cookies.userDetails.split(',');
+					if (req.channel != undefined) {
+						var channelToCheckMods = req.channel; //from URL, never has #
+					} else if (req.body.channel != undefined) {
+						if (req.body.channel.includes('#')) {
+							var channelToCheckMods = req.body.channel.substring(1); //has #, needs to be removed
+						} else {
+							var channelToCheckMods = req.body.channel;
+						}
+					} else {
+						if (userDetails[2].includes('#')) {
+							var channelToCheckMods = userDetails[2].substring(1); //has #, needs to be removed
+						} else {
+							var channelToCheckMods = userDetails[2];
+						}
+					}
+					if (userDetails[1] != 'null') {
+						res.render('loggedinnav.html', {layout:false,channelToPass:channelToCheckMods,channelLogo:userDetails[1]});
+					} else {
+						res.render('loggedinnav.html', {layout:false,channelToPass:channelToCheckMods,channelLogo:'/img/default-user-logo.png'});
+					}
+				} else {
+					res.render('loggedinnav.html', {layout:false,channelToPass:'',channelLogo:'/img/default-user-logo.png'});
+				}
+			});
 		});
 
 		app.get('/songs/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
