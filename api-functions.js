@@ -31,7 +31,7 @@ var followage = function(twitchClient,channel,userstate,messageParams) {
 		var url = 'https://beta.decapi.me/twitch/followage/' + channel.slice(1) + '/' + userToCheck;
 		request(url, function (error, response, body) {
 			if (!error && response.statusCode == 200) {
-				if (body.includes('Follow not found')) {
+				if (body.includes('is not following')) {
 					messageHandler.sendMessage(twitchClient,channel,userToCheck + ' is not following! BibleThump',false,'');
 				} else {
 					messageHandler.sendMessage(twitchClient,channel,userToCheck + ' has been following for ' + body + '!',false,'');
