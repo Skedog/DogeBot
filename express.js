@@ -273,6 +273,56 @@ var connect = function(db,dbConstants) {
 			});
 		})
 
+		app.post('/promotesong', function(req, res) {
+			checkModStatus(req).then(results => {
+				if (results) {
+					dataToUse = {};
+					var channel = '';
+					if (req.channel) {
+						if (req.body.loggedInChannel.includes('#')) {
+							channel = req.body.loggedInChannel;
+						} else {
+							channel = '#' + req.body.loggedInChannel;
+						}
+					} else {
+						if (req.body.channel.includes('#')) {
+							channel = req.body.channel;
+						} else {
+							channel = '#' + req.body.channel;
+						}
+					}
+					runSQL('select','songs',{channel:channel},'',db).then(results => {
+						for (i = 0; i < results.length; i++) {
+							var songToPromote = req.body.songToPromote;
+							if (songToPromote == results[i]['songID']) {
+								var songDatabaseID = results[i]['_id'];
+								runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
+									var tempSortVal = results[0]['tempSortVal'];
+									var query = {channel:channel,_id:songDatabaseID};
+									var dataToUse = {};
+									dataToUse["sortOrder"] = parseInt(tempSortVal,10);
+									runSQL('update','songs',query,dataToUse,db).then(results => {
+										query = {};
+										query = {ChannelName:channel};
+										dataToUse = {};
+										dataToUse["tempSortVal"] = parseInt(tempSortVal-1,10);
+										runSQL('update','channels',query,dataToUse,db).then(results => {
+											res.send('song promoted');
+										});
+									});
+								});
+								break;
+							}
+						}
+					});
+				} else {
+					res.send('error');
+				}
+			}).catch(function(err) {
+				res.send('error');
+			});
+		})
+
 		app.get('/commands/:channel*?', [renderPageWithChannel,checkUserLoginStatus], function (req, res, next) {
 			next()
 		}, function (req, res) {

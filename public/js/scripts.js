@@ -66,7 +66,11 @@ function loadSonglist(data,page) {
 							$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested:</strong> ' + data[0]['whoRequested']);
 						}
 						if (page == 'moderation') {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
+							if (key == 0 || key == 1) {
+								contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td></td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
+							} else {
+								contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="&uarr;" id="' + data[key]['songID'] + '" class="promoteButton blue-styled-button mini" /></td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
+							}
 						} else if (page == 'player') {
 							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 						} else {
@@ -172,7 +176,8 @@ function buildDataTable(passedData,elementToUse,startSize) {
 		});
 	} else if (startSize == 'All') {
 		$(elementToUse).DataTable({
-			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]]
+			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]],
+			"columns": [{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false }]
 		});
 	}
 	$(elementToUse).show();
@@ -250,6 +255,19 @@ function removeSong(songToRemove,channelName,loggedInChannel) {
 		$.ajax({
 			url: '/removesong',
 			data: 'songToRemove=' + songToRemove + '&channel=' + channelName + '&loggedInChannel=' + loggedInChannel,
+			type: 'POST',
+			success: function(data) {
+				resolve(data);
+			}
+		});
+	});
+};
+
+function promoteSong(songToPromote,channelName,loggedInChannel) {
+	return new Promise((resolve, reject) => {
+		$.ajax({
+			url: '/promotesong',
+			data: 'songToPromote=' + songToPromote + '&channel=' + channelName + '&loggedInChannel=' + loggedInChannel,
 			type: 'POST',
 			success: function(data) {
 				resolve(data);

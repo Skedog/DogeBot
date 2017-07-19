@@ -49,6 +49,10 @@ var joinStartupChannels = function(db,dbConstants) {
 						})
 					}
 				}
+			} else {
+				//this is for joining a channel in test mode only
+				// joinSingleChannel('#evo');
+				// joinSingleChannel('#dansgaming');
 			}
 		});
 		var defaultChannelToJoin = constants.testMode ? '#ygtskedogtest' : '#ygtskedog';
@@ -98,7 +102,7 @@ var monitorChat = function(db,dbConstants) {
 					log.info(err);
 				});
 			}).catch(function(err) {
-				log.info(err);
+				//log.info(err);
 			});
 		} else if (!self) {
 			stats.addCounterStat('chatmessages',1,channel,db);

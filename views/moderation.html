@@ -13,12 +13,13 @@
 					<div class="buttons clear">
 						<button type="button" class="blue-styled-button volBtn" id="down">Volume -10</button>
 						<button type="button" class="blue-styled-button volBtn" id="up">Volume +10</button>
+						<button type="button" class="blue-styled-button togglePlay">Pause</button>
 						<!-- <button type="button" class="blue-styled-button shuffleBtn" id="shuffle">Shuffle Songs</button> -->
 					</div>
 				</div>
 			</div>
 			<div class="moderation-songlist songlist">
-				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Requested</th><th>Remove</th></thead><tbody></tbody></table>
+				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Requested</th><th></th><th></th></thead><tbody></tbody></table>
 			</div>
 		</div>
 		<div class="chatbox"></div>
@@ -46,6 +47,16 @@
 	getChannelName('{{=it.passedUser}}').then(channelName => {
 		loadModerationPanels(channelName);
 		buildChannelDataString(channelName).then(channelData => {
+			$('.togglePlay').click(function(e) {
+				e.preventDefault();
+				if ($(this).text() == 'Pause') {
+					$(this).text('Play');
+					updateMusicStatus(channelData,'pause');
+				} else {
+					$(this).text('Pause');
+					updateMusicStatus(channelData,'play');
+				};
+			});
 			var loggedInChannel = userDetails[2];
 			passedPage = 'moderation';
 			loadSonglist(channelData,passedPage).then(songlist => {
@@ -66,6 +77,16 @@
 				removeSong($(this).attr('id'),channelName,loggedInChannel).then(removeSongData => {
 					if (removeSongData != 'song removed') {
 						$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn("fast");
+						setTimeout(function(){
+							$('.messagesFromBot').fadeOut("slow");
+						},2000);
+					};
+				});
+			});
+			$('body').on('click', '.promoteButton', function(e) {
+				promoteSong($(this).attr('id'),channelName,loggedInChannel).then(promoteSongData => {
+					if (promoteSongData != 'song promoted') {
+						$('.messagesFromBot').html('<p>There was an error promoting that song, please try again!</p>').fadeIn("fast");
 						setTimeout(function(){
 							$('.messagesFromBot').fadeOut("slow");
 						},2000);

@@ -349,7 +349,7 @@ var requestPlaylist = function(db,twitchClient,channel,userstate,messageParams) 
 					if (error['code'] == 404) {
 						var msgToSend = 'Playlist not found!';
 						messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-						reject('Playlist not found!');
+						reject(msgToSend);
 					} else {
 						reject(error);
 					}
