@@ -342,7 +342,6 @@ var isCache = false;
 var isCommands = false;
 
 $(document).ready(function() {
-	setTimeout(function() {
 		if ($( window ).width() < 767) {
 			$('.datatable').DataTable().destroy();
 		}
@@ -354,32 +353,35 @@ $(document).ready(function() {
 					$('.botStatusBtn').text('Join Channel');
 				};
 			});
-			$('.botStatusBtn').on( "click", function() {
-				if ($(this).text() == 'Join Channel') {
-					joinChannel(channelName).then(joinResponse => {
-						if (joinResponse == 'joined') {
-							$('.botStatusBtn').text('Leave Channel');
-							$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
-							setTimeout(function(){
-								$('.messagesFromBot').fadeOut("slow");
-							},2000);
-						}
-					});
-				} else {
-					leaveChannel(channelName).then(leaveResponse => {
-						if (leaveResponse == 'parted') {
-							$('.botStatusBtn').text('Join Channel');
-							$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
-							setTimeout(function(){
-								$('.messagesFromBot').fadeOut("slow");
-							},2000);
-						}
-					});
-
-				}
-			});
 		});
-	}, 100);
+	$('body').on('click', '.botStatusBtn', function(e) {
+		e.preventDefault();
+		if ($(this).text() == 'Join Channel') {
+			getChannelName(passedUser).then(channelName => {
+				joinChannel(channelName).then(joinResponse => {
+					if (joinResponse == 'joined') {
+						$('.botStatusBtn').text('Leave Channel');
+						$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
+						setTimeout(function(){
+							$('.messagesFromBot').fadeOut("slow");
+						},2000);
+					}
+				});
+			});
+		} else {
+			getChannelName(passedUser).then(channelName => {
+				leaveChannel(channelName).then(leaveResponse => {
+					if (leaveResponse == 'parted') {
+						$('.botStatusBtn').text('Join Channel');
+						$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
+						setTimeout(function(){
+							$('.messagesFromBot').fadeOut("slow");
+						},2000);
+					}
+				});
+			});
+		}
+	});
 	$( window ).resize(function() {
 		if ($( window ).width() > 767) {
 			getChannelName(passedUser).then(channelName => {
