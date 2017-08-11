@@ -244,7 +244,7 @@ function startLiveCheckTimer(channelToUse) {
 
 async function startTimedMessages() {
 	let channelToUse = 'ygtskedog';
-	let listOfMessages = ["Enjoying the stream? Be sure to follow so you don't miss the next one! <3","Be a part of this community all the time, join us on Discord! http://ske.dog/discord","Wanna chat? Twitter is the best way to get in touch with me! http://ske.dog/twitter","Wanna give me free money? Bookmark my Amazon affiliate link, and use it when you make a purchase! http://ske.dog/amazon","Did you know Skedog has a sub button now?! Click on subscribe above! !prime","We now have a Chrome extension for the stream! It shows you when Skedog is live AND it auto applies the Amazon affiliate code! Check it out! http://ske.dog/ext"];
+	let listOfMessages = ["Enjoying the stream? Be sure to follow so you don't miss the next one! <3","Be a part of this community all the time, join us on Discord! http://ske.dog/discord","Wanna chat? Twitter is the best way to get in touch with me! http://ske.dog/twitter","Wanna give me free money? Bookmark my Amazon affiliate link, and use it when you make a purchase! http://ske.dog/amazon","Did you know Skedog has a sub button now?! Click on subscribe above! !prime","We now have a Chrome extension for the stream! It shows you when Skedog is live AND it auto applies the Amazon affiliate code! Check it out! http://ske.dog/ext","Don't forget to review your Amazon/Twitch Prime Subscription, they don't auto-renew like normal subs!"];
 	let numberOfTimesRan = 0;
 	let firstRun = true;
 	const _this = this;

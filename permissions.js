@@ -5,7 +5,7 @@ const regulars = require('./regulars.js');
 class permissions {
 
 	async CommandPermissionLevel(props) {
-		const sentCommand = props.messageParams[0];
+		const sentCommand = props.messageParams[0].toLowerCase();
 		let propsForSelect,results;
 		propsForSelect = {
 			table: 'defaultCommands',

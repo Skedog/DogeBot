@@ -1,79 +1,3 @@
-if (typeof io != 'undefined') {
-	const socket = io.connect('http://skedogbot.com');
-	socket.on('songs', async function(data) {
-		if (data[0] == 'skipped') {
-			const channelName = await getChannelName(passedUser);
-			const channelData = await buildChannelDataString(channelName);
-			const URLSplit = window.location.pathname.split('/');
-			const page = URLSplit[1];
-			const songlist = await loadSonglist(channelData,page);
-			if (typeof player != "undefined") {
-				player.loadVideoById(data[1]);
-			}
-			if (songlist) {
-				dataTableStartSize = '5';
-				buildDataTable(songlist,'.datatable',dataTableStartSize);
-			};
-			applyMusicStatus(channelData);
-			getNewSongInfo(); //currentsonginfo page
-		} else if (data[0] == 'volumeupdated') {
-			if (typeof player != "undefined") {
-				player.setVolume(data[1]);
-			}
-			updateTextVolume(data[1]);
-		} else if (data[0] == 'statuschange') {
-			if (data[1] == 'pause') {
-				if (typeof player != "undefined") {
-					player.pauseVideo();
-				}
-				$('.togglePlay').text('Play');
-			} else if (data[1] == 'play') {
-				if (typeof player != "undefined") {
-					player.playVideo();
-				}
-				$('.togglePlay').text('Pause');
-			};
-		} else if (data[0] == 'added' || data[0] == 'removed' || data[0] == 'promoted') {
-			const channelName = await getChannelName(passedUser);
-			const channelData = await buildChannelDataString(channelName);
-			const URLSplit = window.location.pathname.split('/');
-			const page = URLSplit[1];
-			const songlist = await loadSonglist(channelData,page);
-			if (songlist) {
-				let firstSongInQueue = songlist.split('youtu.be/');
-				firstSongInQueue = firstSongInQueue[1].split('" target');
-				if (typeof player != "undefined") {
-					player.loadVideoById(firstSongInQueue[0]);
-				}
-				if (page == 'songs') {
-					dataTableStartSize = '25';
-				} else {
-					dataTableStartSize = '5';
-				};
-				buildDataTable(songlist,'.datatable',dataTableStartSize);
-			} else {
-				$('.dataTables_wrapper').hide();
-				$('.songinfo').show();
-			};
-			getNewSongInfo(); //currentsonginfo page
-		}
-	});
-
-	socket.on('commands', async function(data) {
-		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
-			const channelName = await getChannelName(passedUser);
-			let commandsData = await getCommands(channelName);
-			if (commandsData) {
-				dataTableStartSize = '25';
-				buildDataTable(commandsData,'.datatable',dataTableStartSize);
-			} else {
-				$('.datatable tbody').hide();
-				$('.commandssection').html("You haven't added any commands yet!");
-			};
-		}
-	})
-};
-
 let userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
 if (typeof userDetails[2] != 'undefined') {
 	$.ajax({
@@ -413,6 +337,88 @@ async function startPageLoad(cookieChannel) {
 }
 
 $(document).ready(function() {
+	let socketURL;
+	if (window.location.href.includes('3000')) {
+		socketURL = 'http://localhost:3000'
+	} else {
+		socketURL = 'http://skedogbot.com'
+	}
+	const socket = io.connect(socketURL);
+	socket.on('songs', async function(data) {
+		if (data[0] == 'skipped') {
+			const channelName = await getChannelName(passedUser);
+			const channelData = await buildChannelDataString(channelName);
+			const URLSplit = window.location.pathname.split('/');
+			const page = URLSplit[1];
+			const songlist = await loadSonglist(channelData,page);
+			if (typeof player != "undefined") {
+				player.loadVideoById(data[1]);
+			}
+			if (songlist) {
+				dataTableStartSize = '5';
+				buildDataTable(songlist,'.datatable',dataTableStartSize);
+			};
+			applyMusicStatus(channelData);
+			getNewSongInfo(); //currentsonginfo page
+		} else if (data[0] == 'volumeupdated') {
+			if (typeof player != "undefined") {
+				player.setVolume(data[1]);
+			}
+			updateTextVolume(data[1]);
+		} else if (data[0] == 'statuschange') {
+			if (data[1] == 'pause') {
+				if (typeof player != "undefined") {
+					player.pauseVideo();
+				}
+				$('.togglePlay').text('Play');
+			} else if (data[1] == 'play') {
+				if (typeof player != "undefined") {
+					player.playVideo();
+				}
+				$('.togglePlay').text('Pause');
+			};
+		} else if (data[0] == 'added' || data[0] == 'removed' || data[0] == 'promoted') {
+			const channelName = await getChannelName(passedUser);
+			const channelData = await buildChannelDataString(channelName);
+			const URLSplit = window.location.pathname.split('/');
+			const page = URLSplit[1];
+			const songlist = await loadSonglist(channelData,page);
+			if (songlist) {
+				let firstSongInQueue = songlist.split('youtu.be/');
+				firstSongInQueue = firstSongInQueue[1].split('" target');
+				if (typeof player != "undefined") {
+					player.loadVideoById(firstSongInQueue[0]);
+				}
+				if (page == 'songs') {
+					dataTableStartSize = '25';
+				} else {
+					dataTableStartSize = '5';
+				};
+				if ($('.datatable').length) {
+					buildDataTable(songlist,'.datatable',dataTableStartSize);
+				};
+			} else {
+				$('.dataTables_wrapper').hide();
+				$('.songinfo').show();
+			};
+			getNewSongInfo(); //currentsonginfo page
+		}
+	});
+
+	socket.on('commands', async function(data) {
+		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
+			const channelName = await getChannelName(passedUser);
+			let commandsData = await getCommands(channelName);
+			if (commandsData) {
+				dataTableStartSize = '25';
+				buildDataTable(commandsData,'.datatable',dataTableStartSize);
+			} else {
+				$('.datatable tbody').hide();
+				$('.commandssection').html("You haven't added any commands yet!");
+			};
+		}
+	})
+
 	if ($( window ).width() < 767) {
 		$('.datatable').DataTable().destroy();
 	}

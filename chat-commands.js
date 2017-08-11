@@ -13,14 +13,15 @@ class chat {
 
 	async callCommand(props) {
 		//select from user added commands
+		const commandCalled = props.messageParams[0].toLowerCase();
 		const propsForSelect = {
 			table:'commands',
-			query:{channel:props.channel,trigger:props.messageParams[0]}
+			query:{channel:props.channel,trigger:commandCalled}
 		}
 		const results = await database.select(propsForSelect);
 		if (results) {
 			if (results[0].isAlias) {
-				props.messageParams[0] = results[0].aliasFor;
+				commandCalled = results[0].aliasFor;
 				const propsForcallCommand = {
 					userstate:props.userstate,
 					channel:props.channel,
@@ -35,12 +36,12 @@ class chat {
 			//select from default commands
 			const propsForSelect = {
 				table:'defaultCommands',
-				query:{trigger:props.messageParams[0]}
+				query:{trigger:commandCalled}
 			}
 			const results = await database.select(propsForSelect);
 			if (results) {
 				if (results[0].isAlias) {
-					props.messageParams[0] = results[0].aliasFor;
+					commandCalled = results[0].aliasFor;
 					const propsForcallCommand = {
 						userstate:props.userstate,
 						channel:props.channel,

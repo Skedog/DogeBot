@@ -1,5 +1,6 @@
 <div class="commandssection"></div>
 <script src="js/jquery.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script src="/js/functions.js"></script>
 <script src="js/scripts.js"></script>
 <script>
@@ -16,10 +17,12 @@ async function getNewSongInfo() {
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			if ('{{=it.showText}}' == 'true') {
-				$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
-			} else {
-				$('.commandssection').html(data[0]['songTitle']);
+			if (data) {
+				if ('{{=it.showText}}' == 'true') {
+					$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
+				} else {
+					$('.commandssection').html(data[0]['songTitle']);
+				}
 			}
 		}
 	});
