@@ -8,18 +8,17 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/datatables.js"></script>
 <script>
-	isCommands = true;
-	getChannelName('{{=it.passedUser}}').then(channelName => {
-		getCommands(channelName).then(commandsData => {
-			if (commandsData) {
-				dataTableStartSize = '25';
-				buildDataTable(commandsData,'.datatable',dataTableStartSize);
-			} else {
-				$('.datatable tbody').hide();
-				$('.commandssection').html("You haven't added any commands yet!");
-			};
-		}).catch(function(err) {
-			console.log(err);
-		});
-	});
+	async function startCommands() {
+		isCommands = true;
+		let channelName = getChannelName('{{=it.passedUser}}');
+		let commandsData = await getCommands(channelName);
+		if (commandsData) {
+			dataTableStartSize = '25';
+			buildDataTable(commandsData,'.datatable',dataTableStartSize);
+		} else {
+			$('.datatable tbody').hide();
+			$('.commandssection').html("You haven't added any commands yet!");
+		};
+	}
+	startCommands();
 </script>

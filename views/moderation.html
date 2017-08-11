@@ -8,7 +8,7 @@
 					<h3>Volume</h3>
 					<div class="slider clear">
 						<input type="range" id="volumeRange" value="" max="100" min="0" onchange="updateRangeVolume(this.value)" />
-						<input type="text" name="volumeInput" id="volumeInput" disabled />
+						<input type="text" name="volumeInput" id="volumeInput" class="currentvolume" disabled />
 					</div>
 					<div class="buttons clear">
 						<button type="button" class="blue-styled-button volBtn" id="down">Volume -10</button>
@@ -30,101 +30,90 @@
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
+	const channelName = getChannelName('{{=it.passedUser}}');
+	const channelData = buildChannelDataString(channelName);
+	async function initModeration() {
+		loadModerationPanels(channelName);
+		passedPage = 'moderation';
+		const songlist = await loadSonglist(channelData,passedPage);
+		if (songlist) {
+			dataTableStartSize = '5';
+			buildDataTable(songlist,'.datatable',dataTableStartSize);
+		} else {
+			$('.datatable tbody').hide();
+			$('.songlist').html("Currently no songs in the queue!");
+		};
+		const currentVolume = await getVolume(channelData);
+		$('#volumeInput').val(currentVolume);
+		$('#volumeRange').val(currentVolume);
+		applyMusicStatus(channelData);
+	};
+	const loggedInChannel = userDetails[2];
 	function loadModerationPanels(channelName) {
 		if (channelName.includes('#')) {channelName = channelName.slice(1);};
-		var chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
+		const chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
 		$('.chatbox').html(chatPanel);
 	};
-	function updateRangeVolume(newVol) {
+	async function updateRangeVolume(newVol) {
 		$('#volumeInput').val(newVol);
-		getChannelName('{{=it.passedUser}}').then(channelName => {
-			buildChannelDataString(channelName).then(channelData => {
-				updateVolume(channelData,newVol).then(newVol => {
-				});
-			});
-		});
+		newVol = await updateVolume(channelData,newVol);
 	}
-	getChannelName('{{=it.passedUser}}').then(channelName => {
-		loadModerationPanels(channelName);
-		buildChannelDataString(channelName).then(channelData => {
-			$('.togglePlay').click(function(e) {
-				e.preventDefault();
-				if ($(this).text() == 'Pause') {
-					$(this).text('Play');
-					updateMusicStatus(channelData,'pause');
-				} else {
-					$(this).text('Pause');
-					updateMusicStatus(channelData,'play');
-				};
-			});
-			var loggedInChannel = userDetails[2];
-			passedPage = 'moderation';
-			loadSonglist(channelData,passedPage).then(songlist => {
-				if (songlist) {
-					dataTableStartSize = 'All';
-					buildDataTable(songlist,'.datatable',dataTableStartSize);
-					checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
-				} else {
-					$('.datatable tbody').hide();
-					$('.songlist').html("Currently no songs in the queue!");
-				};
-			});
-			getVolume(channelData).then(currentVolume => {
-				$('#volumeInput').val(currentVolume);
-				$('#volumeRange').val(currentVolume);
-			});
-			$('body').on('click', '.removeButton', function(e) {
-				removeSong($(this).attr('id'),channelName,loggedInChannel).then(removeSongData => {
-					if (removeSongData != 'song removed') {
-						$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn("fast");
-						setTimeout(function(){
-							$('.messagesFromBot').fadeOut("slow");
-						},2000);
-					};
-				});
-			});
-			$('body').on('click', '.promoteButton', function(e) {
-				promoteSong($(this).attr('id'),channelName,loggedInChannel).then(promoteSongData => {
-					if (promoteSongData != 'song promoted') {
-						$('.messagesFromBot').html('<p>There was an error promoting that song, please try again!</p>').fadeIn("fast");
-						setTimeout(function(){
-							$('.messagesFromBot').fadeOut("slow");
-						},2000);
-					};
-				});
-			});
-			$('.volBtn').click(function(e) {
-				e.preventDefault();
-				var direction = $(this).attr('id');
-				getVolume(channelData).then(currentVolume => {
-					var newVol = 0;
-					if (direction == 'up') {
-						if (currentVolume < 90) {
-							newVol = Number(currentVolume) + 10;
-						} else {
-							newVol = 100;
-						};
-					} else {
-						if (currentVolume > 10) {
-							newVol = currentVolume - 10;
-						} else {
-							newVol = 10;
-						};
-					};
-					$('#volumeInput').val(newVol);
-					$('#volumeRange').val(newVol);
-					updateVolume(channelData,newVol).then(newVol => {
-						volumeReader();
-					});
-				});
-			});
-			this['checkSonglistHeightChange'] = setInterval(function() {
-				if ($( window ).width() > 767) {
-					$('.chatbox,.song-container').height($( window ).height()-235);
-				} else {
-					$('.chatbox,.song-container').removeAttr('style');
-				}
-			}, 1000);
-		});
+	$('.togglePlay').click(function(e) {
+		e.preventDefault();
+		if ($(this).text() == 'Pause') {
+			$(this).text('Play');
+			updateMusicStatus(channelData,'pause');
+		} else {
+			$(this).text('Pause');
+			updateMusicStatus(channelData,'play');
+		};
 	});
+	$('body').on('click', '.removeButton', async function(e) {
+		const removeSongData = await removeSong($(this).attr('id'),channelName,loggedInChannel);
+		if (removeSongData != 'song removed') {
+			$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn("fast");
+			setTimeout(function(){
+				$('.messagesFromBot').fadeOut("slow");
+			},2000);
+		};
+	});
+	$('body').on('click', '.promoteButton', async function(e) {
+		const promoteSongData = await promoteSong($(this).attr('id'),channelName,loggedInChannel);
+		if (promoteSongData != 'song promoted') {
+			$('.messagesFromBot').html('<p>There was an error promoting that song, please try again!</p>').fadeIn("fast");
+			setTimeout(function(){
+				$('.messagesFromBot').fadeOut("slow");
+			},2000);
+		};
+	});
+	$('.volBtn').click(async function(e) {
+		e.preventDefault();
+		const direction = $(this).attr('id');
+		const currentVolume = await getVolume(channelData);
+		let newVol;
+		if (direction == 'up') {
+			if (currentVolume < 90) {
+				newVol = Number(currentVolume) + 10;
+			} else {
+				newVol = 100;
+			};
+		} else {
+			if (currentVolume > 10) {
+				newVol = currentVolume - 10;
+			} else {
+				newVol = 10;
+			};
+		};
+		newVol = await updateVolume(channelData,newVol);
+		$('#volumeInput').val(newVol);
+		$('#volumeRange').val(newVol);
+	});
+	this['checkSonglistHeightChange'] = setInterval(function() {
+		if ($( window ).width() > 767) {
+			$('.chatbox,.song-container').height($( window ).height()-235);
+		} else {
+			$('.chatbox,.song-container').removeAttr('style');
+		}
+	}, 1000);
+	initModeration();
 </script>

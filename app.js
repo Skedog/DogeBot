@@ -1,21 +1,21 @@
-var log = require('npmlog');
-var database = require('./database.js');
-var twitch = require('./twitch.js');
-var express = require('./express.js');
-var discord = require('./discord.js');
+// "use strict";
+const log = require('npmlog');
+const database = require('./database.js');
+const twitch = require('./twitch.js');
+const express = require('./express.js');
+const socket = require('./socket.js');
+const discord = require('./discord.js');
 
-database.start().then(dbAndConstants => {
-	Promise.all([
-		twitch.start(dbAndConstants),
-		discord.start(dbAndConstants),
-		express.start(dbAndConstants)
-	]).then(res => {
-		log.info(res[0]); //twitch
-		log.info(res[1]); //discord
-		log.info(res[2]); //express
-	}).catch(function(err) {
-		log.error(err);
-	});
-}).catch(err => {
-	log.error(err);
-});
+
+async function init() {
+	try {
+		await database.connect();
+		await express.start();
+		await socket.start(express.server);
+		twitch.start();
+		discord.start();
+	} catch (e) {
+		log.error(e);
+	}
+};
+init();

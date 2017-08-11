@@ -1,49 +1,69 @@
-var runSQL = require('./runSQL.js');
+const database = require('./database.js');
 
-var muteMessages = function(twitchClient,channel,isWhisper,whisperFrom) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-			var dataToUse = {};
-			dataToUse["isSilent"] = true;
-			runSQL('update','channels',{ChannelName:channel},dataToUse,db);
-			sendMessage(twitchClient,channel,'Bot has been muted!',isWhisper,whisperFrom);
-			resolve('Muted bot in ' + channel);
-		}).catch(err => {
-			resolve(err);
-		});
-	});
-}
+class messages {
 
-var unmuteMessages = function(twitchClient,channel,isWhisper,whisperFrom) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-			var dataToUse = {};
-			dataToUse["isSilent"] = false;
-			runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(res => {
-				sendMessage(twitchClient,channel,'Bot has been unmuted!',isWhisper,whisperFrom);
-				resolve('Muted bot in ' + channel);
-			});
-		}).catch(err => {
-			resolve(err);
-		});
-	});
-}
+	async mute(props) {
+		try {
+			const propsForSelect = {
+				table:'channels',
+				query:{ChannelName:props.channel}
+			}
+			const results = await database.select(propsForSelect);
+			if (results) {
+				let dataToUse = {};
+				dataToUse["isSilent"] = true;
+				const propsForUpdate = {
+					table:'channels',
+					query:{ChannelName:props.channel},
+					dataToUse:dataToUse
+				}
+				await database.update(propsForUpdate)
+				return 'Bot has been muted!';
+			}
+		} catch (err) {
+			throw err;
+		}
+	}
 
-var sendMessage = function(twitchClient,channel,messageToSend,isWhisper,whipserFrom) {
-	runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-		if (isWhisper) {
-			twitchClient.whisper(whipserFrom, messageToSend);
-		} else {
-			if (!results[0]['isSilent']) {
-				twitchClient.say(channel, messageToSend);
+	async unmute(props) {
+		try {
+			const propsForSelect = {
+				table:'channels',
+				query:{ChannelName:props.channel}
+			}
+			const results = await database.select(propsForSelect);
+			if (results) {
+				var dataToUse = {};
+				dataToUse["isSilent"] = false;
+				const propsForUpdate = {
+					table:'channels',
+					query:{ChannelName:props.channel},
+					dataToUse:dataToUse
+				}
+				await database.update(propsForUpdate)
+				return 'Bot has been unmuted!';
+			}
+		} catch (err) {
+			throw err;
+		}
+	}
+
+	async send(props) {
+		try {
+			const propsForSelect = {
+				table:'channels',
+				query:{ChannelName:props.channel}
+			}
+			const results = await database.select(propsForSelect);
+			if (results[0].isSilent || props.isWhisper) {
+				props.twitchClient.whisper(props.userstate['username'], props.messageToSend);
+			} else {
+				props.twitchClient.say(props.channel, props.messageToSend);
 			};
-		};
-	});
+		} catch (err) {
+			throw err;
+		}
+	}
 }
 
-
-module.exports = {
-	muteMessages: muteMessages,
-	unmuteMessages: unmuteMessages,
-	sendMessage: sendMessage
-};
+module.exports = new messages();

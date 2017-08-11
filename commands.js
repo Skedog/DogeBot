@@ -1,142 +1,145 @@
-var runSQL = require('./runSQL.js');
-var permissions = require('./permissions.js');
-var functions = require('./general-functions.js');
-var messageHandler = require('./chat-messages.js');
+const database = require('./database.js');
+const constants = require('./constants.js');
+const permissions = require('./permissions.js');
+const functions = require('./functions.js');
+const socket = require('./socket.js');
 
-var add = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','commands',{channel:channel,trigger:messageParams[2]},'',db).then(results => {
-			if (!results) {
-				runSQL('select','defaultCommands',{trigger:messageParams[2]},'',db).then(res2 => {
-					if (!res2) {
-						var triggerToAdd = messageParams[2].toLowerCase();
-						var tempLength = messageParams.length;
-						var messageToAdd = messageParams.slice(3,tempLength).join(' ').replace("'","&apos;");
-						if (messageToAdd !== '' && triggerToAdd.charAt(0) == '!') {
-							var dataToUse = {};
-							dataToUse["trigger"] = triggerToAdd;
-							dataToUse["chatmessage"] = messageToAdd;
-							dataToUse["commandcounter"] = 0;
-							dataToUse["channel"] = channel;
-							dataToUse["permissionsLevel"] = 0;
-							dataToUse["isAlias"] = false;
-							dataToUse["aliasFor"] = '';
-							dataToUse["listArray"] = [];
-							runSQL('add','commands',{},dataToUse,db).then(res => {
-								var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' has been added!';
-								messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-								resolve(msgToSend);
-							}).catch(err => {
-								reject(err);
-							});
-						} else {
-							reject('Adding command failed');
-						}
-					} else {
-						var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' is a default command!';
-						messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-						reject(msgToSend);
+class commands {
+
+	async call(props) {
+		switch(props.messageParams[1]) {
+			case 'add':
+				return await this.add(props);
+				break;
+			case 'edit':
+				return await this.edit(props);
+				break;
+			case 'delete':
+			case 'remove':
+				return await this.delete(props);
+				break;
+			case 'permissions':
+			case 'permission':
+			case 'perms':
+				return await this.permission(props);
+				break;
+			default:
+				const msgStr = 'The commands for this channel are available here: ';
+				let msgURL;
+				if (constants.testMode) {
+					msgURL = constants.testPostURL + '/commands/' + props.channel.slice(1);
+				} else {
+					msgURL = constants.postURL + '/commands/' + props.channel.slice(1);
+				}
+				return functions.buildUserString(props) + msgStr + msgURL;
+				break;
+		}
+	}
+
+	async add(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandExistence = await this.doesUserAddedCommandExist(props);
+		if (!commandExistence) {
+			let dataToUse = {};
+			dataToUse["trigger"] = props.messageParams[2].toLowerCase();
+			dataToUse["chatmessage"] = props.messageParams.slice(3,props.messageParams.length).join(' ').replace("'","&apos;");;
+			dataToUse["commandcounter"] = 0;
+			dataToUse["channel"] = props.channel;
+			dataToUse["permissionsLevel"] = 0;
+			dataToUse["isAlias"] = false;
+			dataToUse["aliasFor"] = '';
+			dataToUse["listArray"] = [];
+			const propsForAdd = {
+				table: 'commands',
+				dataToUse: dataToUse
+			}
+			await database.add(propsForAdd);
+			socket.emit('commands',['added']);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been added!';
+		} else {
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' already exists!';
+		}
+	}
+
+	async edit(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandExistence = await this.doesUserAddedCommandExist(props);
+		if (commandExistence) {
+			const tempLength = props.messageParams.length;
+			const messageToAdd = props.messageParams.slice(3,tempLength).join(' ').replace("'","&apos;");
+			let dataToUse = {};
+			dataToUse["chatmessage"] = messageToAdd;
+			const propsForUpdate = {
+				table:'commands',
+				query: {channel:props.channel,trigger:props.messageParams[2]},
+				dataToUse: dataToUse
+			}
+			await database.update(propsForUpdate);
+			socket.emit('commands',['updated']);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been updated!';
+		} else {
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
+		}
+	}
+
+	async delete(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandExistence = await this.doesUserAddedCommandExist(props);
+		if (commandExistence) {
+			const propsForDelete = {
+				table:'commands',
+				query:{channel:props.channel,trigger:props.messageParams[2]}
+			}
+			await database.delete(propsForDelete);
+			socket.emit('commands',['deleted']);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been deleted!';
+		} else {
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
+		}
+	}
+
+	async permission(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const propsForSelect = {
+			table: 'commands',
+			query: {channel:props.channel,trigger:props.messageParams[2]}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			const permissionLevelToSet = props.messageParams[3];
+			const commandPermissionlevelNeeded = results[0].permissionsLevel;
+			const userPermissionLevel = await permissions.getUserPermissionLevel(props);
+			if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionlevelNeeded) {
+				if (functions.isNumber(permissionLevelToSet)) {
+					let dataToUse = {};
+					dataToUse["permissionsLevel"] = permissionLevelToSet;
+					const propsForUpdate = {
+						table: 'commands',
+						query: {channel:props.channel,trigger:props.messageParams[2]},
+						dataToUse: dataToUse
 					}
-				}).catch(err => {
-					reject(err);
-				});
-			} else {
-				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' already exists!';
-				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-				reject(msgToSend);
+					await database.update(propsForUpdate);
+					socket.emit('commands',['updated']);
+					return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
+				}
 			}
-		}).catch(err => {
-			reject(err);
-		});
-	});
+		} else {
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
+		}
+	}
+
+	async doesUserAddedCommandExist(props) {
+		let propsForSelect = {
+			table: 'commands',
+			query: {channel:props.channel,trigger:props.messageParams[2]}
+		}
+		let res = await database.select(propsForSelect);
+		if (res) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 
-var edit = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','commands',{channel:channel,trigger:messageParams[2]},'',db).then(results => {
-			if (results !== undefined) {
-				var triggerToAdd = messageParams[2];
-				var tempLength = messageParams.length;
-				var messageToAdd = messageParams.slice(3,tempLength).join(' ').replace("'","&apos;");
-				var dataToUse = {};
-				dataToUse["chatmessage"] = messageToAdd;
-				runSQL('update','commands',{channel:channel,trigger:messageParams[2]},dataToUse,db).then(res => {
-					var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' has been updated!';
-					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-					resolve(msgToSend);
-				}).catch(err => {
-					reject(err);
-				});
-			} else {
-				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' doesn\'t exist!';
-				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-				reject(msgToSend);
-			}
-		}).catch(err => {
-			reject(err);
-		});
-	});
-}
-
-var remove = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','commands',{channel:channel,trigger:messageParams[2]},'',db).then(results => {
-			if (results) {
-				runSQL('delete','commands',{channel:channel,trigger:messageParams[2]},'',db).then(res => {
-					var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' has been deleted!';
-					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-					resolve(msgToSend)
-				}).catch(err => {
-					reject(err);
-				});
-			} else {
-				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' doesn\'t exist!';
-				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-				reject(msgToSend);
-			}
-		}).catch(err => {
-			reject(err);
-		});
-	});
-}
-
-var permission = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','commands',{channel:channel,trigger:messageParams[2]},'',db).then(results => {
-			if (results) {
-				var commandToEdit = messageParams[2];
-				var permissionLevelToSet = messageParams[3];
-				var commandPermissionlevelNeeded = results[0].permissionsLevel;
-				permissions.getUserPermissionLevel(db,channel,userstate).then(userPermissionLevel => {
-					if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionlevelNeeded) {
-						var query = {channel:channel,trigger:messageParams[2]};
-						if (functions.isNumber(permissionLevelToSet)) {
-							var dataToUse = {};
-							dataToUse["permissionsLevel"] = permissionLevelToSet;
-							runSQL('update','commands',query,dataToUse,db).then(results => {
-								var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' permissions have been updated!';
-								messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-								resolve(msgToSend);
-							}).catch(err => {
-								reject(err);
-							});
-						}
-					}
-				}).catch(err => {
-					reject(err);
-				});
-			} else {
-				var msgToSend = userstate['display-name'] + ' -> The command ' + messageParams[2] + ' doesn\'t exist!';
-				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-				reject('Updating permissions failed');
-			}
-		});
-	});
-}
-
-module.exports = {
-	add: add,
-	edit: edit,
-	remove: remove,
-	permission: permission
-};
+module.exports = new commands();

@@ -1,655 +1,629 @@
+const database = require('./database.js');
 const constants = require('./constants.js');
-var runSQL = require('./runSQL.js');
-var functions = require('./general-functions.js');
-var YouTube = require('youtube-node');
-var async = require('async');
-var stats = require('./stats.js');
-var ObjectId = require('mongodb').ObjectId;
-var messageHandler = require('./chat-messages.js');
+const stats = require('./stats.js');
+const functions = require('./functions.js');
+const request = require('async-request');
+const promisify = require("es6-promisify");
+const YouTube = require('youtube-node');
+const ObjectId = require('mongodb').ObjectId;
+const messages = require('./chat-messages.js');
+const socket = require('./socket.js');
+const ypi = require('youtube-playlist-info');
 
 /* - - - - - EXPORT FUNCTIONS - - - - - - */
 
-var songlist = function(twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
+class songs {
+
+	async songlist(props) {
+		let msgToSend;
 		if (constants.testMode) {
-			var msgToSend = 'The song list is available at: ' + constants.testPostURL + '/songs/' + channel.slice(1);
+			msgToSend = 'The song list is available at: ' + constants.testPostURL + '/songs/' + props.channel.slice(1);
 		} else {
-			var msgToSend = 'The song list is available at: ' + constants.postURL + '/songs/' + channel.slice(1);
+			msgToSend = 'The song list is available at: ' + constants.postURL + '/songs/' + props.channel.slice(1);
 		}
-		var userStr = '@' + userstate['display-name'] + ' -> ';
-		messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-		resolve(msgToSend);
-	});
-}
+		return functions.buildUserString(props) + msgToSend;
+	}
 
-var songcache = function(twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
+	async songcache(props) {
+		let msgToSend;
 		if (constants.testMode) {
-			var msgToSend = 'The song cache is available at: ' + constants.testPostURL + '/songcache/' + channel.slice(1);
+			msgToSend = 'The song cache is available at: ' + constants.testPostURL + '/songcache/' + props.channel.slice(1);
 		} else {
-			var msgToSend = 'The song cache is available at: ' + constants.postURL + '/songcache/' + channel.slice(1);
+			msgToSend = 'The song cache is available at: ' + constants.postURL + '/songcache/' + props.channel.slice(1);
 		}
-		var userStr = '@' + userstate['display-name'] + ' -> ';
-		messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-		resolve(msgToSend);
-	});
-}
+		return functions.buildUserString(props) + msgToSend;
+	}
 
-var currentSong = function(db,twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel},'',db).then(results => {
-			if (results) {
-				var msgToSend = 'The current song is "' + results[0]['songTitle'] + '" and it was requested by ' + results[0]['whoRequested'];
-			} else {
-				var msgToSend = 'No song currently requested!';
-			}
-			var userStr = '@' + userstate['display-name'] + ' -> ';
-			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-			resolve(msgToSend);
-		});
-	});
-}
-
-var volume = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-			if (messageParams[1]) {
-				var userStr = messageParams[1] + ' -> ';
-			} else {
-				var userStr = '@' + userstate['display-name'] + ' -> ';
-			}
-			var msgToSend = 'The current volume is: ' + results[0]['volume'];
-			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-			resolve(msgToSend);
-		});
-	});
-}
-
-var updateVolume = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		if (functions.isNumber(messageParams[1])) {
-			if (messageParams[1] <= 100) {
-				var newVolume = Math.round(messageParams[1]);
-				var dataToUse = {};
-				dataToUse["volume"] = newVolume;
-				runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
-					var userStr = '@' + userstate['display-name'] + ' -> ';
-					var msgToSend = 'The volume has been updated to ' + newVolume + '!';
-					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-					resolve(msgToSend);
-				});
-			}
+	async currentSong(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
 		}
-	});
-}
+		const results = await database.select(propsForSelect);
+		let msgToSend;
+		if (results) {
+			msgToSend = 'The current song is "' + results[0]['songTitle'] + '" and it was requested by ' + results[0]['whoRequested'];
+		} else {
+			msgToSend = 'No song currently requested!';
+		}
+		return functions.buildUserString(props) + msgToSend;
+	}
 
-var play = function(db,twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		var dataToUse = {};
+	async callVolume(props) {
+		if (functions.isNumber(props.messageParams[1])) {
+			return await this.updateVolume(props);
+		} else {
+			return await this.volume(props);
+		}
+	}
+
+	async volume(props) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		const msgToSend = 'The current volume is: ' + results[0]['volume'];
+		return functions.buildUserString(props) + msgToSend;
+	}
+
+	async updateVolume(props) {
+		props.ignoreMessageParamsForUserString = true;
+		if (props.messageParams[1] <= 100 && props.messageParams[1] >= 0) {
+			const newVolume = Math.round(props.messageParams[1]);
+			const dataToUse = {};
+			dataToUse["volume"] = newVolume;
+			const propsForUpdate = {
+				table: 'channels',
+				query: {ChannelName:props.channel},
+				dataToUse: dataToUse
+			}
+			await database.update(propsForUpdate);
+			const msgToSend = 'The volume has been updated to ' + newVolume + '!';
+			socket.emit('songs',['volumeupdated',newVolume]);
+			return functions.buildUserString(props) + msgToSend;
+		}
+	}
+
+	async play(props) {
+		let dataToUse = {};
 		dataToUse["musicStatus"] = 'play';
-		runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
-			var userStr = '@' + userstate['display-name'] + ' -> ';
-			var msgToSend = 'Music is now playing!';
-			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-			resolve(msgToSend);
-		});
-	});
-}
+		const propsForUpdate = {
+			table: 'channels',
+			query: {ChannelName:props.channel},
+			dataToUse: dataToUse
+		};
+		await database.update(propsForUpdate);
+		const msgToSend = 'Music is now playing!';
+		socket.emit('songs',['statuschange','play']);
+		return functions.buildUserString(props) + msgToSend;
+	}
 
-var pause = function(db,twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		var dataToUse = {};
+	async pause(props) {
+		let dataToUse = {};
 		dataToUse["musicStatus"] = 'pause';
-		runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
-			var userStr = '@' + userstate['display-name'] + ' -> ';
-			var msgToSend = 'Music has been paused!';
-			messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-			resolve(msgToSend);
-		});
-	});
-}
+		const propsForUpdate = {
+			table: 'channels',
+			query: {ChannelName:props.channel},
+			dataToUse: dataToUse
+		};
+		await database.update(propsForUpdate);
+		const msgToSend = 'Music has been paused!';
+		socket.emit('songs',['statuschange','pause']);
+		return functions.buildUserString(props) + msgToSend;
+	}
 
-var skip = function(db,twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel},'',db).then(results => {
-			if (results) {
-				var songTitle = results[0]['songTitle'];
-				var songToRemove = results[0]['_id'];
-				if (results[1]) { //if a second song is in the queue, we need to change it's sort order
-					var dataToUse = {};
-					var query = {};
-					var songToUpdateSortOrder = results[1]['_id'];
-					dataToUse["sortOrder"] = 100000;
-					runSQL('update','songs',{channel:channel,_id:songToUpdateSortOrder},dataToUse,db);
-				}
-				var query2 = {channel:channel,_id:songToRemove};
-				runSQL('delete','songs',query2,'',db).then(results => {
-					dataToUse = {};
-					dataToUse["tempSortVal"] = 199999;
-					runSQL('update','channels',{ChannelName:channel},dataToUse,db).then(results => {
-						var userStr = '@' + userstate['display-name'] + ' -> ';
-						var msgToSend = songTitle + ' has been skipped!';
-						messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-						resolve(msgToSend);
-					});
-				})
-			}
-		});
-	});
-}
-
-var wrongSong = function(db,twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		var query = {channel:channel,whoRequested:userstate['display-name']};
-		runSQL('select','songs',query,'',db).then(results => {
-			if (results) {
-				var songToRemove = results[results.length-1]['_id'];
-				var songTitle = results[results.length-1]['songTitle'];
-				var query = {channel:channel,_id:songToRemove};
-				runSQL('delete','songs',query,'',db).then(results => {
-					var userStr = '@' + userstate['display-name'] + ' -> ';
-					var msgToSend = songTitle + ' has been removed!';
-					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-					resolve(msgToSend);
-				});
-			}
-		});
-	});
-}
-
-var remove = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		var query = {};
-		if (functions.isNumber(messageParams[1])) {
-			//remove a single song by queue position
-			query = {channel:channel};
-			runSQL('select','songs',query,'',db).then(results => {
-				if (results) {
-					var songCount = 0;
-					for (i = 0; i < results.length; i++) {
-						var songCount = songCount + 1;
-						if (messageParams[1] == songCount) {
-							var songToRemove = results[i]['_id'];
-							var songTitle = results[i]['songTitle'];
-							var query = {channel:channel,_id:songToRemove};
-							runSQL('delete','songs',query,'',db).then(results => {
-								var userStr = '@' + userstate['display-name'] + ' -> ';
-								var msgToSend = 'The song ' + songTitle + ' has been removed!';
-								messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-								resolve(msgToSend);
-							});
-							break;
-						}
-					}
-				} else {
-					var userStr = '@' + userstate['display-name'] + ' -> ';
-					var msgToSend = 'The song you tried to remove doesn\'t exist!';
-					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-					resolve(msgToSend);
-				}
-			});
-		} else if (messageParams[1].includes(',')) {
-			//remove multiple songs by id, comma separated
-			var songsToRemove = messageParams[1].split(',').sort(function(a, b){return b-a;});
-			var songsRemoved = false;
-			var userStr = '@' + userstate['display-name'] + ' -> ';
-			runSQL('select','songs',{channel:channel},'',db).then(results => {
-				if (results) {
-					var songsToRemoveCounter = 0;
-					async.eachSeries(songsToRemove, function(songToRemove, callback) {
-						var songCount = 0;
-						for (i = 1; i < results.length; i++) {
-							if (i == (songToRemove-1)) {
-								runSQL('delete','songs',{channel:channel,_id:results[i]['_id']},'',db).then(results => {
-									songsRemoved = true;
-									callback();
-								});
-								break;
-							}
-						}
-					}, function(err) {
-						if (songsRemoved) {
-							var msgToSend = userStr + 'Songs removed!';
-						} else {
-							var msgToSend = userStr + 'None of the songs you tried to remove exist!';
-						}
-						messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-						resolve(msgToSend);
-					});
-				} else {
-					var msgToSend = userStr + 'There are no songs in the queue, so no songs were removed!';
-					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-					resolve(msgToSend);
-				}
-			});
-		} else {
-			//remove songs by username
-			var userToRemove = messageParams[1].toLowerCase();
-			var foundAtLeastOne = false;
-			var query = {channel:channel,whoRequested:{$regex:new RegExp(userToRemove, "i")}};
-			runSQL('deleteall','songs',query,'',db).then(results => {
-				var userStr = '@' + userstate['display-name'] + ' -> ';
-				var msgToSend = userStr + 'Songs removed!';
-				messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-				resolve(msgToSend);
-			}).catch(err => {
-				reject('Found no songs requested by: ' + userToRemove);
-			});
+	async skip(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
 		}
-	});
-}
+		const results = await database.select(propsForSelect);
+		let songToPassToEmit;
+		if (results) {
+			const songTitle = results[0]['songTitle'];
+			const songToRemove = results[0]['_id'];
+			let dataToUse = {};
+			let propsForUpdate = {};
+			if (results[1]) { //if a second song is in the queue, we need to change it's sort order
+				songToPassToEmit = results[1]['songID'];
+				dataToUse = {};
+				const songToUpdateSortOrder = results[1]['_id'];
+				dataToUse["sortOrder"] = 100000;
+				propsForUpdate = {
+					table: 'songs',
+					query: {channel:props.channel,_id:songToUpdateSortOrder},
+					dataToUse: dataToUse
+				}
+				await database.update(propsForUpdate);
+			}
+			const propsForDelete = {
+				table: 'songs',
+				query: {channel:props.channel,_id:songToRemove}
+			}
+			await database.delete(propsForDelete);
+			dataToUse = {};
+			dataToUse["tempSortVal"] = 199999;
+			propsForUpdate = {
+				table: 'channels',
+				query: {ChannelName:props.channel},
+				dataToUse: dataToUse
+			}
+			await database.update(propsForUpdate);
+			socket.emit('songs',['skipped',songToPassToEmit]);
+			const msgToSend = songTitle + ' has been skipped!';
+			return functions.buildUserString(props) + msgToSend;
+		}
+	}
 
-var promote = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		var indexToMove = messageParams[1];
-		if (functions.isNumber(indexToMove)) {
-			runSQL('select','songs',{channel:channel},'',db).then(results => {
-				for (i = 0; i < results.length; i++) {
-					if (indexToMove == i+1) {
-						var songToPromote = results[i]['_id'];
-						runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-							var tempSortVal = results[0]['tempSortVal'];
-							var query = {channel:channel,_id:songToPromote};
-							var dataToUse = {};
-							dataToUse["sortOrder"] = parseInt(tempSortVal,10);
-							runSQL('update','songs',query,dataToUse,db).then(results => {
-								query = {};
-								query = {ChannelName:channel};
-								dataToUse = {};
-								dataToUse["tempSortVal"] = parseInt(tempSortVal-1,10);
-								runSQL('update','channels',query,dataToUse,db).then(results => {
-									var userStr = '@' + userstate['display-name'] + ' -> ';
-									var msgToSend = 'Song #' + indexToMove + ' has been promoted!';
-									messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-									resolve(msgToSend);
-								});
-							});
-						});
+	async wrongSong(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel,whoRequested:props.userstate['display-name']}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			const songToRemove = results[results.length-1]['_id'];
+			const songTitle = results[results.length-1]['songTitle'];
+			const propsForDelete = {
+				table: 'songs',
+				query: {channel:props.channel,_id:songToRemove}
+			}
+			await database.delete(propsForDelete);
+			const msgToSend = songTitle + ' has been removed!';
+			return functions.buildUserString(props) + msgToSend;
+		}
+	}
+
+	async removeSongByQueuePosition(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			let songCount = 0;
+			for (let song of results) {
+				songCount = songCount + 1;
+				if (props.messageParams[1] == songCount) {
+					const songToRemove = song['_id'];
+					const songTitle = song['songTitle'];
+					const propsForDelete = {
+						table: 'songs',
+						query: {channel:props.channel,_id:songToRemove}
+					}
+					await database.delete(propsForDelete);
+					socket.emit('songs',['removed']);
+					const msgToSend = 'The song ' + songTitle + ' has been removed!';
+					return functions.buildUserString(props) + msgToSend;
+				}
+			}
+		} else {
+			const msgToSend = 'The song you tried to remove doesn\'t exist!';
+			return functions.buildUserString(props) + msgToSend;
+		}
+	}
+
+	async removeMultipleSongsByQueuePosition(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const songsToRemove = props.messageParams[1].split(',').sort(function(a, b){return b-a;});
+		let atLeastOneSongRemoved = false;
+		let msgToSend;
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			for (let songToRemove of songsToRemove) {
+				for (let i = 0; i < results.length; i++) {
+					if (i == (songToRemove-1)) {
+						const propsForDelete = {
+							table: 'songs',
+							query: {channel:props.channel,_id:results[i]['_id']}
+						}
+						await database.delete(propsForDelete);
+						atLeastOneSongRemoved = true;
 						break;
 					}
 				}
-			});
-		}
-	});
-}
-
-var shuffle = function(db,twitchClient,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel},'',db).then(results => {
-			if (results) {
-				var songsToShuffle = '';
-				for (i = 0; i < results.length; i++) {
-					if (results[i]['sortOrder'] >= 200000) {
-						songsToShuffle = songsToShuffle + results[i]['_id'] + ',';
-					}
-				}
-				songsToShuffle = songsToShuffle.substring(0, songsToShuffle.length - 1);
-				var arrayOfIDs = songsToShuffle.split(',');
-				var shuffledArray = functions.shuffleArray(arrayOfIDs);
-				var i = 0;
-				async.eachSeries(shuffledArray, function(shuffledSongID, callback) {
-					var query = {};
-					//If we don't use ObjectID - mongo returns a null value for the query
-					query = {channel:channel,_id:ObjectId(shuffledSongID)};
-					var dataToUse = {};
-					dataToUse["sortOrder"] = parseInt((i+2) + '00000',10);
-					runSQL('update','songs',query,dataToUse,db).then(res => {
-						i++;
-						callback();
-					});
-				}, function(err) {
-					var userStr = '@' + userstate['display-name'] + ' -> ';
-					var msgToSend = 'Songs shuffled!';
-					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-					resolve(msgToSend);
-				})
+			};
+			if (atLeastOneSongRemoved) {
+				socket.emit('songs',['removed']);
+				msgToSend = functions.buildUserString(props) + 'Songs removed!';
+			} else {
+				msgToSend = functions.buildUserString(props) + 'None of the songs you tried to remove exist!';
 			}
-		});
-	});
-}
+			return msgToSend;
+		} else {
+			return functions.buildUserString(props) + 'There are no songs in the queue, so no songs were removed!';
+		}
+	}
 
-var requestSongs = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		var userStr = '@' + userstate['display-name'] + ' -> ';
-		var removeCommandFromSearchTerm = messageParams.splice(0,1);
-		var searchTerm = messageParams.join(' ');
+	async removeSongsByUsername(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const userToRemove = props.messageParams[1].toLowerCase();
+		const propsForDelete = {
+			table: 'songs',
+			//this can cause issues if someones entire name is contained in another users name, such as, ygtskedog and ygtskedogtest
+			//however, without this being a regex - you must type the users display name exactly in order for a match, including caps
+			query: {channel:props.channel,whoRequested:{$regex:new RegExp(userToRemove, "i")}}
+		}
+		await database.deleteall(propsForDelete);
+		socket.emit('songs',['removed']);
+		return functions.buildUserString(props) + 'Songs removed!';
+	}
+
+	async remove(props) {
+		if (functions.isNumber(props.messageParams[1])) {
+			return await this.removeSongByQueuePosition(props);
+		} else if (props.messageParams[1].includes(',')) {
+			return await this.removeMultipleSongsByQueuePosition(props);
+		} else {
+			return await this.removeSongsByUsername(props);
+		}
+	}
+
+	async promote(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const indexToMove = props.messageParams[1];
+		let propsForSelect,results,propsForUpdate,dataToUse;
+		propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		results = await database.select(propsForSelect);
+		for (let i = 0; i < results.length; i++) {
+			if (indexToMove == i+1 || indexToMove == results[i]['songID']) {
+				const songToPromote = results[i]['_id'];
+				propsForSelect = {
+					table: 'channels',
+					query: {ChannelName:props.channel}
+				}
+				results = await database.select(propsForSelect);
+				const tempSortVal = results[0]['tempSortVal'];
+				dataToUse = {};
+				dataToUse["sortOrder"] = parseInt(tempSortVal,10);
+				propsForUpdate = {
+					table: 'songs',
+					query: {channel:props.channel,_id:songToPromote},
+					dataToUse: dataToUse
+				}
+				await database.update(propsForUpdate);
+				dataToUse = {};
+				dataToUse["tempSortVal"] = parseInt(tempSortVal-1,10);
+				propsForUpdate = {
+					table: 'channels',
+					query: {ChannelName:props.channel},
+					dataToUse: dataToUse
+				}
+				await database.update(propsForUpdate);
+				const msgToSend = 'Song #' + indexToMove + ' has been promoted!';
+				socket.emit('songs',['promoted']);
+				return functions.buildUserString(props) + msgToSend;
+			};
+		}
+	}
+
+	async shuffle(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			let songsToShuffle = '';
+			for (let i = 0; i < results.length; i++) {
+				if (results[i]['sortOrder'] >= 200000) {
+					songsToShuffle = songsToShuffle + results[i]['_id'] + ',';
+				}
+			}
+			songsToShuffle = songsToShuffle.substring(0, songsToShuffle.length - 1);
+			const arrayOfIDs = songsToShuffle.split(',');
+			const shuffledArray = await functions.shuffleArray(arrayOfIDs);
+			i = 0;
+			for (let shuffledSongID of shuffledArray) {
+				let dataToUse = {};
+				dataToUse["sortOrder"] = parseInt((i+2) + '00000',10);
+				const propsForUpdate = {
+					table: 'songs',
+					query: {channel:props.channel,_id:ObjectId(shuffledSongID)},
+					dataToUse: dataToUse
+				}
+				await database.update(propsForUpdate);
+				i++;
+			}
+			const msgToSend = 'Songs shuffled!';
+			return functions.buildUserString(props) + msgToSend;
+		}
+	}
+
+	async requestSongs(props) {
+		props.messageParams.splice(0,1);
+		const searchTerm = props.messageParams.join(' ');
 		if (searchTerm.slice(-1) == ',') {searchTerm = searchTerm.slice(0, -1);}
 		if (searchTerm.includes(',') && !searchTerm.includes(' ')) {
-			var songsToAdd = searchTerm.split(',');
-			requestCommaListOfSongs(db,channel,userstate,songsToAdd).then(msgToSend => {
-				messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend + '!',false,'');
-				resolve(msgToSend + '!');
-			})
+			props.songsToAdd = searchTerm.split(',');
+			return await this.requestCommaListOfSongs(props);
 		} else {
 			if (searchTerm) {
-				requestSingleSong(db,channel,userstate,searchTerm).then(msgToSend => {
-					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend + '!',false,'');
-					resolve(msgToSend + '!');
-				})
+				props.songToAdd = searchTerm;
+				return await this.requestSingleSong(props);
 			} else {
-				msgToSend = 'To request a song, type the following: !sr youtube URL, video ID, or the song name'
-				messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend + '!',false,'');
-				reject(msgToSend + '!');
+				return functions.buildUserString(props) + 'To request a song, type the following: !sr youtube URL, video ID, or the song name';
 			}
 		}
-	});
-}
+	}
 
-var requestPlaylist = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		var userStr = '@' + userstate['display-name'] + ' -> ';
-		var removeCommandFromSearchTerm = messageParams.splice(0,1);
-		var searchTerm = messageParams.join(' ');
-		getYouTubePlaylistIDFromChatMessage(searchTerm).then(playlistID => {
-			var youTube = new YouTube();
-			youTube.setKey(dbConstants.YouTubeAPIKey);
-			youTube.addParam('maxResults','50');
-			youTube.getPlayListsItemsById(playlistID, function(error, result) {
-				if (error) {
-					if (error['code'] == 404) {
-						var msgToSend = 'Playlist not found!';
-						messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-						reject(msgToSend);
-					} else {
-						reject(error);
-					}
-				} else {
-					var msgToSend = 'Gathering playlist data, please wait...';
-					messageHandler.sendMessage(twitchClient,channel,userStr + msgToSend,false,'');
-					var firstPageOfIDs = '';
-					var totalResults = result['pageInfo']['totalResults'];
-					var nextpageToken = result['nextPageToken'];
-					for (x = 0; x < 51; x++) {
-						if (result['items'][x]) {
-							if (result['items'][x]['status']['privacyStatus'] == 'public') {
-								firstPageOfIDs = firstPageOfIDs + result['items'][x]['contentDetails']['videoId'] + ',';
-							}
-						}
-					}
-					if (totalResults > 50) {
-						buildFullYTPlaylistIdList(playlistID,nextpageToken,'').then(builtListOfIDs => {
-							var listOfIDs = builtListOfIDs + firstPageOfIDs;
-							var finalList = listOfIDs.substring(0, listOfIDs.length - 1); //remove last comma
-							var arrayOfPlaylistSongIDs = finalList.split(',');
-							getChannelSongNumberLimit(db,channel).then(songNumberLimit => {
-								var randomList = functions.generateListOfRandomNumbers(songNumberLimit+10,arrayOfPlaylistSongIDs.length-1);
-								var randomListOfSongsToAdd = '';
-								for (y = 0; y < randomList.length; y++) {
-									randomListOfSongsToAdd = randomListOfSongsToAdd + arrayOfPlaylistSongIDs[randomList[y]] + ',';
-								}
-								finalList = randomListOfSongsToAdd.substring(0, randomListOfSongsToAdd.length - 1);
-								resolve(requestSongs(db,twitchClient,channel,userstate,['!sr',finalList]));
-							})
-						})
-					} else {
-						var finalList = firstPageOfIDs.substring(0, firstPageOfIDs.length - 1);
-						resolve(requestSongs(db,twitchClient,channel,userstate,['!sr',finalList]));
-					}
-				}
-			})
-		}).catch(err => {
-			messageHandler.sendMessage(twitchClient,channel,userStr + err,false,'');
-			reject(err);
-		});
-	});
-}
-
-/* - - - - - HELPER FUNCTIONS - - - - - - */
-
-var checkIfSongExists = function(db,channel,songToAdd) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel,songID:songToAdd},'',db).then(res => {
-			if (res) {
-				reject('failed exists');
+	async requestPlaylist(props) {
+		props.messageParams.splice(0,1);
+		const playlistID = await this.getYouTubePlaylistIDFromChatMessage(props);
+		const dbConstants = await database.constants();
+		const _this = this;
+		try {
+			await this.checkIfUserCanAddSong(props);
+			props.messageToSend = 'Gathering playlist data, please wait...';
+			messages.send(props);
+			const playlistInfo = await promisify(ypi.playlistInfo);
+			let playlistItems = '';
+			await playlistInfo(dbConstants.YouTubeAPIKey,playlistID).then(results => {
+				playlistItems = results;
+			}).catch(err => {
+				playlistItems = err;
+			});
+			let createdArray = [];
+			for (let x=0;x<playlistItems.length;x++) {
+				createdArray.push(playlistItems[x]['resourceId']['videoId']);
+			}
+			const shuffledSongs = await functions.shuffleArray(createdArray);
+			const songNumberLimit = await _this.getChannelSongNumberLimit(props);
+			const randomList = await functions.generateListOfRandomNumbers(songNumberLimit+10,shuffledSongs.length-1);
+			let randomListOfSongsToAdd = '';
+			for (let y = 0; y < randomList.length; y++) {
+				randomListOfSongsToAdd = randomListOfSongsToAdd + shuffledSongs[randomList[y]] + ',';
+			}
+			const finalList = randomListOfSongsToAdd.substring(0, randomListOfSongsToAdd.length - 1);
+			props.messageParams = ['!sr',finalList];
+			return await _this.requestSongs(props);
+		} catch (err) {
+			if (err == 'failed limit') {
+				return functions.buildUserString(props) + 'Song request limit reached, please try again later!';
 			} else {
-				resolve('');
-			};
-		}).catch(function(err) {
-			reject(err);
-		});
-	});
-}
+				return functions.buildUserString(props) + 'Error requesting playlist!';
+			}
+		}
+	}
 
-var checkCacheTimeCheck = function(db,channel,songToAdd) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(res => {
-			var duplicationCheckDateInMS = res[0]['duplicateSongDelay']*3600000;
-			var query = {channel:channel,songID:songToAdd};
-			runSQL('select','songcache',query,'',db).then(results => {
-				if (results) {
-					var whenRequested = results[0]['whenRequested'];
-					var currentdate = new Date();
-					var currentTimeInMS = currentdate.getTime();
-					var timeCheck = currentTimeInMS - duplicationCheckDateInMS;
-					if (whenRequested < timeCheck) {
-						resolve('cache time is good');
-					} else {
-						reject('failed toosoon');
-					}
-				} else {
-					resolve('good');
-				}
-			})
-		})
-	});
-}
+	/* - - - - - HELPER FUNCTIONS - - - - - - */
 
-var checkCountryRestrictions = function(db,channel,allowedRegions) {
-	return new Promise((resolve, reject) => {
-		if (allowedRegions && allowedRegions.length != 0) {
-			if (allowedRegions.includes('US')) {
-				resolve('good');
+	async checkIfSongExists(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel,songID:props.songToAdd}
+		}
+		const res = await database.select(propsForSelect);
+		if (res) {
+			throw 'failed exists';
+		} else {
+			return 'doesn\'t exist';
+		};
+	}
+
+	async checkCacheTimeCheck(props) {
+		let propsForSelect;
+		propsForSelect = {
+			table: 'channels',
+			query: {ChannelName:props.channel}
+		}
+		const res = await database.select(propsForSelect);
+		const duplicationCheckDateInMS = res[0]['duplicateSongDelay']*3600000;
+		propsForSelect = {
+			table: 'songcache',
+			query: {channel:props.channel,songID:props.songToAdd}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			const whenRequested = results[0]['whenRequested'];
+			const currentdate = new Date();
+			const currentTimeInMS = currentdate.getTime();
+			const timeCheck = currentTimeInMS - duplicationCheckDateInMS;
+			if (whenRequested < timeCheck) {
+				return 'cache time is good';
 			} else {
-				reject('failed countryCheck');
+				throw 'failed toosoon';
 			}
 		} else {
-			resolve('good');
+			return 'good';
 		}
-	});
-}
+	}
 
-var checkIfSongCanBeEmbeded = function(db,channel,isEmbeddable) {
-	return new Promise((resolve, reject) => {
-		if (isEmbeddable) {
-			resolve('good');
+	checkCountryRestrictions(props) {
+		if (props.YTData[0]['allowedRegions'] && props.YTData[0]['allowedRegions'].length != 0) {
+			if (props.YTData[0]['allowedRegions'].includes('US')) {
+				return 'good';
+			} else {
+				throw 'failed countryCheck';
+			}
 		} else {
-			reject('failed embedCheck');
+			return 'good';
 		}
-	});
-}
+	}
 
-var checkIfUserCanAddSong = function(db,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		Promise.all([
-			getChannelSongNumberLimit(db,channel),
-			getNumberOfSongsInQueuePerUser(db,channel,userstate)
-		]).then(res => {
-			var channelSongNumberLimit = res[0];
-			var numberOfSongsInQueuePerUser = res[1];
-			if (numberOfSongsInQueuePerUser < channelSongNumberLimit) {
-				resolve('good');
+	checkIfSongCanBeEmbeded(props) {
+		if (props.YTData[0]['isEmbeddable']) {
+			return 'good';
+		} else {
+			throw 'failed embedCheck';
+		}
+	}
+
+	async checkIfUserCanAddSong(props) {
+		const songNumberLimit = await this.getChannelSongNumberLimit(props);
+		const numberOfSongsForUser = await this.getNumberOfSongsInQueuePerUser(props);
+		if (numberOfSongsForUser < songNumberLimit) {
+			return 'good';
+		} else {
+			throw 'failed limit';
+		}
+	}
+
+	async checkIfSongIsTooLong(props) {
+		const channelMaxSongLength = await this.getChannelMaxSongLength(props);
+		const songLength = props.YTData[0]['songLength'];
+		let minutes;
+		if ((songLength.includes("H") || songLength.includes("M"))) {
+			minutes = songLength.replace('H',' ').split('M');
+			minutes = minutes[0].split(' ');
+			minutes = minutes[0].replace('PT','');
+		} else {
+			if (songLength == 'PT0S') {
+				throw 'failed length';
 			} else {
-				reject('failed limit');
+				minutes = 0;
 			}
-		}).catch(function(err) {
-			reject('failed limit');
-		});
-	});
-}
+		}
+		if ((channelMaxSongLength == 0) || (minutes <= channelMaxSongLength && channelMaxSongLength != 0) && !(songLength.includes("H"))) {
+			return 'good';
+		} else {
+			throw 'failed length';
+		}
+	}
 
-var checkIfSongIsTooLong = function(db,channel,songLength) {
-	return new Promise((resolve, reject) => {
-		getChannelMaxSongLength(db,channel).then(channelMaxSongLength => {
-			if ((songLength.includes("H") || songLength.includes("M"))) {
-				var minutes = songLength.replace('H',' ').split('M');
-				minutes = minutes[0].split(' ');
-				minutes = minutes[0].replace('PT','');
-			} else {
-				if (songLength == 'PT0S') {
-					reject('failed length');
-				} else {
-					var minutes = 0;
-				}
+	async addOrUpdateSongCache(props) {
+		let propsForSelect;
+		propsForSelect = {
+			table: 'channels',
+			query: {ChannelName:props.channel}
+		}
+		const res = await database.select(propsForSelect);
+		const duplicationCheckDateInMS = res[0]['duplicateSongDelay']*3600000;
+		const currentdate = new Date();
+		propsForSelect = {
+			table: 'songcache',
+			query: {channel:props.channel,songID:props.dataToAdd['songID']}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			let dataToUse = {};
+			dataToUse["whenRequested"] = currentdate;
+			const propsForUpdate = {
+				table: 'songcache',
+				query: {channel:props.channel,songID:props.dataToAdd['songID']},
+				dataToUse: dataToUse
 			}
-			if ((channelMaxSongLength == 0) || (minutes <= channelMaxSongLength && channelMaxSongLength != 0) && !(songLength.includes("H"))) {
-				resolve('good');
-			} else {
-				reject('failed length');
+			await database.update(propsForUpdate);
+			return 'updated cache';
+		} else {
+			const propsForAdd = {
+				table: 'songcache',
+				dataToUse: props.dataToAdd
 			}
-		}).catch(function(err) {
-			reject(err);
-		});
-	})
-}
+			await database.add(propsForAdd);
+			return 'added to cache';
+		}
+	}
 
-var addOrUpdateSongCache = function(db,channel,dataToAdd) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(res => {
-			var duplicationCheckDateInMS = res[0]['duplicateSongDelay']*3600000;
-			var query = {channel:channel,songID:dataToAdd['songID']};
-			var currentdate = new Date();
-			var currentTimeInMS = currentdate.getTime();
-			runSQL('select','songcache',query,'',db).then(results => {
-				if (results) {
-					query = {channel:channel,songID:dataToAdd['songID']};
-					dataToUse = {};
-					dataToUse["whenRequested"] = currentdate;
-					runSQL('update','songcache',query,dataToUse,db).then(results => {
-						resolve('updated cache');
-					});
-				} else {
-					runSQL('add','songcache',{},dataToAdd,db).then(results => {
-						resolve('added to cache');
-					});
-				}
-			})
-		})
-	});
-}
-
-var addSongToSonglistAndCache = function(db,channel,userstate,YTData) {
-	return new Promise((resolve, reject) => {
-		var dataToAdd = {};
-		var currentdate = new Date();
-		var datetime = currentdate.getTime();
-		dataToAdd["songID"] = YTData[0]["songID"];
-		dataToAdd["songTitle"] = YTData[0]["songTitle"];
-		dataToAdd["songLength"] = YTData[0]["songLength"];
-		dataToAdd["whoRequested"] = userstate["display-name"];
-		dataToAdd["channel"] = channel;
+	async addSongToSonglistAndCache(props) {
+		let dataToAdd = {};
+		const currentdate = new Date();
+		dataToAdd["songID"] = props.YTData[0]["songID"];
+		dataToAdd["songTitle"] = props.YTData[0]["songTitle"];
+		dataToAdd["songLength"] = props.YTData[0]["songLength"];
+		dataToAdd["whoRequested"] = props.userstate["display-name"];
+		dataToAdd["channel"] = props.channel;
 		dataToAdd["whenRequested"] = currentdate;
-		getNewSongSortOrder(db,channel).then(newSongSortOrder => {
-			dataToAdd["sortOrder"] = newSongSortOrder;
-			Promise.all([
-				addOrUpdateSongCache(db,channel,dataToAdd),
-				runSQL('add','songs',{},dataToAdd,db)
-			]).then(res => {
-				stats.updateUserSongRequestCounter(channel,userstate["username"],db);
-				resolve('added');
-			}).catch(function(err) {
-				reject(err);
-			});
+		const newSongSortOrder = await this.getNewSongSortOrder(props);
+		dataToAdd["sortOrder"] = newSongSortOrder;
+		props.dataToAdd = dataToAdd;
+		const propsForAdd = {
+			table: 'songs',
+			dataToUse: dataToAdd
+		}
+		await Promise.all([
+			this.addOrUpdateSongCache(props),
+			database.add(propsForAdd)
+		]).then(res => {
+			const propsForStats = {
+				channel:props.channel,
+				userstate: props.userstate,
+				statFieldToUpdate:'numberOfSongRequests'
+			}
+			stats.updateUserCounter(propsForStats);
+			return 'added';
 		}).catch(function(err) {
-			reject(err);
+			throw err;
 		});
-	});
-}
+	}
 
-var addSongPromiseWrapper = function(db,channel,userstate,songToAdd,songStatusArray,callback) {
-	return new Promise((resolve, reject) => {
-		getYouTubeSongData(songToAdd).then(YTData => {
-			Promise.all([
-				checkIfUserCanAddSong(db,channel,userstate),
-				checkIfSongExists(db,channel,songToAdd),
-				checkCacheTimeCheck(db,channel,songToAdd),
-				checkCountryRestrictions(db,channel,YTData[0]['allowedRegions']),
-				checkIfSongIsTooLong(db,channel,YTData[0]['songLength']),
-				checkIfSongCanBeEmbeded(db,channel,YTData[0]['isEmbeddable'])
-			]).then(res => {
-				addSongToSonglistAndCache(db,channel,userstate,YTData).then(res => {
-					songStatusArray.push('PASSED');
-					resolve([callback,YTData]);
-				}).catch(function(err) {
-					songStatusArray.push(err);
-					resolve([callback,YTData]);
-				});
-			}).catch(function(err) {
-				songStatusArray.push(err);
-				resolve([callback,YTData]);
-			});
-		}).catch(function(err) {
-			songStatusArray.push(err);
-			resolve([callback,'']);
-		});
-	});
-}
+	async addSongWrapper(props) {
+		props.YTData = await this.getYouTubeSongData(props);
+		try {
+			await this.checkIfUserCanAddSong(props);
+			await this.checkIfSongExists(props);
+			await this.checkCacheTimeCheck(props);
+			await this.checkCountryRestrictions(props);
+			await this.checkIfSongIsTooLong(props);
+			await this.checkIfSongCanBeEmbeded(props);
+			await this.addSongToSonglistAndCache(props);
+			props.songStatusArray.push('PASSED');
+			return 'Passed';
+		} catch (err) {
+			props.songStatusArray.push(err);
+			return err;
+		}
+	}
 
-var buildMessageToSendForAddSong = function(db,channel,songStatusArray,numberOfSongsRequested,YTData) {
-	return new Promise((resolve, reject) => {
-		var channelDefaultCountry = 'US';
-		var numberOfAddedSongs = songStatusArray.toString().match(/PASSED/g);
-		var numberOfTooSoon = songStatusArray.toString().match(/failed toosoon/g);
-		var numberOfLength = songStatusArray.toString().match(/failed length/g);
-		var numberOfExists = songStatusArray.toString().match(/failed exists/g);
-		var numberOfFailedIDs = songStatusArray.toString().match(/failed getYouTubeSongData/g);
-		var unavailableInCountry = songStatusArray.toString().match(/failed countryCheck/g);
-		var numberOfFailedEmbed = songStatusArray.toString().match(/failed embedCheck/g);
+	async countInArray(array, what) {
+	    return await array.filter(item => item == what).length;
+	}
+
+	async buildMessageToSendForAddSong(props) {
+		const userStr = functions.buildUserString(props);
+		let numberOfSongsRequested,msgToSend;
+		if (props.songsToAdd) {
+			numberOfSongsRequested = props.songsToAdd.length;
+		} else {
+			numberOfSongsRequested = 1;
+		}
+		const numberOfAddedSongs = await this.countInArray(props.songStatusArray,'PASSED');
+		const propsForErrorMessage = {
+			numberOfTooSoon: await this.countInArray(props.songStatusArray,'failed toosoon'),
+			numberOfLength: await this.countInArray(props.songStatusArray,'failed length'),
+			numberOfExists: await this.countInArray(props.songStatusArray,'failed exists'),
+			numberOfFailedIDs: await this.countInArray(props.songStatusArray,'failed getYouTubeSongData'),
+			unavailableInCountry: await this.countInArray(props.songStatusArray,'failed countryCheck'),
+			numberOfFailedEmbed: await this.countInArray(props.songStatusArray,'failed embedCheck'),
+			YTData: props.YTData,
+			numberOfSongsRequested: numberOfSongsRequested
+		}
 		if (numberOfAddedSongs) {
-			var numberOfSongsAdded = numberOfAddedSongs.length;
-			getChannelSongNumberLimit(db,channel).then(numberOfSongsPerChannel => {
-				if (numberOfSongsRequested == numberOfSongsAdded || numberOfSongsAdded == numberOfSongsPerChannel) {
-					//only triggers if all songs requested got added
-					if (numberOfSongsAdded == 1) {
-						//only one song requested, and added
-						getNumberOfSongsInQueue(db,channel).then(numberOfSongsInQueue => {
-							var msgToSend = 'The song ' + YTData[0]['songTitle'] + ' has been added to the queue as #' + numberOfSongsInQueue;
-							resolve(msgToSend);
-						})
+			const numberOfSongsPerChannel = await this.getChannelSongNumberLimit(props);
+			if (numberOfSongsRequested == numberOfAddedSongs || numberOfAddedSongs == numberOfSongsPerChannel) {
+				//only triggers if all songs requested got added
+				if (numberOfAddedSongs == 1) {
+					//only one song requested, and added
+					const numberOfSongsInQueue = await this.getNumberOfSongsInQueue(props);
+					return userStr + 'The song ' + props.YTData[0]['songTitle'] + ' has been added to the queue as #' + numberOfSongsInQueue;
+				} else {
+					//more than one song requested, and all added
+					return userStr + numberOfAddedSongs + ' songs added';
+				}
+			} else {
+				if (props.songStatusArray.includes('failed limit')) {
+					if (numberOfAddedSongs > 0) {
+						return userStr + numberOfAddedSongs + ' songs were added, but you reached the limit';
 					} else {
-						//more than one song requested, and all added
-						var msgToSend = numberOfSongsAdded + ' songs added';
-						resolve(msgToSend);
+						return userStr + 'Song request limit reached, please try again later';
 					}
 				} else {
-					if (songStatusArray.includes('failed limit')) {
-						if (numberOfSongsAdded > 0) {
-							var msgToSend = numberOfSongsAdded + ' songs were added, but you reached the limit'
-						} else {
-							var msgToSend = 'Song request limit reached, please try again later'
-						}
-						resolve(msgToSend);
+					if (numberOfAddedSongs > 1) {
+						msgToSend = numberOfAddedSongs + ' songs were added, but ';
 					} else {
-						if (numberOfSongsAdded > 1) {
-							var msgToSend = numberOfSongsAdded + ' songs were added, but ';
-						} else {
-							var msgToSend = numberOfSongsAdded + ' song was added, but ';
-						}
-						getFailedMessages(numberOfTooSoon,numberOfLength,numberOfExists,numberOfFailedIDs,numberOfSongsRequested,unavailableInCountry,numberOfFailedEmbed,YTData).then(res => {
-							for (i = 0; i < res.length; i++) {
-								if (i == 0) {
-									msgToSend = msgToSend + res[i]
-								} else if (i == res.length - 1) {
-									msgToSend = msgToSend + ', and ' + res[i]
-								} else {
-									msgToSend = msgToSend + ', ' + res[i]
-								}
-							}
-							resolve(msgToSend);
-						})
+						msgToSend = numberOfAddedSongs + ' song was added, but ';
 					}
-				}
-			})
-		} else {
-			if (songStatusArray.includes('failed limit')) {
-				var msgToSend = 'Song request limit reached, please try again later';
-				resolve(msgToSend);
-			} else {
-				// if (numberOfSongsRequested == 1 && unavailableInCountry) {
-				// 	resolve('The song you tried to request is unavailable for playback in: ' + channelDefaultCountry);
-				// }
-				var msgToSend = numberOfSongsRequested > 1 ? 'No songs were added because ' : '';
-				getFailedMessages(numberOfTooSoon,numberOfLength,numberOfExists,numberOfFailedIDs,numberOfSongsRequested,unavailableInCountry,numberOfFailedEmbed,YTData).then(res => {
-					for (i = 0; i < res.length; i++) {
+					const res = await this.getFailedMessages(propsForErrorMessage);
+					for (let i = 0; i < res.length; i++) {
 						if (i == 0) {
 							msgToSend = msgToSend + res[i]
 						} else if (i == res.length - 1) {
@@ -658,356 +632,314 @@ var buildMessageToSendForAddSong = function(db,channel,songStatusArray,numberOfS
 							msgToSend = msgToSend + ', ' + res[i]
 						}
 					}
-					resolve(msgToSend);
-				})
+					return userStr + msgToSend;
+				}
+			}
+		} else {
+			if (props.songStatusArray.includes('failed limit')) {
+				return userStr + 'Song request limit reached, please try again later';
+			} else {
+				msgToSend = numberOfSongsRequested > 1 ? 'No songs were added because ' : '';
+				const res = await this.getFailedMessages(propsForErrorMessage);
+				for (let i = 0; i < res.length; i++) {
+					if (i == 0) {
+						msgToSend = msgToSend + res[i]
+					} else if (i == res.length - 1) {
+						msgToSend = msgToSend + ', and ' + res[i]
+					} else {
+						msgToSend = msgToSend + ', ' + res[i]
+					}
+				}
+				return userStr + msgToSend;
 			}
 		}
-	})
-}
+	}
 
-var requestSingleSong = function(db,channel,userstate,songToAdd) {
-	return new Promise((resolve, reject) => {
-		var numberOfSongsAdded = 0;
-		var numberOfSongsRequested = 1;
-		var songStatusArray = [];
-		getYouTubeVideoIDFromChatMessage(songToAdd).then(youTubeID => {
-			addSongPromiseWrapper(db,channel,userstate,youTubeID,songStatusArray,'').then(res => {
-				buildMessageToSendForAddSong(db,channel,songStatusArray,numberOfSongsRequested,res[1]).then(res => {
-					resolve(res);
-				}).catch(function(err) {
-					resolve(err);
-				});
-			}).catch(function(err) {
-				resolve(err);
-			});
-		}).catch(function(err) {
-			resolve(err);
-		});
-	});
-}
+	async requestSingleSong(props) {
+		props.ignoreMessageParamsForUserString = true;
+		props.songStatusArray = [];
+		const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songToAdd);
+		props.songToAdd = youTubeID;
+		await this.addSongWrapper(props);
+		socket.emit('songs',['added']);
+		return await this.buildMessageToSendForAddSong(props) + '!';
+	}
 
-var requestCommaListOfSongs = function(db,channel,userstate,songsToAdd) {
-	return new Promise((resolve, reject) => {
-		var numberOfSongsRequested = songsToAdd.length;
-		var songStatusArray = [];
-		async.eachSeries(songsToAdd, function(songToAdd, callback) {
-			getYouTubeVideoIDFromChatMessage(songToAdd).then(youTubeID => {
-				addSongPromiseWrapper(db,channel,userstate,youTubeID,songStatusArray,callback).then(res => {
-					res[0]();
-				})
-			})
-		}, function(err) {
-			buildMessageToSendForAddSong(db,channel,songStatusArray,numberOfSongsRequested,'').then(res => {
-				resolve(res);
-			})
-		})
-	});
-}
-
-var buildFullYTPlaylistIdList = function(playlistID,nextPageToken,newList) {
-	return new Promise((resolve, reject) => {
-		var youTube = new YouTube();
-		youTube.setKey(dbConstants.YouTubeAPIKey);
-		youTube.addParam('maxResults','50');
-		youTube.addParam('pageToken',nextPageToken);
-		youTube.getPlayListsItemsById(playlistID, function(error, result) {
-			var tempList = '';
-			for (x = 0; x < 51; x++) {
-				if (result['items'][x]) {
-					tempList = tempList + result['items'][x]['contentDetails']['videoId'] + ',';
-				} else {
+	async requestCommaListOfSongs(props) {
+		props.ignoreMessageParamsForUserString = true;
+		props.songStatusArray = [];
+		for (let x=0; x < props.songsToAdd.length-1;x++) {
+			try {
+				const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songsToAdd[x]);
+				props.songToAdd = youTubeID;
+				await this.addSongWrapper(props);
+			} catch (err) {
+				if (err == 'failed limit') {
 					break;
 				}
 			}
-			newList = newList + tempList;
-			if (result['nextPageToken']) {
-				resolve(buildFullYTPlaylistIdList(playlistID,result['nextPageToken'],newList));
-			} else {
-				resolve(newList);
-			}
-		});
-	});
-}
+		}
+		socket.emit('songs',['added']);
+		return await this.buildMessageToSendForAddSong(props) + '!';
+	}
 
-var getChannelSongNumberLimit = function(db,channel) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-			if (results) {
-				resolve(results[0]['songNumberLimit']);
-			} else {
-				reject('failed getChannelSongNumberLimit');
-			};
-		});
-	});
-}
+	async getChannelSongNumberLimit(props) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return results[0]['songNumberLimit'];
+		} else {
+			throw 'failed getChannelSongNumberLimit';
+		};
+	}
 
-var getChannelMaxSongLength = function(db,channel) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','channels',{ChannelName:channel},'',db).then(results => {
-			if (results) {
-				resolve(results[0]['maxSongLength']);
-			} else {
-				reject('failed getChannelMaxSongLength');
-			};
-		});
-	});
-}
+	async getChannelMaxSongLength(props) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return results[0]['maxSongLength'];
+		} else {
+			throw 'failed getChannelMaxSongLength';
+		};
+	}
 
-var getNumberOfSongsInQueue = function(db,channel) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel},'',db).then(results => {
-			if (results) {
-				resolve(results.length);
-			} else {
-				resolve(100000);
-			}
-		});
-	});
-}
+	async getNumberOfSongsInQueue(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return results.length;
+		} else {
+			return 0;
+		}
+	}
 
-var getNumberOfSongsInQueuePerUser = function(db,channel,userstate) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel},'',db).then(resultsTemp => {
-			if (resultsTemp) {
-				var numberOfSongsPerUser = 0;
-				for (i = 0; i < resultsTemp.length; i++) {
-					if (resultsTemp[i]['whoRequested'].toLowerCase() == userstate['display-name'].toLowerCase()) {
-						numberOfSongsPerUser++;
-					}
-					if (i == (resultsTemp.length - 1)) {
-						resolve(numberOfSongsPerUser);
-					}
+	async getNumberOfSongsInQueuePerUser(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		const resultsTemp = await database.select(propsForSelect);
+		if (resultsTemp) {
+			let numberOfSongsPerUser = 0;
+			for (let i = 0; i < resultsTemp.length; i++) {
+				if (resultsTemp[i]['whoRequested'].toLowerCase() == props.userstate['display-name'].toLowerCase()) {
+					numberOfSongsPerUser++;
 				}
-			} else {
-				resolve(0);
+				if (i == (resultsTemp.length - 1)) {
+					return numberOfSongsPerUser;
+				}
 			}
-		});
-	});
-}
+		} else {
+			return 0;
+		}
+	}
 
-var getYouTubeSongData = function(songToAdd) {
-	return new Promise((resolve, reject) => {
-		var youTube = new YouTube();
+	async getYouTubeSongData(props) {
+		const dbConstants = await database.constants();
+		const youTube = new YouTube();
 		youTube.setKey(dbConstants.YouTubeAPIKey);
-		if (songToAdd.length == 11 && !songToAdd.includes(" ")) { //handles song requests
-			youTube.getById(songToAdd, function(error, result) {
-				if (result) {
-					if (error) {
-						reject(error);
+		if (props.songToAdd.length == 11 && !props.songToAdd.includes(" ")) { //handles song requests
+			let getById = await promisify(youTube.getById);
+			const result = await getById(props.songToAdd);
+			if (result) {
+				if (result["items"][0] && (!result["pageInfo"]["totalResults"] == 0)) {
+					const videoTitle = result["items"][0]["snippet"]["title"];
+					const isEmbeddable = result["items"][0]["status"]["embeddable"];
+					const videoLength = result["items"][0]["contentDetails"]["duration"];
+					let allowedRegions;
+					if (result["items"][0]["contentDetails"]["regionRestriction"]) {
+						allowedRegions = result["items"][0]["contentDetails"]["regionRestriction"]["allowed"];
 					} else {
-						if (result["items"][0] && (!result["pageInfo"]["totalResults"] == 0)) {
-							var videoTitle = result["items"][0]["snippet"]["title"];
-							var isEmbeddable = result["items"][0]["status"]["embeddable"];
-							var videoLength = result["items"][0]["contentDetails"]["duration"];
-							if (result["items"][0]["contentDetails"]["regionRestriction"]) {
-								var allowedRegions = result["items"][0]["contentDetails"]["regionRestriction"]["allowed"];
-							} else {
-								allowedRegions = [];
-							}
-							resolve([{"songID": songToAdd,"songTitle": videoTitle,"songLength": videoLength,"isEmbeddable": isEmbeddable,"allowedRegions": allowedRegions}]);
-						} else {
-							reject('failed getYouTubeSongData');
-						}
+						allowedRegions = [];
 					}
-				} else {
-					reject('failed getYouTubeSongData');
+					return [{"songID": props.songToAdd,"songTitle": videoTitle,"songLength": videoLength,"isEmbeddable": isEmbeddable,"allowedRegions": allowedRegions}];
 				}
-			});
-		} else {
-			reject('failed getYouTubeSongData');
+			}
 		}
-	});
-}
+	}
 
-var getYouTubePlaylistIDFromChatMessage = function(passedInfo) {
-	return new Promise((resolve, reject) => {
+	getYouTubePlaylistIDFromChatMessage(props) {
+		const passedInfo = props.messageParams.join(' ');
 		if ((passedInfo.length == 34 || passedInfo.length == 24 || passedInfo.length == 13) && !passedInfo.includes(" ")) {
-			resolve(passedInfo);
+			return passedInfo;
 		} else if (passedInfo.includes("http")) {
-			var tempSplit = passedInfo.split('?');
-			var query = functions.parseQuery(tempSplit[1]);
-			var playlistID = query['list'];
-			resolve(playlistID);
+			const tempSplit = passedInfo.split('?');
+			const query = functions.parseQuery(tempSplit[1]);
+			const playlistID = query['list'];
+			return playlistID;
 		} else if (passedInfo.indexOf('list=') > -1) {
-			var query = functions.parseQuery(passedInfo);
-			var playlistID = query['list'];
-			resolve(playlistID);
+			const query = functions.parseQuery(passedInfo);
+			const playlistID = query['list'];
+			return playlistID;
 		} else {
-			reject('Invalid Playlist! To request a playlist, type the following: !pr PlaylistID or YouTube URL');
+			throw 'Invalid Playlist! To request a playlist, type the following: !pr PlaylistID or YouTube URL';
 		}
-	})
-}
+	}
 
-var getYouTubeVideoIDFromChatMessage = function(passedInfo) {
-	return new Promise((resolve, reject) => {
-		if (passedInfo.length == 11 && !passedInfo.includes(" ")) {
-			resolve(passedInfo);
-		} else if (passedInfo.includes("http")) {
-			if (passedInfo.includes("://youtu.be")) {
-				var vars = passedInfo.split('/');
-				var finalVideoID = vars[3];
+	async getYouTubeVideoIDFromChatMessage(songToAdd) {
+		let vars,finalVideoID,query,tempSplit,videoID;
+		if (songToAdd.length == 11 && !songToAdd.includes(" ")) {
+			return songToAdd;
+		} else if (songToAdd.includes("http")) {
+			if (songToAdd.includes("://youtu.be")) {
+				vars = songToAdd.split('/');
+				finalVideoID = vars[3];
 			} else {
-				if (passedInfo.includes("?") && passedInfo.includes("v")) {
-					var tempSplit = passedInfo.split('?');
-					var query = functions.parseQuery(tempSplit[1]);
-					var finalVideoID = query['v'];
+				if (songToAdd.includes("?") && songToAdd.includes("v")) {
+					tempSplit = songToAdd.split('?');
+					query = functions.parseQuery(tempSplit[1]);
+					finalVideoID = query['v'];
 				} else {
-					var vars = passedInfo.split('/');
-					var finalVideoID = vars[3];
+					vars = songToAdd.split('/');
+					finalVideoID = vars[3];
 				}
 			}
 			if (finalVideoID.length == 11) {
-				resolve(finalVideoID);
+				return finalVideoID;
 			} else {
-				reject('Invalid URL! To request a song, type the following: !sr youtube URL, video ID, or the song name');
+				throw 'Invalid URL! To request a song, type the following: !sr youtube URL, video ID, or the song name';
 			}
-		} else if (passedInfo.indexOf('v=') > -1) {
-			var tempSplit = passedInfo.split('?');
-			var query = functions.parseQuery(tempSplit[1]);
-			var videoID = query['v'];
-			resolve(videoID);
+		} else if (songToAdd.indexOf('v=') > -1) {
+			tempSplit = songToAdd.split('?');
+			query = functions.parseQuery(tempSplit[1]);
+			videoID = query['v'];
+			return videoID;
 		} else {
-			var youTube = new YouTube();
+			const dbConstants = await database.constants();
+			const youTube = new YouTube();
 			youTube.setKey(dbConstants.YouTubeAPIKey);
-			youTube.search(passedInfo, 2, function(error, result) {
-				var numberOfResults = result["pageInfo"]["totalResults"];
-				if (numberOfResults > 0) {
-					var videoID = result["items"][0]["id"]["videoId"];
+			const youtubeSearch = await promisify(youTube.search);
+			const result = await youtubeSearch(songToAdd,2);
+			const numberOfResults = result["pageInfo"]["totalResults"];
+			if (numberOfResults > 0) {
+				videoID = result["items"][0]["id"]["videoId"];
+				if (videoID) {
+					return videoID;
+				} else {
+					//videoID was not defined in the first result, so pull the second one
+					//this happens when the search returns a channel first, rather than a video
+					videoID = result["items"][1]["id"]["videoId"];
 					if (videoID) {
-						resolve(videoID);
+						return videoID;
 					} else {
-						//videoID was not defined in the first result, so pull the second one
-						//this happens when the search returns a channel first, rather than a video
-						videoID = result["items"][1]["id"]["videoId"];
-						if (videoID) {
-							resolve(videoID);
-						} else {
-							reject('Song not found! To request a song, type the following: !sr youtube URL, video ID, or the song name');
-						}
+						throw 'Song not found! To request a song, type the following: !sr youtube URL, video ID, or the song name';
 					}
-				} else {
-					reject('Song not found! To request a song, type the following: !sr youtube URL, video ID, or the song name');
 				}
-			})
+			} else {
+				throw 'Song not found! To request a song, type the following: !sr youtube URL, video ID, or the song name';
+			}
 		}
-	})
-}
+	}
 
-var getFailedMessages = function(numberOfTooSoon,numberOfLength,numberOfExists,numberOfFailedIDs,numberOfSongsRequested,unavailableInCountry,numberOfFailedEmbed,YTData) {
-	return new Promise((resolve, reject) => {
-		var channelDefaultCountry = 'US';
-		var msgArray = [];
-		if (numberOfTooSoon) {
-			if (numberOfTooSoon.length > 1) {
-				msgArray.push(numberOfTooSoon.length + ' songs were played too recently');
+	getFailedMessages(props) {
+		const channelDefaultCountry = 'US';
+		let msgArray = [];
+		if (props.numberOfTooSoon) {
+			if (props.numberOfTooSoon > 1) {
+				msgArray.push(props.numberOfTooSoon + ' songs were played too recently');
 			} else {
-				if (numberOfSongsRequested > 1) {
-					msgArray.push(numberOfTooSoon.length + ' song was played too recently');
+				if (props.numberOfSongsRequested > 1) {
+					msgArray.push(props.numberOfTooSoon + ' song was played too recently');
 				} else {
-					msgArray.push('The song ' + YTData[0]['songTitle'] + ' was played too recently');
+					msgArray.push('The song ' + props.YTData[0]['songTitle'] + ' was played too recently');
 				}
 			}
 		}
-		if (numberOfLength) {
-			if (numberOfLength.length > 1) {
-				msgArray.push(numberOfLength.length + ' songs are too long');
+		if (props.numberOfLength) {
+			if (props.numberOfLength > 1) {
+				msgArray.push(props.numberOfLength + ' songs are too long');
 			} else {
-				if (numberOfSongsRequested > 1) {
-					msgArray.push(numberOfLength.length + ' song is too long')
+				if (props.numberOfSongsRequested > 1) {
+					msgArray.push(props.numberOfLength + ' song is too long')
 				} else {
-					msgArray.push('The song ' + YTData[0]['songTitle'] + ' is too long');
+					msgArray.push('The song ' + props.YTData[0]['songTitle'] + ' is too long');
 				}
 			}
 		}
-		if (numberOfExists) {
-			if (numberOfExists.length > 1) {
-				msgArray.push(numberOfExists.length + ' songs already exist');
+		if (props.numberOfExists) {
+			if (props.numberOfExists > 1) {
+				msgArray.push(props.numberOfExists + ' songs already exist');
 			} else {
-				if (numberOfSongsRequested > 1) {
-					msgArray.push(numberOfExists.length + ' song already exists');
+				if (props.numberOfSongsRequested > 1) {
+					msgArray.push(props.numberOfExists + ' song already exists');
 				} else {
-					msgArray.push('The song ' + YTData[0]['songTitle'] + ' already exists in the queue');
+					msgArray.push('The song ' + props.YTData[0]['songTitle'] + ' already exists in the queue');
 				}
 			}
 		}
-		if (unavailableInCountry) {
-			if (unavailableInCountry.length > 1) {
-				msgArray.push(unavailableInCountry.length + ' songs were unavailable for playback in: ' + channelDefaultCountry);
+		if (props.unavailableInCountry) {
+			if (props.unavailableInCountry > 1) {
+				msgArray.push(props.unavailableInCountry + ' songs were unavailable for playback in: ' + channelDefaultCountry);
 			} else {
-				if (numberOfSongsRequested > 1) {
-					msgArray.push(unavailableInCountry.length + ' song was unavailable for playback in: ' + channelDefaultCountry);
+				if (props.numberOfSongsRequested > 1) {
+					msgArray.push(props.unavailableInCountry + ' song was unavailable for playback in: ' + channelDefaultCountry);
 				} else {
-					msgArray.push('The song ' + YTData[0]['songTitle'] + ' is unavailable for playback in: ' + channelDefaultCountry);
+					msgArray.push('The song ' + props.YTData[0]['songTitle'] + ' is unavailable for playback in: ' + channelDefaultCountry);
 				}
 			}
 		}
-		if (numberOfFailedEmbed) {
-			if (numberOfFailedEmbed.length > 1) {
-				msgArray.push(numberOfFailedEmbed.length + ' songs were not allowed to be embeded');
+		if (props.numberOfFailedEmbed) {
+			if (props.numberOfFailedEmbed > 1) {
+				msgArray.push(props.numberOfFailedEmbed + ' songs were not allowed to be embedded');
 			} else {
-				if (numberOfSongsRequested > 1) {
-					msgArray.push(numberOfFailedEmbed.length + ' song was not allowed to be embeded');
+				if (props.numberOfSongsRequested > 1) {
+					msgArray.push(props.numberOfFailedEmbed + ' song was not allowed to be embedded');
 				} else {
-					msgArray.push('The song ' + YTData[0]['songTitle'] + ' is not allowed to be embeded');
+					msgArray.push('The song ' + props.YTData[0]['songTitle'] + ' is not allowed to be embedded');
 				}
 			}
 		}
-		if (numberOfFailedIDs) {
-			if (numberOfFailedIDs.length > 1) {
-				msgArray.push(numberOfFailedIDs.length + ' IDs were invalid');
+		if (props.numberOfFailedIDs) {
+			if (props.numberOfFailedIDs > 1) {
+				msgArray.push(props.numberOfFailedIDs + ' IDs were invalid');
 			} else {
-				if (numberOfSongsRequested > 1) {
-					msgArray.push(numberOfFailedIDs.length + ' ID was invalid');
+				if (props.numberOfSongsRequested > 1) {
+					msgArray.push(props.numberOfFailedIDs + ' ID was invalid');
 				} else {
 					msgArray.push('Invalid song ID');
 				}
 			}
 		}
 		if (msgArray[0]) {
-			resolve(msgArray);
+			return msgArray;
 		} else {
 			msgArray.push('Invalid song ID');
-			resolve(msgArray);
+			return msgArray;
 		}
-	})
-}
+	}
 
-var getNewSongSortOrder = function(db,channel) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','songs',{channel:channel},'',db).then(results => {
-			if (results) {
-				//check sort order - determines the last song in the queue (largestsortorder) and adds to that number
-				var largestSortOrder = 0;
-				for (i = 0; i < results.length; i++) {
-					if (largestSortOrder == 0) {
+	async getNewSongSortOrder(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel:props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			//check sort order - determines the last song in the queue (largestsortorder) and adds to that number
+			let largestSortOrder = 0;
+			for (let i = 0; i < results.length; i++) {
+				if (largestSortOrder == 0) {
+					largestSortOrder = results[i]['sortOrder'];
+				} else {
+					if (largestSortOrder < results[i]['sortOrder']) {
 						largestSortOrder = results[i]['sortOrder'];
-					} else {
-						if (largestSortOrder < results[i]['sortOrder']) {
-							largestSortOrder = results[i]['sortOrder'];
-						}
 					}
 				}
-				resolve(parseInt(largestSortOrder+100000,10));
-			} else {
-				resolve(100000);
 			}
-		});
-	});
+			return parseInt(largestSortOrder+100000,10);
+		} else {
+			return 100000;
+		}
+	}
 }
 
-module.exports = {
-	songlist: songlist,
-	songcache: songcache,
-	currentSong: currentSong,
-	volume: volume,
-	updateVolume: updateVolume,
-	play: play,
-	pause: pause,
-	skip: skip,
-	wrongSong: wrongSong,
-	remove: remove,
-	promote: promote,
-	shuffle: shuffle,
-	requestSongs: requestSongs,
-	requestPlaylist: requestPlaylist
-};
+module.exports = new songs();

@@ -2,9 +2,6 @@
 	<div class="starter-template">
 		<h1><img src="/img/playlists.png" alt="" />Player</h1>
 		<div class="player-page">
-			<div class="delay-container">
-				<label for="delay"><span>Delay: </span><input type="text" name="delay" id="delay" class="delay" /></label>
-			</div>
 			<div id="player"></div>
 			<div class="buttons">
 				<button type="button" class="blue-styled-button togglePlay">Pause</button>
@@ -24,61 +21,44 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 <script src="/js/datatables.js"></script>
 <script>
-var player;
-var channelData = '';
-passedPage = 'player';
-if ('{{=it.passedUser}}' != 'undefined') {
-	$('.buttons,.currentsong,.currentvolume').remove();
-	$('.player-page').addClass('playerFull');
-	$('.player-songlist').remove();
-	$('.delay').val(readCookie('userDelay'));
-} else {
-	$('.delay-container').remove();
-}
-getChannelName('{{=it.passedUser}}').then(channelName => {
-	buildChannelDataString(channelName).then(channelRes => {
-		channelData = channelRes;
-		$.ajaxSetup({ cache: false });
+let player;
+const channelName = getChannelName('{{=it.passedUser}}');
+const channelData = buildChannelDataString(channelName);
 
-		$('.volBtn').click(function(e) {
-			e.preventDefault();
-			var direction = $(this).attr('id');
-			getVolume(channelData).then(currentVolume => {
-				var newVol = 0;
-				if (direction == 'up') {
-					if (currentVolume < 90) {
-						newVol = Number(currentVolume) + 10;
-					} else {
-						newVol = 100;
-					};
-				} else {
-					if (currentVolume > 10) {
-						newVol = currentVolume - 10;
-					} else {
-						newVol = 10;
-					};
-				};
-				updateVolume(channelData,newVol).then(newVol => {
-					player.setVolume(newVol);
-					volumeReader();
-				});
-			});
-		});
+$('.volBtn').click(async function(e) {
+	e.preventDefault();
+	const direction = $(this).attr('id');
+	const currentVolume = await getVolume(channelData);
+	let newVol;
+	if (direction == 'up') {
+		if (currentVolume < 90) {
+			newVol = Number(currentVolume) + 10;
+		} else {
+			newVol = 100;
+		};
+	} else {
+		if (currentVolume > 10) {
+			newVol = currentVolume - 10;
+		} else {
+			newVol = 10;
+		};
+	};
+	newVol = await updateVolume(channelData,newVol);
+	player.setVolume(newVol);
+	updateTextVolume(newVol);
+});
 
-		$('.togglePlay').click(function(e) {
-			e.preventDefault();
-			if ($(this).text() == 'Pause') {
-				player.pauseVideo();
-				$(this).text('Play');
-				updateMusicStatus(channelData,'pause');
-			} else {
-				player.playVideo();
-				$(this).text('Pause');
-				updateMusicStatus(channelData,'play');
-			};
-		});
-	});
-
+$('.togglePlay').click(async function(e) {
+	e.preventDefault();
+	if ($(this).text() == 'Pause') {
+		await updateMusicStatus(channelData,'pause');
+		$(this).text('Play');
+		player.pauseVideo();
+	} else {
+		await updateMusicStatus(channelData,'play');
+		$(this).text('Pause');
+		player.playVideo();
+	};
 });
 
 $('.skipBtn').click(function(e) {
@@ -86,76 +66,64 @@ $('.skipBtn').click(function(e) {
 	loadNextSong();
 });
 
-$('.delay').keyup(function(e) {
-	document.cookie = "userDelay=" + $('.delay').val();
-});
-
-function loadPlayer() {
-	$.ajax({
+async function loadPlayer() {
+	let dataToUse = '';
+	await $.ajax({
 		url: '/getsonglist',
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			if (data[0] != undefined) {
-				player = new YT.Player('player', {
-					videoId: data[0]['songID'],
-					events: {
-						'onReady': onPlayerReady,
-						'onStateChange': onPlayerStateChange
-					}
-				});
-				loadSonglist(channelData,'player').then(songlist => {
-					if (songlist) {
-						dataTableStartSize = '5';
-						buildDataTable(songlist,'.datatable',dataTableStartSize);
-						checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
-					} else {
-						$('.datatable tbody').hide();
-						$('.songlist').html("Currently no songs in the queue!");
-					};
-				});
-			} else {
-				$('#player').html('Currently no songs in the queue!');
-				this['checkSkippedSongsInterval'] = setInterval(function() {
-					checkForSkippedSongs();
-				}, 1000);
-			};
+			dataToUse = data;
 		}
 	});
+	if (dataToUse[0] != undefined) {
+		player = new YT.Player('player', {
+			videoId: dataToUse[0]['songID'],
+			events: {
+				'onReady': onPlayerReady,
+				'onStateChange': onPlayerStateChange
+			}
+		});
+		let songlist = await loadSonglist(channelData,'player');
+		if (songlist) {
+			dataTableStartSize = '5';
+			buildDataTable(songlist,'.datatable',dataTableStartSize);
+		} else {
+			$('.datatable tbody').hide();
+			$('.songlist').html("Currently no songs in the queue!");
+		};
+	} else {
+		$('#player').html('Currently no songs in the queue!');
+	};
 }
 
-function loadNextSong() {
-	$.ajax({
+async function loadNextSong() {
+	let dataToUse;
+	await $.ajax({
 		url: '/loadnextsong',
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			if (data != 'empty') {
-				player.loadVideoById(data);
-				$('.togglePlay').text('Pause');
-				loadSonglist(channelData,'player');
-			};
+			dataToUse = data;
 		}
 	});
+	if (dataToUse != 'empty') {
+		player.loadVideoById(dataToUse);
+		let songlist = await loadSonglist(channelData,'player');
+		if (songlist) {
+			dataTableStartSize = '5';
+			buildDataTable(songlist,'.datatable',dataTableStartSize);
+		};
+		applyMusicStatus(channelData);
+	};
 }
 
-function onPlayerReady(event) {
+async function onPlayerReady(event) {
 	event.target.playVideo();
-	checkMusicStatus(true);
-	this['musicStatusInterval'] = setInterval(function() {
-		checkMusicStatus(false);
-	}, 1000);
-
-	volumeReader();
-	if ('{{=it.passedUser}}' == 'undefined') {
-		setInterval(function(){volumeReader()}, 1000);
-	}
-
-
-	checkForSkippedSongs();
-	this['checkSkippedSongsInterval'] = setInterval(function() {
-		checkForSkippedSongs();
-	}, 1000);
+	let currentVolume = await getVolume(channelData);
+	player.setVolume(currentVolume);
+	updateTextVolume(currentVolume);
+	applyMusicStatus(channelData);
 };
 
 function onPlayerStateChange(event) {
@@ -165,90 +133,10 @@ function onPlayerStateChange(event) {
 		} else {
 			location.reload();
 		}
+	} else if (event.data == 1 || event.data == 2) {
+		applyMusicStatus(channelData);
 	};
 }
-
-function volumeReader() {
-	getVolume(channelData).then(currentVolume => {
-		player.setVolume(currentVolume);
-		$('.currentvolume').html('<strong>Current Volume: </strong>' + currentVolume);
-	});
-};
-
-function checkMusicStatus(firstLoad) {
-	getMusicStatus(channelData).then(musicStatus => {
-		if ('{{=it.passedUser}}' == 'undefined' || firstLoad) {
-			if (musicStatus[0]['musicStatus'] == 'pause') {
-				player.pauseVideo();
-				$('.togglePlay').text('Play');
-			} else {
-				player.playVideo();
-				$('.togglePlay').text('Pause');
-			};
-		} else {
-			if ($('.delay').val() != '') {
-				if (musicStatus[0]['musicStatus'] == 'pause') {
-					setTimeout(function() {
-						player.pauseVideo();
-						$('.togglePlay').text('Play');
-					},$('.delay').val() * 1000);
-				} else {
-					setTimeout(function() {
-						player.playVideo();
-						$('.togglePlay').text('Pause');
-					},$('.delay').val() * 1000);
-				};
-			} else {
-				if (musicStatus[0]['musicStatus'] == 'pause') {
-					player.pauseVideo();
-					$('.togglePlay').text('Play');
-				} else {
-					player.playVideo();
-					$('.togglePlay').text('Pause');
-				};
-			};
-		}
-	});
-};
-
-function checkForSkippedSongs() {
-	if (player) {
-		var currentPlayingID = player.getVideoUrl().split('v=');
-		$.ajax({
-			url: '/getsonglist',
-			data: channelData,
-			type: 'POST',
-			cache: false,
-			success: function(data) {
-				if (data[0] != undefined) {
-					if (data[0]['songID'] != currentPlayingID[1]) {
-						if ('{{=it.passedUser}}' == 'undefined') {
-							player.loadVideoById(data[0]['songID']);
-						} else {
-							setTimeout(function() {
-								location.reload();
-							},$('.delay').val() * 1000);
-						}
-					};
-				} else {
-					player.loadVideoById('');
-				};
-			}
-		});
-	} else {
-		$.ajax({
-			url: '/getsonglist',
-			data: channelData,
-			type: 'POST',
-			cache: false,
-			success: function(data) {
-				if (data) {
-					location.reload();
-				};
-			}
-		});
-	}
-};
 
 function onYouTubeIframeAPIReady() {
 	loadPlayer();

@@ -1,29 +1,27 @@
 <div class="commandssection"></div>
 <script src="js/jquery.js"></script>
+<script src="/js/functions.js"></script>
 <script src="js/scripts.js"></script>
 <script>
 $(document).ready(function() {
 	$.ajaxSetup({ cache: false });
 	getNewSongInfo();
-	setInterval(function(){getNewSongInfo()}, 3000);
 });
 
-function getNewSongInfo() {
-	getChannelName('{{=it.passedUser}}').then(channelName => {
-		buildChannelDataString(channelName).then(channelData => {
-			$.ajax({
-				url: '/getcurrentsongforobs',
-				data: channelData,
-				type: 'POST',
-				success: function(data) {
-					if ('{{=it.showText}}' == 'true') {
-						$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
-					} else {
-						$('.commandssection').html(data[0]['songTitle']);
-					}
-				}
-			});
-		});
+async function getNewSongInfo() {
+	const channelName = getChannelName('{{=it.passedUser}}');
+	const channelData = buildChannelDataString(channelName);
+	$.ajax({
+		url: '/getsonglist',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			if ('{{=it.showText}}' == 'true') {
+				$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
+			} else {
+				$('.commandssection').html(data[0]['songTitle']);
+			}
+		}
 	});
 };
 </script>

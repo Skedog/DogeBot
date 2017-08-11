@@ -1,54 +1,113 @@
-var mongo = require('mongodb').MongoClient;
-var runSQL = require('./runSQL.js');
+const mongo = require('mongodb').MongoClient;
+const log = require('npmlog');
 
-const mongoConfig = JSON.parse(process.env.APP_CONFIG);
-const dbStr = 'mongodb://' + mongoConfig.mongo.user + ':' + process.env.MONGO_PASSWORD + '@' + mongoConfig.mongo.hostString;
+class database {
+	async connect() {
+		const _this = this;
+		const mongoConfig = JSON.parse(process.env.APP_CONFIG);
+		const dbStr = 'mongodb://' + mongoConfig.mongo.user + ':' + process.env.MONGO_PASSWORD + '@' + mongoConfig.mongo.hostString;
+		try {
+			const conn = await mongo.connect(dbStr);
+			module.exports.db = conn;
+			log.info('Connected to database');
+			return _this.constants();
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
 
-var connect = function() {
-	return new Promise((resolve, reject) => {
-		mongo.connect(dbStr, function(err, db) {
-			if (err) {
-				reject(err)
+	async select(props) {
+		try {
+			const result = await module.exports.db.collection(props.table).find(props.query,{"sort":[["sortOrder",'asc'], ['_id','asc']]}).toArray();
+			if (result.length) {
+				return result;
 			} else {
-				resolve(db)
+				return;
 			}
-		})
-	})
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async selectone(props) {
+		try {
+			const result = await module.exports.db.collection(props.table).findOne(props.query);
+			if (result.length) {
+				return result;
+			} else {
+				return;
+			}
+		} catch (err) {
+			throw new Error(err);
+		};
+	}
+
+	async add(props) {
+		try {
+			await module.exports.db.collection(props.table).insert(props.dataToUse);
+			return 'added';
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async update(props) {
+		try {
+			const numUpdated = await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse});
+			return 'updated';
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async updateall(props) {
+		try {
+			const numUpdated = await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse},{multi:true});
+			return 'updated';
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async removefield(props) {
+		try {
+			const numUdpate = await module.exports.db.collection(props.table).update(props.query, {$unset: props.dataToUse},{multi:true});
+			return 'updated';
+		} catch (err) {
+			throw new Error(err);
+		};
+	}
+
+	async delete(props) {
+		try {
+			await module.exports.db.collection(props.table).deleteOne(props.query);
+			return 'deleted';
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async deleteall(props) {
+		try {
+			await module.exports.db.collection(props.table).deleteMany(props.query);
+			return 'deleted';
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async constants() {
+		const props = {table: 'globalConstants'}
+		const constants = await this.select(props);
+		const dbArray = {
+			twitchOauthPass:constants[0].twitchOauthPass,
+			twitchClientID:constants[0].twitchClientID,
+			twitchTestClientID:constants[0].twitchTestClientID,
+			YouTubeAPIKey:constants[0].YouTubeAPIKey,
+			discordAPIKey:constants[0].discordAPIKey
+		};
+		return dbArray;
+	}
 }
 
-var getDbConstants = function(db) {
-	return new Promise((resolve, reject) => {
-		runSQL('select','globalConstants',{},'',db).then(results => {
-			var dbConstants = {
-				twitchOauthPass:results[0].twitchOauthPass,
-				twitchClientID:results[0].twitchClientID,
-				twitchTestClientID:results[0].twitchTestClientID,
-				YouTubeAPIKey:results[0].YouTubeAPIKey,
-				discordAPIKey:results[0].discordAPIKey
-			};
-			resolve(dbConstants);
-		}).catch(function(err) {
-			reject(err);
-		});
-	})
-}
-
-var start = function() {
-	return new Promise((resolve, reject) => {
-		connect().then(db => {
-			getDbConstants(db).then(dbConstants => {
-				resolve([db,dbConstants])
-			}).catch(function(err) {
-				reject(err)
-			});
-		}).catch(function(err) {
-			reject(err)
-		});
-	})
-}
-
-module.exports = {
-	connect: connect,
-	getDbConstants: getDbConstants,
-	start: start
-};
+module.exports = new database();

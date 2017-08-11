@@ -1,39 +1,80 @@
-function isNumeric(n) {
-	return !isNaN(parseFloat(n)) && isFinite(n);
+if (typeof io != 'undefined') {
+	const socket = io.connect('http://localhost:3000');
+	socket.on('songs', async function(data) {
+		if (data[0] == 'skipped') {
+			const channelName = await getChannelName(passedUser);
+			const channelData = await buildChannelDataString(channelName);
+			const URLSplit = window.location.pathname.split('/');
+			const page = URLSplit[1];
+			const songlist = await loadSonglist(channelData,page);
+			if (typeof player != "undefined") {
+				player.loadVideoById(data[1]);
+			}
+			if (songlist) {
+				dataTableStartSize = '5';
+				buildDataTable(songlist,'.datatable',dataTableStartSize);
+			};
+			applyMusicStatus(channelData);
+			getNewSongInfo(); //currentsonginfo page
+		} else if (data[0] == 'volumeupdated') {
+			if (typeof player != "undefined") {
+				player.setVolume(data[1]);
+			}
+			updateTextVolume(data[1]);
+		} else if (data[0] == 'statuschange') {
+			if (data[1] == 'pause') {
+				if (typeof player != "undefined") {
+					player.pauseVideo();
+				}
+				$('.togglePlay').text('Play');
+			} else if (data[1] == 'play') {
+				if (typeof player != "undefined") {
+					player.playVideo();
+				}
+				$('.togglePlay').text('Pause');
+			};
+		} else if (data[0] == 'added' || data[0] == 'removed' || data[0] == 'promoted') {
+			const channelName = await getChannelName(passedUser);
+			const channelData = await buildChannelDataString(channelName);
+			const URLSplit = window.location.pathname.split('/');
+			const page = URLSplit[1];
+			const songlist = await loadSonglist(channelData,page);
+			if (songlist) {
+				let firstSongInQueue = songlist.split('youtu.be/');
+				firstSongInQueue = firstSongInQueue[1].split('" target');
+				if (typeof player != "undefined") {
+					player.loadVideoById(firstSongInQueue[0]);
+				}
+				if (page == 'songs') {
+					dataTableStartSize = '25';
+				} else {
+					dataTableStartSize = '5';
+				};
+				buildDataTable(songlist,'.datatable',dataTableStartSize);
+			} else {
+				$('.dataTables_wrapper').hide();
+				$('.songinfo').show();
+			};
+			getNewSongInfo(); //currentsonginfo page
+		}
+	});
+
+	socket.on('commands', async function(data) {
+		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
+			const channelName = await getChannelName(passedUser);
+			let commandsData = await getCommands(channelName);
+			if (commandsData) {
+				dataTableStartSize = '25';
+				buildDataTable(commandsData,'.datatable',dataTableStartSize);
+			} else {
+				$('.datatable tbody').hide();
+				$('.commandssection').html("You haven't added any commands yet!");
+			};
+		}
+	})
 };
 
-function getUrlVars() {
-	var vars = [], hash;
-	if (window.location.href.indexOf('#')) {
-		var hashes = window.location.href.slice(window.location.href.indexOf('#') + 1).split('&');
-	} else {
-		var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-	};
-	for(var i = 0; i < hashes.length; i++)
-	{
-		hash = hashes[i].split('=');
-		vars.push(hash[0]);
-		vars[hash[0]] = hash[1];
-	}
-	return vars;
-};
-
-function readCookie(cname) {
-	var name = cname + "=";
-	var ca = document.cookie.split(';');
-	for(var i = 0; i <ca.length; i++) {
-		var c = ca[i];
-		while (c.charAt(0)==' ') {
-			c = c.substring(1);
-		}
-		if (c.indexOf(name) == 0) {
-			return c.substring(name.length,c.length);
-		}
-	}
-	return "";
-}
-
-var userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
+let userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
 if (typeof userDetails[2] != 'undefined') {
 	$.ajax({
 		url: '/loggedinnav',
@@ -52,82 +93,98 @@ if (typeof userDetails[2] != 'undefined') {
 	});
 };
 
-function loadSonglist(data,page) {
-	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: '/getsonglist',
-			data: data,
-			type: 'POST',
-			success: function(data) {
-				if (data != '') {
-					var contentData = '';
-					$.each(data, function(key, value) {
-						if (key == 0) {
-							$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested:</strong> ' + data[0]['whoRequested']);
-						}
-						if (page == 'moderation') {
-							if (key == 0 || key == 1) {
-								contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td></td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
-							} else {
-								contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="&uarr;" id="' + data[key]['songID'] + '" class="promoteButton blue-styled-button mini" /></td><td><input type="button" value="X" id="' + data[key]['songID'] + '" class="removeButton blue-styled-button mini" /></td></tr>';
-							}
-						} else if (page == 'player') {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
+function updateTextVolume(currentVolume) {
+	$('.currentvolume').html('<strong>Current Volume: </strong>' + currentVolume);
+}
+
+async function promoteSong(songToPromote,channelName,loggedInChannel) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/promotesong',
+		data: 'songToPromote=' + songToPromote + '&channel=' + channelName + '&loggedInChannel=' + loggedInChannel,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+};
+
+async function loadSonglist(data,page) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/getsonglist',
+		data: data,
+		type: 'POST',
+		success: function(data) {
+			if (data != '') {
+				var contentData = '';
+				$.each(data, function(key, value) {
+					if (key == 0) {
+						$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested:</strong> ' + data[0]['whoRequested']);
+					}
+					if (page == 'moderation') {
+						if (key == 0 || key == 1) {
+							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td></td><td><input type="button" value="X" id="' + (key + 1) + '" class="removeButton blue-styled-button mini" /></td></tr>';
 						} else {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
-						};
-					});
-					resolve(contentData);
-				} else {
-					resolve(false);
-				};
-			}
-		});
-	});
-}
-
-function loadSongCache(data) {
-	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: '/getsongcache',
-			data: data,
-			type: 'POST',
-			success: function(data) {
-				if (data != '') {
-					var contentData = '';
-					$.each(data, function(key, value) {
-						contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td></tr>';
-					});
-					resolve(contentData);
-				} else {
-					resolve(false);
-				};
-			}
-		});
-	});
-}
-
-function getCommands(channelName) {
-	return new Promise((resolve, reject) => {
-		buildChannelDataString(channelName).then(channelData => {
-			$.ajax({
-				url: '/getcommands',
-				data: channelData,
-				type: 'POST',
-				success: function(data) {
-					if (data != '') {
-						var contentData = '';
-						$.each(data, function(key, value) {
-							contentData = contentData + '<tr><td>' + data[key]['trigger'] + '</td><td>' + data[key]['chatmessage'] + '</td><td>' + data[key]['commandcounter'] + '</td><td>' + data[key]['permissionsLevel'] + '</td></tr>';
-						});
-						resolve(contentData);
+							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="&uarr;" id="' + data[key]['songID'] + '" class="promoteButton blue-styled-button mini" /></td><td><input type="button" value="X" id="' + (key + 1) + '" class="removeButton blue-styled-button mini" /></td></tr>';
+						}
+					} else if (page == 'player') {
+						contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 					} else {
-						resolve(false);
+						contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
 					};
-				}
-			});
-		});
+				});
+				dataToReturn = contentData;
+			} else {
+				dataToReturn = false;
+			};
+		}
 	});
+	return dataToReturn;
+}
+
+async function loadSongCache(data) {
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/getsongcache',
+		data: data,
+		type: 'POST',
+		success: function(data) {
+			if (data != '') {
+				var contentData = '';
+				$.each(data, function(key, value) {
+					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td></tr>';
+				});
+				dataToReturn = contentData;
+			} else {
+				dataToReturn = false;
+			};
+		}
+	});
+	return dataToReturn;
+}
+
+async function getCommands(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/getcommands',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			if (data != '') {
+				var contentData = '';
+				for (let item of data) {
+					contentData = contentData + '<tr><td>' + item['trigger'] + '</td><td>' + item['chatmessage'] + '</td><td>' + item['commandcounter'] + '</td><td>' + item['permissionsLevel'] + '</td></tr>';
+				}
+				dataToReturn = contentData;
+			} else {
+				dataToReturn = false;
+			};
+		}
+	});
+	return dataToReturn;
 }
 
 function getDefaultCommands(channelName) {
@@ -180,74 +237,68 @@ function buildDataTable(passedData,elementToUse,startSize) {
 			"columns": [{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false }]
 		});
 	}
+	$('.songinfo').hide();
 	$(elementToUse).show();
 }
 
-function joinChannel(channelName) {
-	return new Promise((resolve, reject) => {
-		buildChannelDataString(channelName).then(channelData => {
-			$.ajax({
-				url: '/joinchannel',
-				data: channelData,
-				type: 'POST',
-				success: function(data) {
-					resolve(data);
-				}
-			});
-		});
+async function joinChannel(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/joinchannel',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
 	});
+	return dataToReturn;
 }
 
-function leaveChannel(channelName) {
-	return new Promise((resolve, reject) => {
-		buildChannelDataString(channelName).then(channelData => {
-			$.ajax({
-				url: '/partchannel',
-				data: channelData,
-				type: 'POST',
-				success: function(data) {
-					resolve(data);
-				}
-			});
-		});
+async function leaveChannel(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/partchannel',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
 	});
+	return dataToReturn;
 }
 
-function checkIfInChannel(channelName) {
-	return new Promise((resolve, reject) => {
-		buildChannelDataString(channelName).then(channelData => {
-			$.ajax({
-				url: '/checkchannelstatus',
-				data: channelData,
-				type: 'POST',
-				success: function(data) {
-					resolve(data);
-				}
-			});
-		});
+async function checkIfInChannel(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/checkifinchannel',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
 	});
+	return dataToReturn;
 };
 
 function getChannelName(urlUser) {
-	return new Promise((resolve, reject) => {
-		if (urlUser != 'undefined') {
-			passedUser = urlUser;
-			resolve(urlUser);
-		} else {
-			passedUser = userDetails[2];
-			resolve(userDetails[2]);
-		};
-	});
+	if (urlUser != 'undefined') {
+		passedUser = urlUser;
+		return urlUser;
+	} else {
+		passedUser = userDetails[2];
+		return userDetails[2];
+	};
 };
 
 function buildChannelDataString(channelName) {
-	return new Promise((resolve, reject) => {
-		if (channelName.includes('#')) {
-			resolve('channel=' + channelName);
-		} else {
-			resolve('channel=#' + channelName);
-		};
-	});
+	if (channelName.includes('#')) {
+		return 'channel=' + channelName;
+	} else {
+		return 'channel=#' + channelName;
+	};
 }
 
 function removeSong(songToRemove,channelName,loggedInChannel) {
@@ -287,52 +338,68 @@ function checkForSonglistChanges(channelData,songlist,dataTableStartSize,page) {
 	}, 1000);
 }
 
-function getVolume(channelData) {
-	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: '/getvolume',
-			data: channelData,
-			type: 'POST',
-			success: function(data) {
-				resolve(data[0]['volume']);
-			}
-		})
-	});
+async function getVolume(channelData) {
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/getvolume',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data[0]['volume'];
+		}
+	})
+	return dataToReturn;
 }
 
-function updateVolume(channelData,newVol) {
-	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: '/updatevolume',
-			data: channelData + '&volume=' + newVol,
-			type: 'POST',
-			success: function(data) {
-				resolve(newVol);
-			}
-		});
+async function updateVolume(channelData,newVol) {
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/updatevolume',
+		data: channelData + '&volume=' + newVol,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = newVol;
+		}
 	});
+	return dataToReturn;
 }
 
-function getMusicStatus(channelData) {
-	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: '/getmusicstatus',
-			data: channelData,
-			type: 'POST',
-			success: function(data) {
-				resolve(data);
-			}
-		})
-	});
+async function getMusicStatus(channelData) {
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/getmusicstatus',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	})
+	return dataToReturn;
+}
+
+async function applyMusicStatus(channelData) {
+	let musicStatus = await getMusicStatus(channelData);
+	if (musicStatus[0]['musicStatus'] == 'pause') {
+		if (typeof player != "undefined") {
+			player.pauseVideo();
+		};
+		$('.togglePlay').text('Play');
+	} else {
+		if (typeof player != "undefined") {
+			player.playVideo();
+		};
+		$('.togglePlay').text('Pause');
+	};
 }
 
 
-function updateMusicStatus(channelData,musicStatus) {
-	$.ajax({
+async function updateMusicStatus(channelData,musicStatus) {
+	await $.ajax({
 		url: '/updatemusicstatus',
 		data: channelData + '&musicStatus=' + musicStatus,
 		type: 'POST'
 	});
+	return;
 }
 
 var passedUser = ''; //this is needed to make the window resize function below work
@@ -341,88 +408,82 @@ var dataTableStartSize = '';
 var isCache = false;
 var isCommands = false;
 
+async function startPageLoad(cookieChannel) {
+	let channelName = await getChannelName(cookieChannel);
+}
+
 $(document).ready(function() {
-		if ($( window ).width() < 767) {
-			$('.datatable').DataTable().destroy();
-		}
-		getChannelName(passedUser).then(channelName => {
-			checkIfInChannel(channelName).then(inChannel => {
-				if (inChannel) {
-					$('.botStatusBtn').text('Leave Channel');
-				} else {
-					$('.botStatusBtn').text('Join Channel');
-				};
-			});
-		});
-	$('body').on('click', '.botStatusBtn', function(e) {
-		e.preventDefault();
-		if ($(this).text() == 'Join Channel') {
-			getChannelName(passedUser).then(channelName => {
-				joinChannel(channelName).then(joinResponse => {
-					if (joinResponse == 'joined') {
-						$('.botStatusBtn').text('Leave Channel');
-						$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
-						setTimeout(function(){
-							$('.messagesFromBot').fadeOut("slow");
-						},2000);
-					}
-				});
-			});
+	if ($( window ).width() < 767) {
+		$('.datatable').DataTable().destroy();
+	}
+	async function init() {
+		let channelName = await getChannelName(passedUser);
+		let inChannel = await checkIfInChannel(channelName);
+		if (inChannel) {
+			$('.botStatusBtn').text('Leave Channel');
 		} else {
-			getChannelName(passedUser).then(channelName => {
-				leaveChannel(channelName).then(leaveResponse => {
-					if (leaveResponse == 'parted') {
-						$('.botStatusBtn').text('Join Channel');
-						$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
-						setTimeout(function(){
-							$('.messagesFromBot').fadeOut("slow");
-						},2000);
-					}
-				});
-			});
-		}
-	});
-	$( window ).resize(function() {
-		if ($( window ).width() > 767) {
-			getChannelName(passedUser).then(channelName => {
-				buildChannelDataString(channelName).then(channelData => {
-					var loggedInChannel = userDetails[2];
-					if (isCache) {
-						loadSongCache(channelData).then(songCache => {
-							if (songCache) {
-								buildDataTable(songCache,'.datatable',dataTableStartSize);
-							} else {
-								$('.datatable tbody').hide();
-								$('.songcache').html("Currently no songs in the cache!");
-							};
-						});
-					} else if (isCommands) {
-						getCommands(channelName).then(commandsData => {
-							if (commandsData) {
-								dataTableStartSize = '25';
-								buildDataTable(commandsData,'.datatable',dataTableStartSize);
-							} else {
-								$('.datatable tbody').hide();
-								$('.commandssection').html("You haven't added any commands yet!");
-							};
-						}).catch(function(err) {
-							console.log(err);
-						});
+			$('.botStatusBtn').text('Join Channel');
+		};
+		$('body').on('click', '.botStatusBtn', async function(e) {
+			e.preventDefault();
+			if ($(this).text() == 'Join Channel') {
+				let channelName = await getChannelName(passedUser);
+				let joinResponse = await joinChannel(channelName);
+				if (joinResponse == 'joined') {
+					$('.botStatusBtn').text('Leave Channel');
+					$('.messagesFromBot').html('<p>Joined your channel!</p>').fadeIn("fast");
+					setTimeout(function(){
+						$('.messagesFromBot').fadeOut("slow");
+					},2000);
+				}
+			} else {
+				let channelName = await getChannelName(passedUser);
+				let leaveResponse = await leaveChannel(channelName);
+				if (leaveResponse == 'parted') {
+					$('.botStatusBtn').text('Join Channel');
+					$('.messagesFromBot').html('<p>Left your channel!</p>').fadeIn("fast");
+					setTimeout(function(){
+						$('.messagesFromBot').fadeOut("slow");
+					},2000);
+				}
+			}
+		});
+		$( window ).resize(async function() {
+			if ($( window ).width() > 767) {
+				const channelName = getChannelName(passedUser);
+				const channelData = buildChannelDataString(channelName);
+				const loggedInChannel = userDetails[2];
+				if (isCache) {
+					const songCache = await loadSongCache(channelData);
+					if (songCache) {
+						buildDataTable(songCache,'.datatable',dataTableStartSize);
 					} else {
-						loadSonglist(channelData,passedPage).then(songlist => {
-							if (songlist) {
-								buildDataTable(songlist,'.datatable',dataTableStartSize);
-								checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
-							} else {
-								$('.datatable tbody').hide();
-								$('.songlist').html("Currently no songs in the queue!");
-							};
-						});
+						$('.datatable tbody').hide();
+						$('.songcache').html("Currently no songs in the cache!");
 					};
-				});
-			});
-	    } else {
-	    	$('.datatable').DataTable().destroy();
-	    }
-	});
+				} else if (isCommands) {
+					const commandsData = await getCommands(channelName);
+					if (commandsData) {
+						dataTableStartSize = '25';
+						buildDataTable(commandsData,'.datatable',dataTableStartSize);
+					} else {
+						$('.datatable tbody').hide();
+						$('.commandssection').html("You haven't added any commands yet!");
+					};
+				} else {
+					const songlist = await loadSonglist(channelData,passedPage);
+					if (songlist) {
+						buildDataTable(songlist,'.datatable',dataTableStartSize);
+						checkForSonglistChanges(channelData,songlist,dataTableStartSize,passedPage);
+					} else {
+						$('.datatable tbody').hide();
+						$('.songlist').html("Currently no songs in the queue!");
+					};
+				};
+		    } else {
+		    	$('.datatable').DataTable().destroy();
+		    }
+		});
+	}
+	init();
 });

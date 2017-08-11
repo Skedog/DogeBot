@@ -14,85 +14,59 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-var channelData = '';
-getChannelName('{{=it.passedUser}}').then(channelName => {
-	buildChannelDataString(channelName).then(channelRes => {
-		channelData = channelRes;
-		loadSonglist(channelData,'');
-		$.ajaxSetup({ cache: false });
+const channelName = getChannelName('{{=it.passedUser}}');
+const channelData = buildChannelDataString(channelName);
+loadSonglist(channelData,'');
+async function initMobile() {
+	const currentVolume = await getVolume(channelData);
+	updateTextVolume(currentVolume);
+	applyMusicStatus(channelData);
+};
+initMobile();
+$.ajaxSetup({ cache: false });
 
-		$('.volBtn').click(function(e) {
-			e.preventDefault();
-			var direction = $(this).attr('id');
-			getVolume(channelData).then(currentVolume => {
-				var newVol = 0;
-				if (direction == 'up') {
-					if (currentVolume < 90) {
-						newVol = Number(currentVolume) + 10;
-					} else {
-						newVol = 100;
-					};
-				} else {
-					if (currentVolume > 10) {
-						newVol = currentVolume - 10;
-					} else {
-						newVol = 10;
-					};
-				};
-				updateVolume(channelData,newVol).then(newVol => {
-					volumeReader();
-				});
-			});
-		});
-
-		$('.togglePlay').click(function(e) {
-			e.preventDefault();
-			if ($(this).text() == 'Pause') {
-				$(this).text('Play');
-				updateMusicStatus(channelData,'pause');
-			} else {
-				$(this).text('Pause');
-				updateMusicStatus(channelData,'play');
-			};
-		});
-
-		$('.skipBtn').click(function(e) {
-			e.preventDefault();
-			$.ajax({
-				url: '/loadnextsong',
-				data: channelData,
-				type: 'POST',
-				success: function(data) {
-					loadSonglist(channelData,'');
-				}
-			});
-		});
-	});
+$('.volBtn').click(async function(e) {
+	e.preventDefault();
+	const direction = $(this).attr('id');
+	const currentVolume = await getVolume(channelData);
+	let newVol;
+	if (direction == 'up') {
+		if (currentVolume < 90) {
+			newVol = Number(currentVolume) + 10;
+		} else {
+			newVol = 100;
+		};
+	} else {
+		if (currentVolume > 10) {
+			newVol = currentVolume - 10;
+		} else {
+			newVol = 10;
+		};
+	};
+	newVol = await updateVolume(channelData,newVol);
+	updateTextVolume(newVol);
 });
 
-this['checkSkippedSongsInterval'] = setInterval(function() {
-	loadSonglist(channelData,'');
-}, 1000);
+$('.togglePlay').click(async function(e) {
+	e.preventDefault();
+	if ($(this).text() == 'Pause') {
+		await updateMusicStatus(channelData,'pause');
+		$(this).text('Play');
+	} else {
+		await updateMusicStatus(channelData,'play');
+		$(this).text('Pause');
+	};
+});
 
-this['musicStatusInterval'] = setInterval(function() {
-	checkMusicStatus();
-}, 1000);
-
-setInterval(function(){volumeReader()}, 1000);
-
-function volumeReader() {
-	getVolume(channelData).then(currentVolume => {
-		$('.currentvolume').html('<strong>Current Volume: </strong>' + currentVolume);
+$('.skipBtn').click(function(e) {
+	e.preventDefault();
+	$.ajax({
+		url: '/loadnextsong',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			loadSonglist(channelData,'');
+		}
 	});
-};
-
-function checkMusicStatus() {
-	getMusicStatus(channelData).then(musicStatus => {
-		if (musicStatus[0]['musicStatus'] == 'pause') {
-			$('.togglePlay').text('Play');
-		} else {
-			$('.togglePlay').text('Pause');
-		};
-	});
-};
+});
 </script>

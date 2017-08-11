@@ -1,52 +1,51 @@
-var runSQL = require('./runSQL.js');
-var moment = require('moment');
-var messageHandler = require('./chat-messages.js');
+const database = require('./database.js');
+const moment = require('moment');
+const functions = require('./functions.js');
 
-var lastSeen = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		if (messageParams[1]) {
-			var query = {channel:channel,userName:messageParams[1].toLowerCase()};
-			runSQL('select','chatusers',query,'',db).then(results => {
-				if (results) {
-					var lastSeenDate = moment(results[0]['lastSeen']);
-					var formattedDate = lastSeenDate.format('MMMM Do YYYY, h:mm:ss a');
-					var currentUTCDate = moment(new Date());
-					var differenceInDays = lastSeenDate.diff(currentUTCDate, 'days');
-					if (differenceInDays > 0) {
-						var msgToSend = messageParams[1] + ' was last seen ' + formattedDate + '. That is ' + differenceInDays + ' days ago.';
-					} else {
-						var msgToSend = messageParams[1] + ' was last seen ' + formattedDate + '.';
-					}
-					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-					resolve(msgToSend);
+class users {
+
+	async lastSeen(props) {
+		props.ignoreMessageParamsForUserString = true;
+		if (props.messageParams[1]) {
+			const propsForSelect = {
+				table: 'chatusers',
+				query: {channel:props.channel,userName:props.messageParams[1].toLowerCase()}
+			}
+			const results = await database.select(propsForSelect);
+			if (results) {
+				const lastSeenDate = moment(results[0]['lastSeen']);
+				const formattedDate = lastSeenDate.format('MMMM Do YYYY, h:mm:ss a');
+				const currentUTCDate = moment(new Date());
+				const differenceInDays = lastSeenDate.diff(currentUTCDate, 'days');
+				let msgToSend;
+				if (differenceInDays > 0) {
+					msgToSend = buildUserString(props) + props.messageParams[1] + ' was last seen ' + formattedDate + '. That is ' + differenceInDays + ' days ago.';
+				} else {
+					msgToSend = buildUserString(props) + props.messageParams[1] + ' was last seen ' + formattedDate + '.';
 				}
-			}).catch(function(err) {
-				reject(err)
-			});
+				return msgToSend;
+			}
 		}
-	});
+		return;
+	}
+
+	async firstSeen(props) {
+		props.ignoreMessageParamsForUserString = true;
+		if (props.messageParams[1]) {
+			const propsForSelect = {
+				table: 'chatusers',
+				query: {channel:props.channel,userName:props.messageParams[1].toLowerCase()}
+			}
+			const results = await database.select(propsForSelect);
+			if (results) {
+				const firstSeenDate = moment(results[0]['firstSeen']);
+				const formattedDate = firstSeenDate.format('MMMM Do YYYY, h:mm:ss a');
+				const msgToSend = buildUserString(props) + props.messageParams[1] + ' was first seen on ' + formattedDate + '.';
+				return msgToSend;
+			}
+		};
+		return;
+	}
 }
 
-var firstSeen = function(db,twitchClient,channel,userstate,messageParams) {
-	return new Promise((resolve, reject) => {
-		if (messageParams[1]) {
-			var query = {channel:channel,userName:messageParams[1].toLowerCase()};
-			runSQL('select','chatusers',query,'',db).then(results => {
-				if (results) {
-					var firstSeenDate = moment(results[0]['firstSeen']);
-					var formattedDate = firstSeenDate.format('MMMM Do YYYY, h:mm:ss a');
-					var msgToSend = messageParams[1] + ' was first seen on ' + formattedDate + '.';
-					messageHandler.sendMessage(twitchClient,channel,msgToSend,false,'');
-					resolve(msgToSend);
-				}
-			}).catch(function(err) {
-				reject(err)
-			});
-		}
-	});
-}
-
-module.exports = {
-	lastSeen: lastSeen,
-	firstSeen: firstSeen
-};
+module.exports = new users();

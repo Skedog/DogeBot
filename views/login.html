@@ -13,6 +13,7 @@ Twitch.init({clientId: '{{=it.apiKey}}'}, function(error, statusInit) {
 			data: data,
 			type: 'POST',
 			success: function(data) {
+				console.log(data);
 				if (data == 'useradded' || data == 'userupdated') {
 					window.location.assign("/dashboard");
 				};

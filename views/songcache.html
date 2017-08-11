@@ -8,17 +8,22 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
 	isCache = true;
-	getChannelName('{{=it.passedUser}}').then(channelName => {
-		buildChannelDataString(channelName).then(channelData => {
-			loadSongCache(channelData).then(songCache => {
-				if (songCache) {
-					dataTableStartSize = '25';
-					buildDataTable(songCache,'.datatable',dataTableStartSize);
-				} else {
-					$('.songcache').html("Currently no songs in the cache!");
-					$('.songcache').show();
-				};
-			});
-		});
-	});
+	async function startSongCache() {
+		let channelName = getChannelName('{{=it.passedUser}}');
+		let channelData = buildChannelDataString(channelName);
+		let songlist = await loadSonglist(channelData,'');
+		let songCache = await loadSongCache(channelData);
+		if (songCache) {
+			dataTableStartSize = '25';
+			buildDataTable(songCache,'.datatable',dataTableStartSize);
+			/*
+			TODO: replace this code with socket.io
+			checkForSonglistChanges(channelData,songlist,dataTableStartSize);
+			*/
+		} else {
+			$('.songs').html("Currently no songs in the cache!");
+			$('.songs').show();
+		};
+	};
+	startSongCache();
 </script>

@@ -1,78 +1,80 @@
-var runSQL = require('./runSQL.js');
+const database = require('./database.js');
 
-var addCounterStat = function(table,numberToAdd,channel,db) {
-	runSQL('select',table,{channel:channel},'',db).then(results => {
-		if (results) {
-			var dataToUse = {};
-			dataToUse["counter"] = results[0]['counter']+numberToAdd;
-			runSQL('update',table,{channel:channel},dataToUse,db);
-		} else {
-			var dataToUse = {};
-			dataToUse["channel"] = channel;
-			dataToUse["counter"] = numberToAdd;
-			runSQL('add',table,{},dataToUse,db);
+class stats {
+
+	async addCounterStat(props) {
+		const propsForSelect = {
+			table:props.statTableToUpdate,
+			query:{channel:props.channel}
 		}
-	});
-};
-
-var addTrackedUser = function(channel,username,db) {
-	runSQL('select','chatusers',{channel:channel,userName:username},'',db).then(results => {
+		const results = await database.select(propsForSelect);
+		let dataToUse = {};
 		if (results) {
-			var dataToUse = {};
-			dataToUse["lastSeen"] = new Date();
-			runSQL('update','chatusers',{channel:channel,userName:username},dataToUse,db);
+			dataToUse["counter"] = results[0]['counter']+1;
+			const propsForUpdate = {
+				table:props.statTableToUpdate,
+				query:{channel:props.channel},
+				dataToUse:dataToUse
+			}
+			await database.update(propsForUpdate);
+			return;
 		} else {
-			var dataToUse = {};
+			dataToUse["channel"] = props.channel;
+			dataToUse["counter"] = 1;
+			const propsForAdd = {
+				table:props.statTableToUpdate,
+				dataToUse:dataToUse
+			}
+			await database.add(propsForAdd);
+			return;
+		}
+	}
+
+	async addTrackedUser(props) {
+		let username;
+		if (props.userstate != undefined) {
+			username = props.userstate['username'];
+		} else {
+			username = props.username;
+		}
+		const propsForSelect = {table:'chatusers',query:{channel:props.channel,userName:username}}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			let dataToUse = {};
+			dataToUse["lastSeen"] = new Date();
+			const propsForUpdate = {table:'chatusers',query:{channel:props.channel,userName:username},dataToUse:dataToUse}
+			await database.update(propsForUpdate);
+			return;
+		} else {
+			let dataToUse = {};
 			dataToUse["userName"] = username;
-			dataToUse["channel"] = channel;
+			dataToUse["channel"] = props.channel;
 			dataToUse["lastSeen"] = new Date();
 			dataToUse["firstSeen"] = new Date();
 			dataToUse["numberOfChatMessages"] = 0;
-			runSQL('add','chatusers',{},dataToUse,db);
+			dataToUse["numberOfCommandMessages"] = 0;
+			dataToUse["numberOfSongRequests"] = 0;
+			const propsForAdd = {table:'chatusers',dataToUse:dataToUse}
+			await database.add(propsForAdd);
+			return;
 		}
-	});
-}
+	}
 
-var updateUserMessageCounter = function(channel,username,db) {
-	runSQL('select','chatusers',{channel:channel,userName:username},'',db).then(results => {
+	async updateUserCounter(props) {
+		const username = props.userstate['username'];
+		const propsForSelect = {table:'chatusers',query:{channel:props.channel,userName:username}}
+		const results = await database.select(propsForSelect);
 		if (results) {
-			var dataToUse = {};
-			dataToUse["numberOfChatMessages"] = results[0]['numberOfChatMessages']+1;
-			runSQL('update','chatusers',{channel:channel,userName:username},dataToUse,db);
+			let dataToUse = {};
+			dataToUse[props.statFieldToUpdate] = results[0][props.statFieldToUpdate]+1;
+			const propsForUpdate = {table:'chatusers',query:{channel:props.channel,userName:username},dataToUse:dataToUse}
+			await database.update(propsForUpdate);
+			return;
 		} else {
-			addTrackedUser(channel,username,db);
+			await this.addTrackedUser(props);
+			return;
 		}
-	});
+	}
 }
 
-var updateUserCommandCounter = function(channel,username,db) {
-	runSQL('select','chatusers',{channel:channel,userName:username},'',db).then(results => {
-		if (results) {
-			var dataToUse = {};
-			dataToUse["numberOfCommandMessages"] = results[0]['numberOfCommandMessages']+1;
-			runSQL('update','chatusers',{channel:channel,userName:username},dataToUse,db);
-		} else {
-			addTrackedUser(channel,username,db);
-		}
-	});
-}
-
-var updateUserSongRequestCounter = function(channel,username,db) {
-	runSQL('select','chatusers',{channel:channel,userName:username},'',db).then(results => {
-		if (results) {
-			var dataToUse = {};
-			dataToUse["numberOfSongRequests"] = results[0]['numberOfSongRequests']+1;
-			runSQL('update','chatusers',{channel:channel,userName:username},dataToUse,db);
-		} else {
-			addTrackedUser(channel,username,db);
-		}
-	});
-}
-
-module.exports = {
-	addCounterStat: addCounterStat,
-	addTrackedUser: addTrackedUser,
-	updateUserMessageCounter: updateUserMessageCounter,
-	updateUserCommandCounter: updateUserCommandCounter,
-	updateUserSongRequestCounter: updateUserSongRequestCounter
-};
+module.exports = new stats();
