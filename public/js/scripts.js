@@ -1,5 +1,5 @@
 if (typeof io != 'undefined') {
-	const socket = io.connect('http://localhost:3000');
+	const socket = io.connect('http://skedogbot.com');
 	socket.on('songs', async function(data) {
 		if (data[0] == 'skipped') {
 			const channelName = await getChannelName(passedUser);
