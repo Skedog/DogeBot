@@ -22,7 +22,7 @@ class lists {
 				dataToUse:dataToUse
 			}
 			await database.update(propsForUpdate);
-			const messageToSend = buildUserString(props) + 'Added successfully as #' + arrayOfMessages.length + '!';
+			const messageToSend = functions.buildUserString(props) + 'Added successfully as #' + arrayOfMessages.length + '!';
 			return messageToSend;
 		} catch (err) {
 			throw err;
@@ -46,7 +46,7 @@ class lists {
 						dataToUse:dataToUse
 					}
 					await database.update(propsForUpdate)
-					const messageToSend = buildUserString(props) + props.messageParams[0].slice(1) + ' #' + passedQuoteNumber  + ' has been updated!';
+					const messageToSend = functions.buildUserString(props) + props.messageParams[0].slice(1) + ' #' + passedQuoteNumber  + ' has been updated!';
 					return messageToSend;
 				};
 			}
@@ -71,7 +71,7 @@ class lists {
 						dataToUse:dataToUse
 					}
 					await database.update(propsForUpdate)
-					const messageToSend = buildUserString(props) + props.messageParams[0].slice(1) + ' #' + passedQuoteNumber  + ' has been removed!';
+					const messageToSend = functions.buildUserString(props) + props.messageParams[0].slice(1) + ' #' + passedQuoteNumber  + ' has been removed!';
 					return messageToSend;
 				};
 			}
@@ -89,7 +89,7 @@ class lists {
 					const passedIndex = props.messageParams[1].replace('#','');
 					const indexToUse = passedIndex - 1;
 					if (indexToUse <= arrayOfMessages.length - 1) {
-						const messageToSend = buildUserString(props) + '#' + (indexToUse+1) + ': ' + arrayOfMessages[indexToUse].replace('&apos;',"'")
+						const messageToSend = functions.buildUserString(props) + '#' + (indexToUse+1) + ': ' + arrayOfMessages[indexToUse].replace('&apos;',"'")
 						return messageToSend;
 					} else {
 						throw'Not a valid ' + props.results[0].trigger;
@@ -97,7 +97,7 @@ class lists {
 				} else {
 					try {
 						const res = await functions.getRandomItemFromArray(arrayOfMessages);
-						const messageToSend = buildUserString(props) + '#' + res[0] + ': ' + res[1]
+						const messageToSend = functions.buildUserString(props) + '#' + res[0] + ': ' + res[1]
 						return messageToSend;
 					} catch (err) {
 						throw err;

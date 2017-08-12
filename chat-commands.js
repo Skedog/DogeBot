@@ -177,7 +177,8 @@ class chat {
 			const propsForListCommands = {
 				channel:props.channel,
 				messageParams:props.messageParams,
-				results:props.resultsToPass
+				results:props.resultsToPass,
+				userstate:props.userstate
 			}
 			if (currentUserPermissionLevel >= addCommandPermissionLevel) {
 				try {
