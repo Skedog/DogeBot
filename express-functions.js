@@ -204,8 +204,8 @@ async function checkModStatus(req) {
 	if (req.cookies.userDetails) {
 		const userDetails = req.cookies.userDetails.split(',');
 		let channelToCheckMods;
-		if (req.channel != undefined) {
-			channelToCheckMods = req.channel; //from URL, never has #
+		if (req.params.channel != undefined) {
+			channelToCheckMods = req.params.channel; //from URL, never has #
 		} else if (req.body.channel != undefined) {
 			if (req.body.channel.includes('#')) {
 				channelToCheckMods = req.body.channel.substring(1); //has #, needs to be removed

@@ -383,11 +383,6 @@ $(document).ready(function() {
 			const page = URLSplit[1];
 			const songlist = await loadSonglist(channelData,page);
 			if (songlist) {
-				let firstSongInQueue = songlist.split('youtu.be/');
-				firstSongInQueue = firstSongInQueue[1].split('" target');
-				if (typeof player != "undefined") {
-					player.loadVideoById(firstSongInQueue[0]);
-				}
 				if (page == 'songs') {
 					dataTableStartSize = '25';
 				} else {

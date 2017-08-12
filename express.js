@@ -107,7 +107,7 @@ async function setupRoutes() {
 	app.get('/moderation/:channel*?', async(req, res) => {
 		const results = await expressFunctions.checkModStatus(req);
 		if (results) {
-			res.render('moderation.html',{passedUser: req.channel});
+			res.render('moderation.html',{passedUser: req.params.channel});
 		} else {
 			res.redirect('/dashboard');
 		}
@@ -250,7 +250,7 @@ async function setupRoutes() {
 		if (results) {
 			dataToUse = {};
 			let channel;
-			if (req.channel) {
+			if (req.params.channel) {
 				if (req.body.loggedInChannel.includes('#')) {
 					channel = req.body.loggedInChannel;
 				} else {
@@ -282,11 +282,11 @@ async function setupRoutes() {
 		const results = await expressFunctions.checkModStatus(req);
 		if (results) {
 			let channel;
-			if (req.channel) {
-				if (req.channel.includes('#')) {
-					channel = req.channel
+			if (req.params.channel) {
+				if (req.params.channel.includes('#')) {
+					channel = req.params.channel
 				} else {
-					channel = '#' + req.channel
+					channel = '#' + req.params.channel
 				}
 			} else {
 				if (req.body.channel.includes('#')) {

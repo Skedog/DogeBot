@@ -65,7 +65,6 @@ class permissions {
 		}
 	}
 
-
 	async canUserCallCommand(props) {
 		switch(props.permissionLevelNeeded.toString()){
 			case "0":
@@ -100,6 +99,7 @@ class permissions {
 				throw 'Permission check failed';
 				break;
 		}
+		throw 'Permission check failed';
 	}
 
 	async getUserPermissionLevel(props) {

@@ -257,7 +257,7 @@ async function startTimedMessages() {
 			let results = await checkIfChannelIsLive(channelToUse);
 			if (results) {
 				//channel is live, send a message
-				sendTimedMessage(channelToUse + 'test',listOfMessages);
+				sendTimedMessage(channelToUse,listOfMessages);
 			} else {
 				//channel isn't live, stop timer for messages and start live check timer
 				clearInterval(_this[channelToUse+'_interval']);
@@ -265,7 +265,7 @@ async function startTimedMessages() {
 			}
 		} else {
 		 	//channel is live, send a message like normal
-			sendTimedMessage(channelToUse + 'test',listOfMessages);
+			sendTimedMessage(channelToUse,listOfMessages);
 		}
 	}, 900000);
 	// }, 1500);
