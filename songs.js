@@ -357,11 +357,11 @@ class songs {
 	}
 
 	async requestPlaylist(props) {
-		props.messageParams.splice(0,1);
-		const playlistID = await this.getYouTubePlaylistIDFromChatMessage(props);
-		const dbConstants = await database.constants();
-		const _this = this;
 		try {
+			props.messageParams.splice(0,1);
+			const playlistID = await this.getYouTubePlaylistIDFromChatMessage(props);
+			const dbConstants = await database.constants();
+			const _this = this;
 			await this.checkIfUserCanAddSong(props);
 			props.messageToSend = 'Gathering playlist data, please wait...';
 			messages.send(props);
@@ -389,6 +389,8 @@ class songs {
 		} catch (err) {
 			if (err == 'failed limit') {
 				return functions.buildUserString(props) + 'Song request limit reached, please try again later!';
+			} else if (err = 'invalid playlist ID') {
+				return functions.buildUserString(props) + 'Invalid Playlist! To request a playlist, type the following: !pr PlaylistID or YouTube URL!';
 			} else {
 				return functions.buildUserString(props) + 'Error requesting playlist!';
 			}
@@ -781,7 +783,7 @@ class songs {
 			const playlistID = query['list'];
 			return playlistID;
 		} else {
-			throw 'Invalid Playlist! To request a playlist, type the following: !pr PlaylistID or YouTube URL';
+			throw 'invalid playlist ID';
 		}
 	}
 
