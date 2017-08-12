@@ -1,8 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Current Song Info</title>
+</head>
+<body>
 <div class="commandssection"></div>
-<script src="js/jquery.js"></script>
+</body>
+<script src="/js/jquery.js"></script>
+<script src="/js/datatables.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/functions.js"></script>
-<script src="js/scripts.js"></script>
+<script src="/js/scripts.js"></script>
 <script>
 $(document).ready(function() {
 	$.ajaxSetup({ cache: false });
@@ -23,8 +32,11 @@ async function getNewSongInfo() {
 				} else {
 					$('.commandssection').html(data[0]['songTitle']);
 				}
+			} else {
+				$('.commandssection').html('No song requested');
 			}
 		}
 	});
 };
 </script>
+</html>

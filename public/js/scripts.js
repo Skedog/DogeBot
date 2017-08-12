@@ -338,11 +338,8 @@ async function startPageLoad(cookieChannel) {
 
 $(document).ready(function() {
 	let socketURL;
-	if (window.location.href.includes('3000')) {
-		socketURL = 'http://localhost:3000'
-	} else {
-		socketURL = 'http://skedogbot.com'
-	}
+	const getUrl = window.location;
+	socketURL = getUrl .protocol + "//" + getUrl.host + "/";
 	const socket = io.connect(socketURL);
 	socket.on('songs', async function(data) {
 		if (data[0] == 'skipped') {
@@ -350,6 +347,9 @@ $(document).ready(function() {
 			const channelData = await buildChannelDataString(channelName);
 			const URLSplit = window.location.pathname.split('/');
 			const page = URLSplit[1];
+			if (page == 'currentsonginfo') {
+				getNewSongInfo(); //currentsonginfo page
+			}
 			const songlist = await loadSonglist(channelData,page);
 			if (typeof player != "undefined") {
 				player.loadVideoById(data[1]);
@@ -359,7 +359,6 @@ $(document).ready(function() {
 				buildDataTable(songlist,'.datatable',dataTableStartSize);
 			};
 			applyMusicStatus(channelData);
-			getNewSongInfo(); //currentsonginfo page
 		} else if (data[0] == 'volumeupdated') {
 			if (typeof player != "undefined") {
 				player.setVolume(data[1]);
