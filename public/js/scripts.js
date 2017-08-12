@@ -19,7 +19,7 @@ if (typeof userDetails[2] != 'undefined') {
 
 function updateTextVolume(currentVolume) {
 	$('.currentvolume').html('<strong>Current Volume: </strong>' + currentVolume);
-	updateRangeVolume(currentVolume);
+	$('#volumeInput').val(currentVolume);
 }
 
 async function promoteSong(songToPromote,channelName,loggedInChannel) {
