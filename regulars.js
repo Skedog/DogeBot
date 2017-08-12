@@ -34,7 +34,7 @@ class regulars {
 		}
 		const results = await database.select(propsForSelect);
 		if (results) {
-			return buildUserString(props) + props.messageParams[2] + ' is already a regular!';
+			return functions.buildUserString(props) + props.messageParams[2] + ' is already a regular!';
 		} else {
 			const regularToAdd = props.messageParams[2];
 			let dataToUse = {};
@@ -45,7 +45,7 @@ class regulars {
 				dataToUse: dataToUse
 			}
 			await database.add(propsForAdd);
-			return buildUserString(props) + props.messageParams[2] + ' has been added as a regular!'
+			return functions.buildUserString(props) + props.messageParams[2] + ' has been added as a regular!'
 		}
 	}
 
@@ -57,14 +57,14 @@ class regulars {
 		}
 		let results = await database.select(propsForSelect);
 		if (!results) {
-			return buildUserString(props) + props.messageParams[2] + ' isn\'t a regular!';
+			return functions.buildUserString(props) + props.messageParams[2] + ' isn\'t a regular!';
 		} else {
 			let propsForDelete = {
 				table:'regulars',
 				query: {channel:props.channel,username:props.messageParams[2].toLowerCase()}
 			}
 			await database.delete(propsForDelete);
-			return buildUserString(props) + props.messageParams[2] + ' has been removed as a regular!';
+			return functions.buildUserString(props) + props.messageParams[2] + ' has been removed as a regular!';
 		}
 	}
 }

@@ -10,9 +10,9 @@ class api {
 		if (twitchAPIRequest.body) {
 			const editedBody = twitchAPIRequest.body.replace('.','');
 			if (editedBody.includes('offline')) {
-				return buildUserString(props) + props.channel.slice(1) + ' is offline!';
+				return functions.buildUserString(props) + props.channel.slice(1) + ' is offline!';
 			} else {
-				return buildUserString(props) + props.channel.slice(1) + ' has been live for ' + editedBody + '!';
+				return functions.buildUserString(props) + props.channel.slice(1) + ' has been live for ' + editedBody + '!';
 			}
 		};
 	}
@@ -32,9 +32,9 @@ class api {
 		const twitchAPIRequest = await request(url);
 		if (twitchAPIRequest.body) {
 			if (twitchAPIRequest.body.includes('is not following') || twitchAPIRequest.body.includes('cannot follow themself')) {
-				return buildUserString(props) + userToCheck + ' is not following! BibleThump';
+				return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
 			} else {
-				return buildUserString(props) + userToCheck + ' has been following for ' + twitchAPIRequest.body + '!';
+				return functions.buildUserString(props) + userToCheck + ' has been following for ' + twitchAPIRequest.body + '!';
 			}
 		}
 	}
@@ -45,7 +45,7 @@ class api {
 		const twitchAPIRequest = await request(URLtoUse);
 		const currentGame = JSON.parse(twitchAPIRequest.body)['game'];
 		if (currentGame) {
-			return buildUserString(props) + 'The current game is ' + currentGame + '!';
+			return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
 		}
 	}
 
@@ -54,7 +54,7 @@ class api {
 		const twitchAPIRequest = await request(URLtoUse);
 		const currentViewerCount = JSON.parse(twitchAPIRequest.body)['chatter_count'];
 		if (currentViewerCount) {
-			return buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
+			return functions.buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
 		}
 	}
 
@@ -64,7 +64,7 @@ class api {
 		if (twitchAPIRequest.body.includes('skedogbot') || twitchAPIRequest.body.includes(props.channel.slice(1))) {
 			return this.randomViewer(props);
 		} else {
-			return buildUserString(props) + 'The winner is ' + twitchAPIRequest.body.trim() + '!';
+			return functions.buildUserString(props) + 'The winner is ' + twitchAPIRequest.body.trim() + '!';
 		}
 	}
 
@@ -85,9 +85,9 @@ class api {
 				const statsLink = 'https://bf4stats.com/pc/' + playerName;
 				const rank = json.stats.rank;
 				const msgToSend = playerName + ' has played ~' + timePlayed + ' hours, has a ' + kd + ' k/d, and is rank ' + rank + '! More stats here: ' + statsLink;
-				return buildUserString(props) + msgToSend;
+				return functions.buildUserString(props) + msgToSend;
 			} else {
-				return buildUserString(props) + 'User not found, the syntax is "!bf4stats username platform"!';
+				return functions.buildUserString(props) + 'User not found, the syntax is "!bf4stats username platform"!';
 			}
 		}
 	}
@@ -96,7 +96,7 @@ class api {
 		props.ignoreMessageParamsForUserString = true;
 		const outcomes = ['Signs point to yes.', 'Yes.', 'Reply hazy, try again.', 'My sources say no.', 'You may rely on it.', 'Concentrate and ask again.', 'Outlook not so good.', 'It is decidedly so.', 'Better not tell you now.', 'Very doubtful.', 'Yes - definitely.', 'It is certain.', 'Cannot predict now.', 'Most likely.', 'Ask again later.', 'My reply is no.', 'Outlook good.', 'Don\'t count on it.'];
 		const randomOutcome = await functions.getRandomItemFromArray(outcomes);
-		return buildUserString(props) + randomOutcome[1];
+		return functions.buildUserString(props) + randomOutcome[1];
 	}
 }
 

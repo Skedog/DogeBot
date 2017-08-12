@@ -19,9 +19,9 @@ class users {
 				const differenceInDays = lastSeenDate.diff(currentUTCDate, 'days');
 				let msgToSend;
 				if (differenceInDays > 0) {
-					msgToSend = buildUserString(props) + props.messageParams[1] + ' was last seen ' + formattedDate + '. That is ' + differenceInDays + ' days ago.';
+					msgToSend = functions.buildUserString(props) + props.messageParams[1] + ' was last seen ' + formattedDate + '. That is ' + differenceInDays + ' days ago.';
 				} else {
-					msgToSend = buildUserString(props) + props.messageParams[1] + ' was last seen ' + formattedDate + '.';
+					msgToSend = functions.buildUserString(props) + props.messageParams[1] + ' was last seen ' + formattedDate + '.';
 				}
 				return msgToSend;
 			}
@@ -40,7 +40,7 @@ class users {
 			if (results) {
 				const firstSeenDate = moment(results[0]['firstSeen']);
 				const formattedDate = firstSeenDate.format('MMMM Do YYYY, h:mm:ss a');
-				const msgToSend = buildUserString(props) + props.messageParams[1] + ' was first seen on ' + formattedDate + '.';
+				const msgToSend = functions.buildUserString(props) + props.messageParams[1] + ' was first seen on ' + formattedDate + '.';
 				return msgToSend;
 			}
 		};
