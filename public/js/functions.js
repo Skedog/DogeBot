@@ -32,3 +32,88 @@ function readCookie(cname) {
 	}
 	return "";
 }
+
+async function joinChannel(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/joinchannel',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
+
+async function leaveChannel(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/partchannel',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
+
+async function checkIfInChannel(channelName) {
+	let channelData = await buildChannelDataString(channelName);
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/checkifinchannel',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+};
+
+function getChannelName(urlUser) {
+	if (urlUser != undefined && urlUser != 'undefined') {
+		passedUser = urlUser;
+		return urlUser;
+	} else {
+		passedUser = userDetails[2];
+		return userDetails[2];
+	};
+};
+
+function buildChannelDataString(channelName) {
+	if (channelName) {
+		if (channelName.includes('#')) {
+			return 'channel=' + channelName;
+		} else {
+			return 'channel=#' + channelName;
+		};
+	} else {
+		return 'channel=#' + channelName;
+	}
+}
+
+function buildDataTable(passedData,elementToUse,startSize) {
+	$('.datatable').DataTable().destroy();
+	$(elementToUse + ' tbody').html(passedData);
+	if (startSize == '25') {
+		$(elementToUse).DataTable({
+			"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
+		});
+	} else if (startSize == '5') {
+		$(elementToUse).DataTable({
+			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]]
+		});
+	} else if (startSize == 'All') {
+		$(elementToUse).DataTable({
+			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]],
+			"columns": [{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false }]
+		});
+	}
+	$('.songinfo').hide();
+	$(elementToUse).show();
+}

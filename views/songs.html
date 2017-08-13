@@ -1,8 +1,8 @@
 <div class="container wrapper">
 	<div class="starter-template">
 		<h1><img src="/img/commands.png" alt="" />Songlist</h1>
-		<div class="songinfo">Currently no songs in the queue!</div>
 		<table class="datatable songs"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested</th></thead><tbody></tbody></table>
+		<div class="nosongs"></div>
 	</div>
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
@@ -14,12 +14,8 @@
 		if (songlist) {
 			dataTableStartSize = '25';
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
-			/*
-			TODO: replace this code with socket.io
-			checkForSonglistChanges(channelData,songlist,dataTableStartSize);
-			*/
 		} else {
-			$('.songs').hide();
+			$('.nosongs').html("Currently no songs in the queue!");
 		};
 	};
 	startSonglist();

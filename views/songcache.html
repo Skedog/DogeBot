@@ -7,7 +7,6 @@
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
-	isCache = true;
 	async function startSongCache() {
 		let channelName = getChannelName('{{=it.passedUser}}');
 		let channelData = buildChannelDataString(channelName);

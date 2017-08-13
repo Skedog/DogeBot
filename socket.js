@@ -5,17 +5,7 @@ async function start(server) {
 	log.info('Socket server started');
 
 
-	io.on('connection', function(client) {
-		// client.emit('messages', 'Hello from server');
-		// client.on('add user', function (username) {
-		// 	console.log(username);
-		// })
-		// example for when a callback is needed
-		// client.on('getnav', async function(data, fn) {
-		// 	let testrequest = await request('/nav');
-		// 	fn(testrequest.body);
-		// });
-	});
+	io.on('connection', function(client) {});
 };
 
 function emit(connection,message) {

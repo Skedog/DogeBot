@@ -9,6 +9,7 @@
 		</div>
 		<div class="currentsong"></div>
 		<div class="currentvolume"></div>
+		<div class="nosongs"></div>
 	</div>
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
@@ -16,10 +17,15 @@
 <script>
 const channelName = getChannelName('{{=it.passedUser}}');
 const channelData = buildChannelDataString(channelName);
-loadSonglist(channelData,'');
+
 async function initMobile() {
-	const currentVolume = await getVolume(channelData);
-	updateTextVolume(currentVolume);
+	const songlist = await loadSonglist(channelData,'');
+	if (songlist) {
+		const currentVolume = await getVolume(channelData);
+		updateOnScreenVolume(currentVolume);
+	} else {
+		$('.nosongs').html("Currently no songs in the queue!");
+	};
 	applyMusicStatus(channelData);
 };
 initMobile();
@@ -27,24 +33,9 @@ $.ajaxSetup({ cache: false });
 
 $('.volBtn').click(async function(e) {
 	e.preventDefault();
-	const direction = $(this).attr('id');
-	const currentVolume = await getVolume(channelData);
-	let newVol;
-	if (direction == 'up') {
-		if (currentVolume < 90) {
-			newVol = Number(currentVolume) + 10;
-		} else {
-			newVol = 100;
-		};
-	} else {
-		if (currentVolume > 10) {
-			newVol = currentVolume - 10;
-		} else {
-			newVol = 10;
-		};
-	};
-	newVol = await updateVolume(channelData,newVol);
-	updateTextVolume(newVol);
+	let newVol = await volumeBtnClick($(this));
+	await updateVolume(channelData,newVol);
+	updateOnScreenVolume(newVol);
 });
 
 $('.togglePlay').click(async function(e) {
@@ -60,13 +51,7 @@ $('.togglePlay').click(async function(e) {
 
 $('.skipBtn').click(function(e) {
 	e.preventDefault();
-	$.ajax({
-		url: '/loadnextsong',
-		data: channelData,
-		type: 'POST',
-		success: function(data) {
-			loadSonglist(channelData,'');
-		}
-	});
+	loadNextSong();
+	loadSonglist(channelData,'');
 });
 </script>

@@ -20,6 +20,7 @@
 			</div>
 			<div class="moderation-songlist songlist">
 				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Requested</th><th></th><th></th></thead><tbody></tbody></table>
+				<div class="nosongs"></div>
 			</div>
 		</div>
 		<div class="chatbox"></div>
@@ -34,14 +35,13 @@
 	const channelData = buildChannelDataString(channelName);
 	async function initModeration() {
 		loadModerationPanels(channelName);
-		passedPage = 'moderation';
-		const songlist = await loadSonglist(channelData,passedPage);
+		const songlist = await loadSonglist(channelData,'moderation');
 		if (songlist) {
 			dataTableStartSize = '5';
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
+			$('.nosongs').hide();
 		} else {
-			$('.datatable tbody').hide();
-			$('.songlist').html("Currently no songs in the queue!");
+			$('.nosongs').html("Currently no songs in the queue!");
 		};
 		const currentVolume = await getVolume(channelData);
 		$('#volumeInput').val(currentVolume);
@@ -54,20 +54,23 @@
 		const chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
 		$('.chatbox').html(chatPanel);
 	};
+
 	async function updateRangeVolume(newVol) {
 		$('#volumeInput').val(newVol);
-		newVol = await updateVolume(channelData,newVol);
+		await updateVolume(channelData,newVol);
 	}
-	$('.togglePlay').click(function(e) {
+
+	$('.togglePlay').click(async function(e) {
 		e.preventDefault();
 		if ($(this).text() == 'Pause') {
+			await updateMusicStatus(channelData,'pause');
 			$(this).text('Play');
-			updateMusicStatus(channelData,'pause');
 		} else {
+			await updateMusicStatus(channelData,'play');
 			$(this).text('Pause');
-			updateMusicStatus(channelData,'play');
 		};
 	});
+
 	$('body').on('click', '.removeButton', async function(e) {
 		const removeSongData = await removeSong($(this).attr('id'),channelName,loggedInChannel);
 		if (removeSongData != 'song removed') {
@@ -77,6 +80,7 @@
 			},2000);
 		};
 	});
+
 	$('body').on('click', '.promoteButton', async function(e) {
 		const promoteSongData = await promoteSong($(this).attr('id'),channelName,loggedInChannel);
 		if (promoteSongData != 'song promoted') {
@@ -86,28 +90,14 @@
 			},2000);
 		};
 	});
+
 	$('.volBtn').click(async function(e) {
 		e.preventDefault();
-		const direction = $(this).attr('id');
-		const currentVolume = await getVolume(channelData);
-		let newVol;
-		if (direction == 'up') {
-			if (currentVolume < 90) {
-				newVol = Number(currentVolume) + 10;
-			} else {
-				newVol = 100;
-			};
-		} else {
-			if (currentVolume > 10) {
-				newVol = currentVolume - 10;
-			} else {
-				newVol = 10;
-			};
-		};
-		newVol = await updateVolume(channelData,newVol);
-		$('#volumeInput').val(newVol);
-		$('#volumeRange').val(newVol);
+		let newVol = await volumeBtnClick($(this));
+		await updateVolume(channelData,newVol);
+		updateOnScreenVolume(newVol);
 	});
+
 	this['checkSonglistHeightChange'] = setInterval(function() {
 		if ($( window ).width() > 767) {
 			$('.chatbox,.song-container').height($( window ).height()-235);

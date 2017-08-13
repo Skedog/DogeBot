@@ -14,6 +14,7 @@
 		</div>
 		<div class="player-songlist songlist">
 			<table class="datatable"><thead><th>#</th><th>Title</th><th>Requested</th></thead><tbody></tbody></table>
+			<div class="nosongs"></div>
 		</div>
 	</div>
 </div>
@@ -27,25 +28,10 @@ const channelData = buildChannelDataString(channelName);
 
 $('.volBtn').click(async function(e) {
 	e.preventDefault();
-	const direction = $(this).attr('id');
-	const currentVolume = await getVolume(channelData);
-	let newVol;
-	if (direction == 'up') {
-		if (currentVolume < 90) {
-			newVol = Number(currentVolume) + 10;
-		} else {
-			newVol = 100;
-		};
-	} else {
-		if (currentVolume > 10) {
-			newVol = currentVolume - 10;
-		} else {
-			newVol = 10;
-		};
-	};
-	newVol = await updateVolume(channelData,newVol);
+	let newVol = await volumeBtnClick($(this));
+	await updateVolume(channelData,newVol);
 	player.setVolume(newVol);
-	updateTextVolume(newVol);
+	updateOnScreenVolume(newVol);
 });
 
 $('.togglePlay').click(async function(e) {
@@ -67,7 +53,7 @@ $('.skipBtn').click(function(e) {
 });
 
 async function loadPlayer() {
-	let dataToUse = '';
+	let dataToUse;
 	await $.ajax({
 		url: '/getsonglist',
 		data: channelData,
@@ -93,28 +79,7 @@ async function loadPlayer() {
 			$('.songlist').html("Currently no songs in the queue!");
 		};
 	} else {
-		$('#player').html('Currently no songs in the queue!');
-	};
-}
-
-async function loadNextSong() {
-	let dataToUse;
-	await $.ajax({
-		url: '/loadnextsong',
-		data: channelData,
-		type: 'POST',
-		success: function(data) {
-			dataToUse = data;
-		}
-	});
-	if (dataToUse != 'empty') {
-		player.loadVideoById(dataToUse);
-		let songlist = await loadSonglist(channelData,'player');
-		if (songlist) {
-			dataTableStartSize = '5';
-			buildDataTable(songlist,'.datatable',dataTableStartSize);
-		};
-		applyMusicStatus(channelData);
+		$('.nosongs').html('Currently no songs in the queue!');
 	};
 }
 
@@ -122,8 +87,7 @@ async function onPlayerReady(event) {
 	event.target.playVideo();
 	let currentVolume = await getVolume(channelData);
 	player.setVolume(currentVolume);
-	updateTextVolume(currentVolume);
-	applyMusicStatus(channelData);
+	updateOnScreenVolume(currentVolume);
 };
 
 function onPlayerStateChange(event) {

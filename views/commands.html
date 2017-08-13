@@ -9,7 +9,6 @@
 <script src="/js/datatables.js"></script>
 <script>
 	async function startCommands() {
-		isCommands = true;
 		let channelName = getChannelName('{{=it.passedUser}}');
 		let commandsData = await getCommands(channelName);
 		if (commandsData) {
