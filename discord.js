@@ -53,15 +53,7 @@ async function handleChatMessage(message) {
 						messageChannel.send(messageToSend);
 					}
 				} else {
-					if (sentCommand == '!insult') {
-						const listOfInsults = ["I'm not saying I hate you, but I would unplug your life support to charge my phone.","Is your ass jealous of the amount of shit that just came out of your mouth?","I bet your brain feels as good as new, seeing that you never use it.","You must have been born on a highway because that's where most accidents happen.","You bring everyone a lot of joy, when you leave the room.","If you are going to be two faced, at least make one of them pretty.","What's the difference between you and eggs? Eggs get laid and you don't.","I'm jealous of all the people that haven't met you!","Two wrongs don't make a right, take your parents as an example.","I'd like to see things from your point of view but I can't seem to get my head that far up my ass.","Shut up, you'll never be the man your mother is.","Your family tree is a cactus, because everybody on it is a prick.","You're so ugly Hello Kitty said goodbye to you.","It looks like your face caught on fire and someone tried to put it out with a fork."];
-						const insultToSend = functions.getRandomInt(0,listOfInsults.length-1);
-						if (firstMentionedUser !== undefined) {
-							messageChannel.send(firstMentionedUser + ' ' + listOfInsults[insultToSend]);
-						} else {
-							message.reply(listOfInsults[insultToSend]);
-						}
-					} else if (sentCommand == '!about') {
+					if (sentCommand == '!about') {
 						message.reply('Really? Come on, learn to Google you lazy fuck. Here: http://lmgtfy.com/?q=skedogbot');
 					} else if (sentCommand == '!commands') {
 						message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://skedogbot.com/commands/ygtskedog');
