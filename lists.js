@@ -81,19 +81,29 @@ class lists {
 	}
 
 	async getListCommandItem(props) {
-		props.ignoreMessageParamsForUserString = true;
 		try {
 			let arrayOfMessages = props.results[0].listArray;
 			if (arrayOfMessages) {
 				if (props.messageParams[1]) {
-					const passedIndex = props.messageParams[1].replace('#','');
-					const indexToUse = passedIndex - 1;
-					if (indexToUse <= arrayOfMessages.length - 1) {
-						const messageToSend = functions.buildUserString(props) + '#' + (indexToUse+1) + ': ' + arrayOfMessages[indexToUse].replace('&apos;',"'")
-						return messageToSend;
+					if (functions.isNumber(props.messageParams[1])) {
+						props.ignoreMessageParamsForUserString = true;
+						const passedIndex = props.messageParams[1].replace('#','');
+						const indexToUse = passedIndex - 1;
+						if (indexToUse <= arrayOfMessages.length - 1) {
+							const messageToSend = functions.buildUserString(props) + '#' + (indexToUse+1) + ': ' + arrayOfMessages[indexToUse].replace('&apos;',"'")
+							return messageToSend;
+						} else {
+							throw 'Not a valid ' + props.results[0].trigger;
+						};
 					} else {
-						throw'Not a valid ' + props.results[0].trigger;
-					};
+						try {
+							const res = await functions.getRandomItemFromArray(arrayOfMessages);
+							const messageToSend = functions.buildUserString(props) + '#' + res[0] + ': ' + res[1]
+							return messageToSend;
+						} catch (err) {
+							throw err;
+						}
+					}
 				} else {
 					try {
 						const res = await functions.getRandomItemFromArray(arrayOfMessages);

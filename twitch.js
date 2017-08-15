@@ -21,11 +21,13 @@ async function getListOfJoinedChannels() {
 		let channelArray = [];
 		for (let channel of channels) {
 			if (channel['ChannelName'] != '#ygtskedogtest') {
+				startTimedMessages(channel['ChannelName'].substr(1));
 				channelArray.push(channel['ChannelName']);
 			}
 		}
 		return channelArray;
 	} else {
+		startTimedMessages('ygtskedogtest');
 		return ['#ygtskedogtest'];
 	}
 }
@@ -230,45 +232,35 @@ function sendTimedMessage(channelToUse,passedMessages) {
 	log.info('LOG CUSTOM: Timed message sent - ' + new Date().toLocaleString());
 }
 
-function startLiveCheckTimer(channelToUse) {
-	let checkIfLive = setInterval(async function() {
-		let results = await checkIfChannelIsLive(channelToUse);
-		if (results) {
-			//channel is live, stop this timer, and start timer for messages
-			clearInterval(checkIfLive);
-			startTimedMessages();
-		}
-	}, 1200000);
-	// }, 3000);
+async function getTimedMessages(channel) {
+	const propsForSelect = {
+		table:'channels',
+		query:{ChannelName:'#' + channel}
+	}
+	const results = await database.select(propsForSelect);
+	if (results) {
+		return results[0]['timedMessages'];
+	} else {
+		return;
+	}
 }
 
-async function startTimedMessages() {
-	let channelToUse = 'ygtskedog';
-	let listOfMessages = ["Enjoying the stream? Be sure to follow so you don't miss the next one! <3","Be a part of this community all the time, join us on Discord! http://ske.dog/discord","Wanna chat? Twitter is the best way to get in touch with me! http://ske.dog/twitter","Wanna give me free money? Bookmark my Amazon affiliate link, and use it when you make a purchase! http://ske.dog/amazon","Did you know Skedog has a sub button now?! Click on subscribe above! !prime","We now have a Chrome extension for the stream! It shows you when Skedog is live AND it auto applies the Amazon affiliate code! Check it out! http://ske.dog/ext","Don't forget to renew your Amazon/Twitch Prime Subscription, they don't auto-renew like normal subs!"];
-	let numberOfTimesRan = 0;
-	let firstRun = true;
-	const _this = this;
-	this[channelToUse+'_interval'] = setInterval(async function() {
-		numberOfTimesRan++;
-		//check every x number of times if channel is still live and check startup run to see if the channel is live
-		if (numberOfTimesRan == 4 || firstRun) {
-			firstRun = false;
-			numberOfTimesRan = 0;
-			let results = await checkIfChannelIsLive(channelToUse);
+async function startTimedMessages(channel) {
+	const listOfMessages = await getTimedMessages(channel);
+	if (listOfMessages.length) {
+		let numberOfTimesRan = 0;
+		this[channel+'_interval'] = setInterval(async function() {
+			let results = await checkIfChannelIsLive(channel);
 			if (results) {
 				//channel is live, send a message
-				sendTimedMessage(channelToUse,listOfMessages);
+				sendTimedMessage(channel,listOfMessages);
 			} else {
 				//channel isn't live, stop timer for messages and start live check timer
-				clearInterval(_this[channelToUse+'_interval']);
-				startLiveCheckTimer(channelToUse);
+				console.log(channel + ' is not live');
 			}
-		} else {
-		 	//channel is live, send a message like normal
-			sendTimedMessage(channelToUse,listOfMessages);
-		}
-	}, 900000);
-	// }, 1500);
+		}, 1200000);
+		// }, 3000);
+	}
 }
 
 async function checkIfChannelIsLive(channel) {
@@ -308,7 +300,6 @@ async function start() {
 		monitorChat();
 		monitorWhispers();
 		monitorUsersInChat();
-		startTimedMessages();
 		log.info('Now monitoring Twitch chat, whispers, and users');
 	} catch (err) {
 		throw err;

@@ -660,11 +660,15 @@ class songs {
 	async requestSingleSong(props) {
 		props.ignoreMessageParamsForUserString = true;
 		props.songStatusArray = [];
-		const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songToAdd);
-		props.songToAdd = youTubeID;
-		await this.addSongWrapper(props);
-		socket.emit('songs',['added']);
-		return await this.buildMessageToSendForAddSong(props) + '!';
+		try {
+			const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songToAdd);
+			props.songToAdd = youTubeID;
+			await this.addSongWrapper(props);
+			socket.emit('songs',['added']);
+			return await this.buildMessageToSendForAddSong(props) + '!';
+		} catch (err) {
+			console.log(err);
+		}
 	}
 
 	async requestCommaListOfSongs(props) {
