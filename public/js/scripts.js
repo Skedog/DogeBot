@@ -17,13 +17,18 @@ if (typeof userDetails[2] != 'undefined') {
 	});
 };
 
+const URLSplit = window.location.pathname.split('/');
+const page = URLSplit[1];
+const getUrl = window.location;
+const urlUser = URLSplit[2];
+const channelName = getChannelName(urlUser);
+const channelData = buildChannelDataString(channelName);
+
 async function startPageLoad(cookieChannel) {
 	let channelName = await getChannelName(cookieChannel);
 }
 
 async function init() {
-	let channelName = await getChannelName();
-	const channelData = await buildChannelDataString(channelName);
 	let inChannel = await checkIfInChannel(channelName);
 	if (inChannel) {
 		$('.botStatusBtn').text('Leave Channel');
@@ -31,10 +36,7 @@ async function init() {
 		$('.botStatusBtn').text('Join Channel');
 	};
 	let socketURL;
-	const URLSplit = window.location.pathname.split('/');
-	const page = URLSplit[1];
-	const getUrl = window.location;
-	socketURL = getUrl .protocol + "//" + getUrl.host + "/";
+	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL,page,channelData);
 	$('body').on('click', '.botStatusBtn', async function(e) {
 		e.preventDefault();

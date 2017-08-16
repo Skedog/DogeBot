@@ -107,7 +107,7 @@ async function setupRoutes() {
 	app.get('/moderation/:channel*?', async(req, res) => {
 		const results = await expressFunctions.checkModStatus(req);
 		if (results) {
-			res.render('moderation.html',{passedUser: req.params.channel});
+			res.render('moderation.html');
 		} else {
 			res.redirect('/dashboard');
 		}
@@ -119,8 +119,8 @@ async function setupRoutes() {
 		res.render('contact.html', {title: "Contact"});
 	});
 
-	app.get('/currentsonginfo', function(req, res){
-		res.render('currentsonginfo.html', {passedUser: req.query.channel,showText: req.query.showText,layout:false});
+	app.get('/currentsonginfo/:channel*?', function(req, res){
+		res.render('currentsonginfo.html', {showText: req.query.showText,layout:false});
 	});
 
 	app.get('/nav', async (req, res) => {

@@ -8,8 +8,6 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
 	async function startSonglist() {
-		let channelName = getChannelName('{{=it.passedUser}}');
-		let channelData = buildChannelDataString(channelName);
 		let songlist = await loadSonglist(channelData,'');
 		if (songlist) {
 			dataTableStartSize = '25';

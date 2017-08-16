@@ -13,8 +13,6 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/validator.min.js"></script>
 <script>
-const channelName = getChannelName('{{=it.passedUser}}');
-const channelData = buildChannelDataString(channelName);
 $.ajax({
 	url: '/getsettings',
 	data: channelData,

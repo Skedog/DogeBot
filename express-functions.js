@@ -24,10 +24,9 @@ async function checkUserLoginStatus(req, res, next) {
 			}
 			const results = await database.select(propsForSelect);
 			if (results) {
-				templateData = {};
 				const pageToRender = req.originalUrl.slice(1).split('?');
 				if (pageToRender[0]) {
-					res.render(pageToRender[0] + '.html', templateData);
+					res.render(pageToRender[0] + '.html');
 				} else {
 					//on homepage, but logged in, redirect to dashboard
 					res.redirect('/dashboard');

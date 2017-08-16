@@ -31,8 +31,6 @@
 </div><!-- /.container -->
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
-	const channelName = getChannelName('{{=it.passedUser}}');
-	const channelData = buildChannelDataString(channelName);
 	async function initModeration() {
 		loadModerationPanels(channelName);
 		const songlist = await loadSonglist(channelData,'moderation');

@@ -9,8 +9,7 @@
 <script src="/js/datatables.js"></script>
 <script>
 	async function startCommands() {
-		let channelName = getChannelName('{{=it.passedUser}}');
-		let commandsData = await getCommands(channelName);
+		const commandsData = await getCommands(channelName);
 		if (commandsData) {
 			dataTableStartSize = '25';
 			buildDataTable(commandsData,'.datatable',dataTableStartSize);

@@ -23,8 +23,6 @@ $(document).ready(function() {
 });
 
 async function getNewSongInfo() {
-	const channelName = getChannelName('{{=it.passedUser}}');
-	const channelData = buildChannelDataString(channelName);
 	$.ajax({
 		url: '/getsonglist',
 		data: channelData,

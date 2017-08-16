@@ -15,8 +15,6 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-const channelName = getChannelName('{{=it.passedUser}}');
-const channelData = buildChannelDataString(channelName);
 
 async function initMobile() {
 	const songlist = await loadSonglist(channelData,'');
