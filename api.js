@@ -32,7 +32,7 @@ class api {
 		if (props.channel.slice(1) == userToCheck) {
 			return 'You can\'t follow your own channel!';
 		}
-		const url = 'https://beta.decapi.me/twitch/followage/' + props.channel.slice(1) + '/' + userToCheck;
+		const url = 'https://beta.decapi.me/twitch/followage/' + props.channel.slice(1) + '/' + userToCheck.replace('@','');
 		const twitchAPIRequest = await request(url);
 		if (twitchAPIRequest.body) {
 			if (twitchAPIRequest.body.length < 40) {
