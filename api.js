@@ -9,10 +9,14 @@ class api {
 		const twitchAPIRequest = await request(url);
 		if (twitchAPIRequest.body) {
 			const editedBody = twitchAPIRequest.body.replace('.','');
-			if (editedBody.includes('offline')) {
-				return functions.buildUserString(props) + props.channel.slice(1) + ' is offline!';
+			if (twitchAPIRequest.body.length < 40) {
+				if (editedBody.includes('offline')) {
+					return functions.buildUserString(props) + props.channel.slice(1) + ' is offline!';
+				} else {
+					return functions.buildUserString(props) + props.channel.slice(1) + ' has been live for ' + editedBody + '!';
+				}
 			} else {
-				return functions.buildUserString(props) + props.channel.slice(1) + ' has been live for ' + editedBody + '!';
+				return 'Error getting uptime, try again in a few minutes!';
 			}
 		};
 	}
@@ -31,10 +35,14 @@ class api {
 		const url = 'https://beta.decapi.me/twitch/followage/' + props.channel.slice(1) + '/' + userToCheck;
 		const twitchAPIRequest = await request(url);
 		if (twitchAPIRequest.body) {
-			if (twitchAPIRequest.body.includes('is not following') || twitchAPIRequest.body.includes('cannot follow themself')) {
-				return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
+			if (twitchAPIRequest.body.length < 40) {
+				if (twitchAPIRequest.body.includes('is not following') || twitchAPIRequest.body.includes('cannot follow themself')) {
+					return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
+				} else {
+					return functions.buildUserString(props) + userToCheck + ' has been following for ' + twitchAPIRequest.body + '!';
+				}
 			} else {
-				return functions.buildUserString(props) + userToCheck + ' has been following for ' + twitchAPIRequest.body + '!';
+				return 'Error getting followage, try again in a few minutes!';
 			}
 		}
 	}
@@ -64,7 +72,11 @@ class api {
 		if (twitchAPIRequest.body.includes('skedogbot') || twitchAPIRequest.body.includes(props.channel.slice(1))) {
 			return this.randomViewer(props);
 		} else {
-			return functions.buildUserString(props) + 'The winner is ' + twitchAPIRequest.body.trim() + '!';
+			if (twitchAPIRequest.body.trim().length <= 25) {
+				return functions.buildUserString(props) + 'The winner is ' + twitchAPIRequest.body.trim() + '!';
+			} else {
+				return 'Error getting winner, try again in a few minutes!';
+			}
 		}
 	}
 

@@ -322,7 +322,7 @@ class songs {
 			songsToShuffle = songsToShuffle.substring(0, songsToShuffle.length - 1);
 			const arrayOfIDs = songsToShuffle.split(',');
 			const shuffledArray = await functions.shuffleArray(arrayOfIDs);
-			i = 0;
+			let i = 0;
 			for (let shuffledSongID of shuffledArray) {
 				let dataToUse = {};
 				dataToUse["sortOrder"] = parseInt((i+2) + '00000',10);
@@ -335,6 +335,7 @@ class songs {
 				i++;
 			}
 			const msgToSend = 'Songs shuffled!';
+			socket.emit('songs',['shuffled']);
 			return functions.buildUserString(props) + msgToSend;
 		}
 	}

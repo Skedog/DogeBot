@@ -256,7 +256,7 @@ async function startTimedMessages(channel) {
 				sendTimedMessage(channel,listOfMessages);
 			} else {
 				//channel isn't live, stop timer for messages and start live check timer
-				console.log(channel + ' is not live');
+				//console.log(channel + ' is not live');
 			}
 		}, 1200000);
 		// }, 3000);

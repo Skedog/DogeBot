@@ -50,7 +50,7 @@ async function startSocket(socketURL,page,channelData) {
 				}
 				$('.togglePlay').text('Pause');
 			};
-		} else if (data[0] == 'added' || data[0] == 'removed' || data[0] == 'promoted') {
+		} else if (data[0] == 'added' || data[0] == 'removed' || data[0] == 'promoted' || data[0] == 'shuffled') {
 			if (page == 'songs' || page == 'player' || page == 'moderation' || page == 'mobile') {
 				const songlist = await loadSonglist(channelData,page);
 				if (songlist) {
@@ -89,14 +89,16 @@ async function startSocket(socketURL,page,channelData) {
 
 	socket.on('commands', async function(data) {
 		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
-			const channelName = await getChannelName(passedUser);
-			let commandsData = await getCommands(channelName);
-			if (commandsData) {
-				dataTableStartSize = '25';
-				buildDataTable(commandsData,'.datatable',dataTableStartSize);
-			} else {
-				$('.datatable tbody').hide();
-				$('.commandssection').html("You haven't added any commands yet!");
+			if (page == 'commands') {
+				const channelName = await getChannelName(passedUser);
+				let commandsData = await getCommands(channelName);
+				if (commandsData) {
+					dataTableStartSize = '25';
+					buildDataTable(commandsData,'.datatable',dataTableStartSize);
+				} else {
+					$('.datatable tbody').hide();
+					$('.commandssection').html("You haven't added any commands yet!");
+				};
 			};
 		}
 	})
