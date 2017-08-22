@@ -18,6 +18,10 @@ function getUrlVars() {
 	return vars;
 };
 
+function stripHash(passedStr) {
+	return passedStr.replace(/#/g, '');
+};
+
 function readCookie(cname) {
 	var name = cname + "=";
 	var ca = document.cookie.split(';');
