@@ -4,8 +4,11 @@ async function start(server) {
 	module.exports.io = io;
 	log.info('Socket server started');
 
-
-	io.on('connection', function(client) {});
+	io.on('connection', function(client) {
+		client.on('room', function(room) {
+			client.join(room);
+		});
+	});
 };
 
 function emit(connection,message) {

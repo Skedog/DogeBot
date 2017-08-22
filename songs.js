@@ -10,6 +10,7 @@ const messages = require('./chat-messages.js');
 const socket = require('./socket.js');
 const ypi = require('youtube-playlist-info');
 
+
 /* - - - - - EXPORT FUNCTIONS - - - - - - */
 
 class songs {
@@ -80,7 +81,7 @@ class songs {
 			}
 			await database.update(propsForUpdate);
 			const msgToSend = 'The volume has been updated to ' + newVolume + '!';
-			socket.emit('songs',['volumeupdated',newVolume]);
+			socket.io.in(functions.stripHash(props.channel)).emit('songs',['volumeupdated',newVolume]);
 			return functions.buildUserString(props) + msgToSend;
 		}
 	}
@@ -95,7 +96,7 @@ class songs {
 		};
 		await database.update(propsForUpdate);
 		const msgToSend = 'Music is now playing!';
-		socket.emit('songs',['statuschange','play']);
+		socket.io.in(functions.stripHash(props.channel)).emit('songs',['statuschange','play']);
 		return functions.buildUserString(props) + msgToSend;
 	}
 
@@ -109,7 +110,7 @@ class songs {
 		};
 		await database.update(propsForUpdate);
 		const msgToSend = 'Music has been paused!';
-		socket.emit('songs',['statuschange','pause']);
+		socket.io.in(functions.stripHash(props.channel)).emit('songs',['statuschange','pause']);
 		return functions.buildUserString(props) + msgToSend;
 	}
 
@@ -150,7 +151,7 @@ class songs {
 				dataToUse: dataToUse
 			}
 			await database.update(propsForUpdate);
-			socket.emit('songs',['skipped',songToPassToEmit]);
+			socket.io.in(functions.stripHash(props.channel)).emit('songs',['skipped',songToPassToEmit]);
 			const msgToSend = songTitle + ' has been skipped!';
 			return functions.buildUserString(props) + msgToSend;
 		}
@@ -194,7 +195,7 @@ class songs {
 						query: {channel:props.channel,_id:songToRemove}
 					}
 					await database.delete(propsForDelete);
-					socket.emit('songs',['removed']);
+					socket.io.in(functions.stripHash(props.channel)).emit('songs',['removed']);
 					const msgToSend = 'The song ' + songTitle + ' has been removed!';
 					return functions.buildUserString(props) + msgToSend;
 				}
@@ -230,7 +231,7 @@ class songs {
 				}
 			};
 			if (atLeastOneSongRemoved) {
-				socket.emit('songs',['removed']);
+				socket.io.in(functions.stripHash(props.channel)).emit('songs',['removed']);
 				msgToSend = functions.buildUserString(props) + 'Songs removed!';
 			} else {
 				msgToSend = functions.buildUserString(props) + 'None of the songs you tried to remove exist!';
@@ -251,7 +252,7 @@ class songs {
 			query: {channel:props.channel,whoRequested:{$regex:new RegExp(userToRemove, "i")}}
 		}
 		await database.deleteall(propsForDelete);
-		socket.emit('songs',['removed']);
+		socket.io.in(functions.stripHash(props.channel)).emit('songs',['removed']);
 		return functions.buildUserString(props) + 'Songs removed!';
 	}
 
@@ -300,7 +301,7 @@ class songs {
 				}
 				await database.update(propsForUpdate);
 				const msgToSend = 'Song #' + indexToMove + ' has been promoted!';
-				socket.emit('songs',['promoted']);
+				socket.io.in(functions.stripHash(props.channel)).emit('songs',['promoted']);
 				return functions.buildUserString(props) + msgToSend;
 			};
 		}
@@ -335,7 +336,7 @@ class songs {
 				i++;
 			}
 			const msgToSend = 'Songs shuffled!';
-			socket.emit('songs',['shuffled']);
+			socket.io.in(functions.stripHash(props.channel)).emit('songs',['shuffled']);
 			return functions.buildUserString(props) + msgToSend;
 		}
 	}
@@ -665,7 +666,7 @@ class songs {
 			const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songToAdd);
 			props.songToAdd = youTubeID;
 			await this.addSongWrapper(props);
-			socket.emit('songs',['added']);
+			socket.io.in(functions.stripHash(props.channel)).emit('songs',['added']);
 			return await this.buildMessageToSendForAddSong(props) + '!';
 		} catch (err) {
 			console.log(err);
@@ -686,7 +687,7 @@ class songs {
 				}
 			}
 		}
-		socket.emit('songs',['added']);
+		socket.io.in(functions.stripHash(props.channel)).emit('songs',['added']);
 		return await this.buildMessageToSendForAddSong(props) + '!';
 	}
 

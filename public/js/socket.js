@@ -1,5 +1,9 @@
 async function startSocket(socketURL,page,channelData) {
+	const channelName = await getChannelName(passedUser);
 	const socket = io.connect(socketURL);
+	socket.on('connect', function(socket2) {
+		socket.emit('room', stripHash(channelName));
+	});
 	socket.on('songs', async function(data) {
 		if (data[0] == 'skipped') {
 			if (page == 'currentsonginfo') {
@@ -90,7 +94,6 @@ async function startSocket(socketURL,page,channelData) {
 	socket.on('commands', async function(data) {
 		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
 			if (page == 'commands') {
-				const channelName = await getChannelName(passedUser);
 				let commandsData = await getCommands(channelName);
 				if (commandsData) {
 					dataTableStartSize = '25';
