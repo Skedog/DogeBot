@@ -1,80 +1,91 @@
 const database = require('./database.js');
 
-class stats {
+class Stats {
 
 	async addCounterStat(props) {
 		const propsForSelect = {
-			table:props.statTableToUpdate,
-			query:{channel:props.channel}
-		}
+			table: props.statTableToUpdate,
+			query: {channel: props.channel}
+		};
 		const results = await database.select(propsForSelect);
-		let dataToUse = {};
+		const dataToUse = {};
 		if (results) {
-			dataToUse["counter"] = results[0]['counter']+1;
+			dataToUse.counter = results[0].counter + 1;
 			const propsForUpdate = {
-				table:props.statTableToUpdate,
-				query:{channel:props.channel},
-				dataToUse:dataToUse
-			}
+				table: props.statTableToUpdate,
+				query: {channel: props.channel},
+				dataToUse
+			};
 			await database.update(propsForUpdate);
-			return;
 		} else {
-			dataToUse["channel"] = props.channel;
-			dataToUse["counter"] = 1;
+			dataToUse.channel = props.channel;
+			dataToUse.counter = 1;
 			const propsForAdd = {
-				table:props.statTableToUpdate,
-				dataToUse:dataToUse
-			}
+				table: props.statTableToUpdate,
+				dataToUse
+			};
 			await database.add(propsForAdd);
-			return;
 		}
 	}
 
 	async addTrackedUser(props) {
 		let username;
-		if (props.userstate != undefined) {
-			username = props.userstate['username'];
-		} else {
+		if (props.userstate == undefined) {
 			username = props.username;
+		} else {
+			username = props.userstate.username;
 		}
-		const propsForSelect = {table:'chatusers',query:{channel:props.channel,userName:username}}
+		const propsForSelect = {
+			table: 'chatusers',
+			query: {channel: props.channel, userName: username}
+		};
 		const results = await database.select(propsForSelect);
 		if (results) {
-			let dataToUse = {};
-			dataToUse["lastSeen"] = new Date();
-			const propsForUpdate = {table:'chatusers',query:{channel:props.channel,userName:username},dataToUse:dataToUse}
+			const dataToUse = {};
+			dataToUse.lastSeen = new Date();
+			const propsForUpdate = {
+				table: 'chatusers',
+				query: {channel: props.channel, userName: username},
+				dataToUse
+			};
 			await database.update(propsForUpdate);
-			return;
 		} else {
-			let dataToUse = {};
-			dataToUse["userName"] = username;
-			dataToUse["channel"] = props.channel;
-			dataToUse["lastSeen"] = new Date();
-			dataToUse["firstSeen"] = new Date();
-			dataToUse["numberOfChatMessages"] = 0;
-			dataToUse["numberOfCommandMessages"] = 0;
-			dataToUse["numberOfSongRequests"] = 0;
-			const propsForAdd = {table:'chatusers',dataToUse:dataToUse}
+			const dataToUse = {};
+			dataToUse.userName = username;
+			dataToUse.channel = props.channel;
+			dataToUse.lastSeen = new Date();
+			dataToUse.firstSeen = new Date();
+			dataToUse.numberOfChatMessages = 0;
+			dataToUse.numberOfCommandMessages = 0;
+			dataToUse.numberOfSongRequests = 0;
+			const propsForAdd = {
+				table: 'chatusers',
+				dataToUse
+			};
 			await database.add(propsForAdd);
-			return;
 		}
 	}
 
 	async updateUserCounter(props) {
-		const username = props.userstate['username'];
-		const propsForSelect = {table:'chatusers',query:{channel:props.channel,userName:username}}
+		const username = props.userstate.username;
+		const propsForSelect = {
+			table: 'chatusers',
+			query: {channel: props.channel, userName: username}
+		};
 		const results = await database.select(propsForSelect);
 		if (results) {
-			let dataToUse = {};
-			dataToUse[props.statFieldToUpdate] = results[0][props.statFieldToUpdate]+1;
-			const propsForUpdate = {table:'chatusers',query:{channel:props.channel,userName:username},dataToUse:dataToUse}
+			const dataToUse = {};
+			dataToUse[props.statFieldToUpdate] = results[0][props.statFieldToUpdate] + 1;
+			const propsForUpdate = {
+				table: 'chatusers',
+				query: {channel: props.channel, userName: username},
+				dataToUse
+			};
 			await database.update(propsForUpdate);
-			return;
 		} else {
 			await this.addTrackedUser(props);
-			return;
 		}
 	}
 }
 
-module.exports = new stats();
+module.exports = new Stats();

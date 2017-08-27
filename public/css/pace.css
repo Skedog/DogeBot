@@ -14,10 +14,14 @@
   background: #215f94;
   position: fixed;
   z-index: 2000;
-  top: 50px;
+  top: 0;
   right: 100%;
   width: 100%;
   height: 5px;
+}
+
+.home .pace .pace-progress {
+  top:50px;
 }
 
 .pace .pace-progress-inner {

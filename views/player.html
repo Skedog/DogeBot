@@ -1,20 +1,38 @@
-<div class="container wrapper">
-	<div class="starter-template">
-		<h1><img src="/img/playlists.png" alt="" />Player</h1>
-		<div class="player-page">
-			<div id="player"></div>
-			<div class="buttons">
-				<button type="button" class="blue-styled-button togglePlay">Pause</button>
-				<button type="button" class="blue-styled-button volBtn" id="down">Volume -</button>
-				<button type="button" class="blue-styled-button volBtn" id="up">Volume +</button>
-				<button type="button" class="blue-styled-button skipBtn">Skip</button>
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-music"></i> Player</h1>
+			<p>Below is how you listen to your song queue! Request some songs, and then click play; the bot will handle the rest!</p>
+			<div class="player-page">
+				<div id="player"></div>
+				<div class="buttons">
+					<button type="button" class="blue-styled-button volBtn" id="down">
+						<i class="fa fa-volume-down" title="Volume -10"></i>
+					</button>
+					<button type="button" class="blue-styled-button volBtn" id="up">
+						<i class="fa fa-volume-up" title="Volume +10"></i>
+					</button>
+					<button type="button" class="blue-styled-button togglePlay">
+						<i class="fa fa-pause" title="Pause"></i>
+					</button>
+					<button type="button" class="blue-styled-button skipBtn">
+						<i class="fa fa-fast-forward" title="Skip Song"></i>
+					</button>
+				</div>
+				<div class="currentsong"></div>
+				<div class="currentvolume"></div>
 			</div>
-			<div class="currentsong"></div>
-			<div class="currentvolume"></div>
-		</div>
-		<div class="player-songlist songlist">
-			<table class="datatable"><thead><th>#</th><th>Title</th><th>Requested</th></thead><tbody></tbody></table>
-			<div class="nosongs"></div>
+			<div class="player-songlist songlist">
+				<table class="datatable">
+					<thead>
+						<th>#</th>
+						<th class="datatable-half">Title</th>
+						<th>Requested</th>
+					</thead>
+					<tbody></tbody>
+				</table>
+				<div class="nosongs"></div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -24,51 +42,20 @@
 <script>
 let player;
 
-$('.volBtn').click(async function(e) {
-	e.preventDefault();
-	let newVol = await volumeBtnClick($(this));
-	await updateVolume(channelData,newVol);
-	player.setVolume(newVol);
-	updateOnScreenVolume(newVol);
-});
-
-$('.togglePlay').click(async function(e) {
-	e.preventDefault();
-	if ($(this).text() == 'Pause') {
-		await updateMusicStatus(channelData,'pause');
-		$(this).text('Play');
-		player.pauseVideo();
-	} else {
-		await updateMusicStatus(channelData,'play');
-		$(this).text('Pause');
-		player.playVideo();
-	};
-});
-
-$('.skipBtn').click(function(e) {
-	e.preventDefault();
-	loadNextSong();
-});
-
 async function loadPlayer() {
-	let dataToUse;
-	await $.ajax({
-		url: '/getsonglist',
-		data: channelData,
-		type: 'POST',
-		success: function(data) {
-			dataToUse = data;
-		}
-	});
-	if (dataToUse[0] != undefined) {
+	let songlist;
+	showLoader($('.nosongs'));
+	songlist = await loadSonglist(channelData);
+	hideLoader($('.nosongs'));
+	if (songlist[0] != undefined) {
 		player = new YT.Player('player', {
-			videoId: dataToUse[0]['songID'],
+			videoId: songlist[0]['songID'],
 			events: {
 				'onReady': onPlayerReady,
 				'onStateChange': onPlayerStateChange
 			}
 		});
-		let songlist = await loadSonglist(channelData,'player');
+		songlist = await loadFormattedSonglist(channelData,'player');
 		if (songlist) {
 			dataTableStartSize = '5';
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
@@ -102,5 +89,8 @@ function onPlayerStateChange(event) {
 
 function onYouTubeIframeAPIReady() {
 	loadPlayer();
+	handlePlayPauseClick($('.togglePlay'));
+	handleVolumeClick($('.volBtn'));
+	handleSkipClick($('.skipBtn'));
 };
 </script>

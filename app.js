@@ -6,7 +6,6 @@ const express = require('./express.js');
 const socket = require('./socket.js');
 const discord = require('./discord.js');
 
-
 async function init() {
 	try {
 		await database.connect();
@@ -14,8 +13,8 @@ async function init() {
 		await socket.start(express.server);
 		twitch.start();
 		discord.start();
-	} catch (e) {
-		log.error(e);
+	} catch (err) {
+		log.error(err);
 	}
-};
+}
 init();

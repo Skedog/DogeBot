@@ -1,4 +1,10 @@
+const URLSplit = window.location.pathname.split('/');
+const page = URLSplit[1];
+const getUrl = window.location;
+const urlUser = URLSplit[2];
+
 let userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
+// If user is logged in
 if (typeof userDetails[2] != 'undefined') {
 	$.ajax({
 		url: '/loggedinnav',
@@ -7,6 +13,15 @@ if (typeof userDetails[2] != 'undefined') {
 			$('.navbar-nav').html(data);
 		}
 	});
+	if (page != 'logout') {
+		$.ajax({
+			url: '/leftbar',
+			type: 'GET',
+			success: function(data) {
+				$('.left-bar-container').html(data);
+			}
+		});
+	}
 } else {
 	$.ajax({
 		url: '/nav',
@@ -15,17 +30,44 @@ if (typeof userDetails[2] != 'undefined') {
 			$('.navbar-nav').html(data);
 		}
 	});
+	setTimeout(function() {
+		$('.inner-content-wrapper').width('100%');
+	}, 100);
 };
 
-const URLSplit = window.location.pathname.split('/');
-const page = URLSplit[1];
-const getUrl = window.location;
-const urlUser = URLSplit[2];
 const channelName = getChannelName(urlUser);
 const channelData = buildChannelDataString(channelName);
 
 async function startPageLoad(cookieChannel) {
 	let channelName = await getChannelName(cookieChannel);
+}
+
+function setNavShowingSection(page) {
+	$('.left-bar .main-nav ul li a').each(function(index, el) {
+		if ($(this).attr('href') == '/currentsonginfo') {
+			$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName) + '?showText=true');
+		} else if ($(this).attr('href') == '/moderation') {
+			$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName));
+		};
+		if ('/' + page == $(this).attr('href') || '/' + page + '/' + stripHash(channelName) == $(this).attr('href')) {
+			if ($(this).parent().parent().is(":hidden")) {
+				changeNavIconState($(this).parent().parent());
+			};
+			$(this).addClass('current-page');
+		}
+	});
+}
+
+function changeNavIconState(itemToChange) {
+	itemToChange.toggle();
+	let currentIcon = itemToChange.prev().children('a').children('i');
+	if (currentIcon.hasClass('fa-minus')) {
+		currentIcon.removeClass('fa-minus');
+		currentIcon.addClass('fa-plus');
+	} else {
+		currentIcon.removeClass('fa-plus');
+		currentIcon.addClass('fa-minus');
+	}
 }
 
 async function init() {
@@ -38,6 +80,9 @@ async function init() {
 	let socketURL;
 	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL,page,channelData);
+	if (!page || page == 'login'|| page == 'logout') {
+		$('body').addClass('home');
+	};
 	$('body').on('click', '.botStatusBtn', async function(e) {
 		e.preventDefault();
 		if ($(this).text() == 'Join Channel') {
@@ -59,6 +104,37 @@ async function init() {
 				},2000);
 			}
 		}
+	});
+	$('.main-nav h4 a i').each(function(index, el) {
+		if ($(this).hasClass('fa-plus')) {
+			$(this).parent().parent().next().hide();
+		}
+	});
+	setNavShowingSection(page);
+	$('.main-nav h4 a').click(function(e) {
+		e.preventDefault();
+		changeNavIconState($(this).parent().next());
+	});
+
+	let toggleMe = true;
+	$(window).on('resize', debounce(function() {
+		if ($(window).width() > 1138) {
+			$('.left-bar').removeAttr('style');
+		}
+	}, 200));
+	$('.navstatus').click(function(e) {
+		e.preventDefault();
+		if (toggleMe) {
+			toggleMe = false;
+			$('.left-bar').css({
+				transform: 'translate(0, 0)'
+			});
+		} else {
+			toggleMe = true;
+			$('.left-bar').css({
+				transform: 'translate(-285px, 0)'
+			});
+		};
 	});
 }
 init();

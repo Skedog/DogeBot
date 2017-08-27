@@ -1,16 +1,29 @@
-<div class="container wrapper">
-	<div class="starter-template">
-		<h1><img src="/img/commands.png" alt="" />Your Commands</h1>
-		<div class="commandssection"></div>
-		<table class="datatable commands"><thead><th>Command</th><th>Text</th><th>Counter</th><th>Permissions Level</th></thead><tbody></tbody></table>
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-terminal"></i> Your Commands</h1>
+			<p>Below is a list of your channel's commands. You can use variables such as $(touser), $(counter), and $(list) to make the bot's responses dynamic.</p>
+			<div class="commandssection"></div>
+			<table class="datatable commands">
+				<thead>
+					<th>Command</th>
+					<th class="datatable-half">Response</th>
+					<th>Counter</th>
+					<th>Permissions Level</th>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
 	</div>
-</div><!-- /.container -->
+</div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/datatables.js"></script>
 <script>
 	async function startCommands() {
+		showLoader($('.commandssection'));
 		const commandsData = await getCommands(channelName);
 		if (commandsData) {
+			hideLoader($('.commandssection'));
 			dataTableStartSize = '25';
 			buildDataTable(commandsData,'.datatable',dataTableStartSize);
 		} else {

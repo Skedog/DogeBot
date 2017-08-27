@@ -1,3 +1,6 @@
+const log = require('npmlog');
+const request = require('async-request');
+const tmi = require('tmi.js');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const permissions = require('./permissions.js');
@@ -6,30 +9,27 @@ const chat = require('./chat-commands.js');
 const messages = require('./chat-messages.js');
 const maintenance = require('./maintenance.js');
 const functions = require('./functions.js');
-const log = require('npmlog');
-const tmi = require('tmi.js');
-const request = require('async-request');
+
 let twitchClient;
 
 async function getListOfJoinedChannels() {
 	const props = {
-		table:'channels',
-		query: {inChannel:true}
+		table: 'channels',
+		query: {inChannel: true}
 	};
-	if (!constants.testMode) {
-		const channels = await database.select(props);
-		let channelArray = [];
-		for (let channel of channels) {
-			if (channel['ChannelName'] != '#ygtskedogtest') {
-				startTimedMessages(channel['ChannelName'].substr(1));
-				channelArray.push(channel['ChannelName']);
-			}
-		}
-		return channelArray;
-	} else {
+	if (constants.testMode) {
 		startTimedMessages('ygtskedogtest');
 		return ['#ygtskedogtest'];
 	}
+	const channels = await database.select(props);
+	const channelArray = [];
+	for (const channel of channels) {
+		if (channel.ChannelName != '#ygtskedogtest') {
+			startTimedMessages(channel.ChannelName.substr(1));
+			channelArray.push(channel.ChannelName);
+		}
+	}
+	return channelArray;
 }
 
 async function connectToTwitch() {
@@ -41,25 +41,25 @@ async function connectToTwitch() {
 			debug: false
 		},
 		connection: {
-			cluster: "aws",
+			cluster: 'aws',
 			reconnect: true
 		},
 		identity: {
-			username: "SkedogBot",
+			username: 'SkedogBot',
 			password: dbConstants.twitchOauthPass
 		},
-		channels:channelsToJoin
+		channels: channelsToJoin
 	};
-	//turn this on if you want debug messages from twitchClient
-	// if (constants.testMode) {twitchClientOptions.options.debug = true}
-	twitchClient = new tmi.client(twitchClientOptions);
+	// Turn this on if you want debug messages from twitchClient
+	// If (constants.testMode) {twitchClientOptions.options.debug = true}
+	twitchClient = new tmi.Client(twitchClientOptions);
 	module.exports.twitchClient = twitchClient;
 	try {
 		await twitchClient.connect();
 		log.info('Connected to Twitch chat servers');
-	} catch(err) {
+	} catch (err) {
 		log.error(err);
-	};
+	}
 	return twitchClient;
 }
 
@@ -67,61 +67,61 @@ async function joinSingleChannel(channelToJoin) {
 	try {
 		await twitchClient.join(channelToJoin);
 		const propsForsetDelayTimerForSingleChannel = {
-			channel:channelToJoin
-		}
+			channel: channelToJoin
+		};
 		chat.setDelayTimerForSingleChannel(propsForsetDelayTimerForSingleChannel);
-		let dataToUse = {};
-		dataToUse["inChannel"] = true;
+		const dataToUse = {};
+		dataToUse.inChannel = true;
 		const propsForUpdate = {
-			table:'channels',
-			query:{ChannelName:channelToJoin},
-			dataToUse: dataToUse
-		}
+			table: 'channels',
+			query: {ChannelName: channelToJoin},
+			dataToUse
+		};
 		const res = await database.update(propsForUpdate);
 		if (res == 'updated') {
 			log.info('Joined channel: ' + channelToJoin);
 			getCurrentChatUsers(channelToJoin.substring(1));
 		}
-	} catch(err) {
+	} catch (err) {
 		log.info(err);
 	}
 }
 
 function monitorChat() {
-	twitchClient.on("chat", function(channel, userstate, message, self) {
-		if (!self && message.startsWith("!")) {
+	twitchClient.on('chat', (channel, userstate, message, self) => {
+		if (!self && message.startsWith('!')) {
 			const props = {
-				channel:channel,
-				messageParams:message.split(' '),
-				userstate: userstate,
-				twitchClient:twitchClient,
-				statTableToUpdate:'commandmessages',
-				statFieldToUpdate:'numberOfCommandMessages'
+				channel,
+				messageParams: message.split(' '),
+				userstate,
+				twitchClient,
+				statTableToUpdate: 'commandmessages',
+				statFieldToUpdate: 'numberOfCommandMessages'
 			};
 			callCommandFromChat(props);
 		} else if (!self) {
 			const props = {
-				channel:channel,
-				userstate: userstate,
-				statTableToUpdate:'chatmessages',
-				statFieldToUpdate:'numberOfChatMessages'
+				channel,
+				userstate,
+				statTableToUpdate: 'chatmessages',
+				statFieldToUpdate: 'numberOfChatMessages'
 			};
 			stats.addCounterStat(props);
 			stats.updateUserCounter(props);
-		};
+		}
 	});
 }
 
 function monitorWhispers() {
-	twitchClient.on("whisper", function(from, userstate, message, self) {
-		if (from.toLowerCase() == '#ygtskedogtest' && message.startsWith("!")) {
+	twitchClient.on('whisper', (from, userstate, message) => {
+		if (from.toLowerCase() == '#ygtskedogtest' && message.startsWith('!')) {
 			log.info('got a whisper from ' + from + ' that says: ' + message + '.');
 			const props = {
-				from: from,
+				from,
 				messageParams: message.split(' '),
-				userstate: userstate,
-				twitchClient: twitchClient
-			}
+				userstate,
+				twitchClient
+			};
 			callCommandFromWhisper(props);
 		}
 	});
@@ -129,7 +129,7 @@ function monitorWhispers() {
 
 async function callCommandFromChat(props) {
 	try {
-		props.permissionLevelNeeded = await permissions.CommandPermissionLevel(props);
+		props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 		await permissions.canUserCallCommand(props);
 		await chat.checkAndSetCommandDelayTimer(props);
 		stats.addCounterStat(props);
@@ -138,61 +138,64 @@ async function callCommandFromChat(props) {
 		if (props.messageToSend) {
 			messages.send(props);
 		}
-	} catch(err) {
+	} catch (err) {
 		log.error('Command was called and produced an error: ' + err);
 	}
 }
 
 async function callCommandFromWhisper(props) {
-	switch(props.messageParams[0]) {
+	switch (props.messageParams[0]) {
 		case '!clearsongcache':
 			if (props.messageParams[1]) {
 				const propsForSongCache = {
-					channel:'#' + props.messageParams[1]
-				}
+					channel: '#' + props.messageParams[1]
+				};
 				try {
 					await maintenance.clearSongCache(propsForSongCache);
 					log.info('Song cache cleared for ' + props.messageParams[1] + ' via whisper');
-					props.twitchClient.whisper(props.from, "Song cache cleared for " + props.messageParams[1]);
+					props.twitchClient.whisper(props.from, 'Song cache cleared for ' + props.messageParams[1]);
 				} catch (err) {
 					log.error(err);
-					props.twitchClient.whisper(props.from, "Error clearing song cache for " + props.messageParams[1]);
+					props.twitchClient.whisper(props.from, 'Error clearing song cache for ' + props.messageParams[1]);
 				}
 			}
 			break;
 		case '!deletechannel':
 			if (props.messageParams[1]) {
 				const propsFordeleteChannel = {
-					channel:'#' + props.messageParams[1]
-				}
-				maintenance.deleteChannel(propsFordeleteChannel).then(res => {
+					channel: '#' + props.messageParams[1]
+				};
+				try {
+					await maintenance.deleteChannel(propsFordeleteChannel);
 					log.info('Deleted channel: ' + props.messageParams[1]);
 					props.twitchClient.whisper(props.from, 'Deleted channel: ' + props.messageParams[1]);
-				}).catch(err => {
+				} catch (err) {
 					log.error(err);
 					props.twitchClient.whisper(props.from, 'Error deleting channel ' + props.messageParams[1] + ': ' + err);
-				})
+				}
 			}
 			break;
-		case 'getids':
+		case 'getids': {
 			const propsForIDupdate = {
-				twitchClient:props.twitchClient
-			}
-			maintenance.getAndUpdateTwitchUserIDsForAllUsers(propsForIDupdate).then(res => {
+				twitchClient: props.twitchClient
+			};
+			try {
+				await maintenance.getAndUpdateTwitchUserIDsForAllUsers(propsForIDupdate);
 				log.info('Got and reset all channel twitchIDs');
-				props.twitchClient.whisper(props.from, "Got and reset all channel twitchIDs");
-			}).catch(err => {
+				props.twitchClient.whisper(props.from, 'Got and reset all channel twitchIDs');
+			} catch (err) {
 				log.error(err);
-				props.twitchClient.whisper(props.from, "Error getting channel twitchIDs: " + err);
-			})
+				props.twitchClient.whisper(props.from, 'Error getting channel twitchIDs: ' + err);
+			}
 			break;
+		}
 		case '!mute':
 			if (props.messageParams[1]) {
 				const propsForMute = {
-					channel:'#' + props.messageParams[1],
-					twitchClient:props.twitchClient,
-					userstate:props.userstate
-				}
+					channel: '#' + props.messageParams[1],
+					twitchClient: props.twitchClient,
+					userstate: props.userstate
+				};
 				propsForMute.messageToSend = await messages.mute(propsForMute);
 				messages.send(propsForMute);
 			}
@@ -200,63 +203,63 @@ async function callCommandFromWhisper(props) {
 		case '!unmute':
 			if (props.messageParams[1]) {
 				const propsForUnmute = {
-					channel:'#' + props.messageParams[1],
-					twitchClient:props.twitchClient,
-					userstate:props.userstate
-				}
+					channel: '#' + props.messageParams[1],
+					twitchClient: props.twitchClient,
+					userstate: props.userstate
+				};
 				propsForUnmute.messageToSend = await messages.unmute(propsForUnmute);
 				messages.send(propsForUnmute);
 			}
 			break;
+		default:
+			log.error('Whisper command not found!');
+			props.twitchClient.whisper(props.from, 'Whisper command not found!');
 	}
 }
 
 function monitorUsersInChat() {
-	twitchClient.on("join", function (channel, username, self) {
+	twitchClient.on('join', (channel, username) => {
 		const propsForAddTrackedUser = {
-			channel:channel,
-			username:username
-		}
+			channel,
+			username
+		};
 		stats.addTrackedUser(propsForAddTrackedUser);
 	});
 }
 
-function sendTimedMessage(channelToUse,passedMessages) {
-	let msgToSend = functions.getRandomItemFromArray(passedMessages);
-	let props = {
-		channel:'#' + channelToUse,
-		twitchClient:twitchClient,
-		messageToSend:msgToSend[1]
-	}
+function sendTimedMessage(channelToUse, passedMessages) {
+	const msgToSend = functions.getRandomItemFromArray(passedMessages);
+	const props = {
+		channel: '#' + channelToUse,
+		twitchClient,
+		messageToSend: msgToSend[1]
+	};
 	messages.send(props);
 	log.info('LOG CUSTOM: Timed message sent - ' + new Date().toLocaleString());
 }
 
 async function getTimedMessages(channel) {
 	const propsForSelect = {
-		table:'channels',
-		query:{ChannelName:'#' + channel}
-	}
+		table: 'channels',
+		query: {ChannelName: '#' + channel}
+	};
 	const results = await database.select(propsForSelect);
 	if (results) {
-		return results[0]['timedMessages'];
-	} else {
-		return;
+		return results[0].timedMessages;
 	}
 }
 
 async function startTimedMessages(channel) {
 	const listOfMessages = await getTimedMessages(channel);
-	if (listOfMessages.length) {
-		let numberOfTimesRan = 0;
-		this[channel+'_interval'] = setInterval(async function() {
-			let results = await checkIfChannelIsLive(channel);
+	if (listOfMessages.length > 0) {
+		this[channel + '_interval'] = setInterval(async () => {
+			const results = await checkIfChannelIsLive(channel);
 			if (results) {
-				//channel is live, send a message
-				sendTimedMessage(channel,listOfMessages);
+				// Channel is live, send a message
+				sendTimedMessage(channel, listOfMessages);
 			} else {
-				//channel isn't live, stop timer for messages and start live check timer
-				//console.log(channel + ' is not live');
+				// Channel isn't live, stop timer for messages and start live check timer
+				// Console.log(channel + ' is not live');
 			}
 		}, 1200000);
 		// }, 3000);
@@ -267,22 +270,24 @@ async function checkIfChannelIsLive(channel) {
 	const dbConstants = await database.constants();
 	let URLtoUse;
 	if (constants.testMode) {
-		URLtoUse = "https://api.twitch.tv/kraken/streams/" + channel + "?client_id=" + dbConstants.twitchTestClientID;
+		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchTestClientID;
 	} else {
-		URLtoUse = "https://api.twitch.tv/kraken/streams/" + channel + "?client_id=" + dbConstants.twitchClientID;
+		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchClientID;
 	}
 	const twitchAPIRequest = await request(URLtoUse);
-	if (JSON.parse(twitchAPIRequest.body)['stream'] !== null) {
-		return true;
-	} else {
+	if (JSON.parse(twitchAPIRequest.body).stream == null) {
 		return false;
 	}
+	return true;
 }
 
 function getCurrentChatUsers(channel) {
 	twitchClient.api({
 		url: 'http://tmi.twitch.tv/group/user/' + channel + '/chatters'
-	}, function(err, res, body) {
+	}, (err, res, body) => {
+		if (err) {
+			return;
+		}
 		console.log('http://tmi.twitch.tv/group/user/' + channel + '/chatters');
 		console.log('Viewer stats for ' + channel);
 		console.log('Viewer Count: ' + body.chatter_count);

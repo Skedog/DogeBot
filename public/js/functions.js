@@ -104,7 +104,17 @@ function buildChannelDataString(channelName) {
 function buildDataTable(passedData,elementToUse,startSize) {
 	$('.datatable').DataTable().destroy();
 	$(elementToUse + ' tbody').html(passedData);
-	if (startSize == '25') {
+	const numberOfTDs = $(elementToUse + ' tbody tr:first > td').length;
+	if (startSize == '5') {
+		$(elementToUse).DataTable({
+			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]]
+		});
+	} else {
+		$(elementToUse).DataTable({
+			"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
+		});
+	}
+	/*if (startSize == '25') {
 		$(elementToUse).DataTable({
 			"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
 		});
@@ -117,7 +127,30 @@ function buildDataTable(passedData,elementToUse,startSize) {
 			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]],
 			"columns": [{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false }]
 		});
-	}
+	}*/
 	$('.songinfo').hide();
 	$(elementToUse).show();
+}
+
+function showLoader(item) {
+	item.html('<div class="gear"><div class="center"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div></div>');
+}
+
+function hideLoader(item) {
+	item.html('');
+}
+
+function debounce(func, wait, immediate) {
+	let timeout;
+	return function() {
+		const context = this, args = arguments;
+		const later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		const callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	}
 }

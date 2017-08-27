@@ -1,15 +1,28 @@
-<div class="container wrapper">
-	<div class="starter-template">
-		<h1><img src="/img/commands.png" alt="" />Songlist</h1>
-		<table class="datatable songs"><thead><th>#</th><th>Title</th><th>Video ID</th><th>Requested</th></thead><tbody></tbody></table>
-		<div class="nosongs"></div>
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-music"></i> Songlist</h1>
+			<p>Below is a list of your channel's song queue. Be sure to check out all the <a href="https://github.com/Skedog/SkedogBot#all-default-commands" target="_blank">default commands</a> to understand what all you can do, like requesting a playlist from YouTube!</p>
+			<table class="datatable songs">
+				<thead>
+					<th>#</th>
+					<th class="datatable-half">Title</th>
+					<th>Video ID</th>
+					<th>Requested</th>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<div class="nosongs"></div>
+		</div>
 	</div>
-</div><!-- /.container -->
+</div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
 	async function startSonglist() {
-		let songlist = await loadSonglist(channelData,'');
+		showLoader($('.nosongs'));
+		let songlist = await loadFormattedSonglist(channelData,'');
 		if (songlist) {
+			hideLoader($('.nosongs'));
 			dataTableStartSize = '25';
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
 		} else {

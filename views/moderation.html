@@ -1,78 +1,101 @@
-<div class="container wrapper">
-	<div class="starter-template">
-		<h1><img src="/img/commands.png" alt="" /> Moderation Panel</h1>
-		<div class="moderation-messages"></div>
-		<div class="song-container">
-			<div class="control-buttons moderation clear">
-				<div class="volumeContainer clear clearfix">
-					<h3>Volume</h3>
-					<div class="slider clear">
-						<input type="range" id="volumeRange" value="" max="100" min="0" onchange="updateRangeVolume(this.value)" />
-						<input type="text" name="volumeInput" id="volumeInput" class="currentvolume" disabled />
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-unlock-alt"></i> Moderation Panel</h1>
+			<p>This page is designed so your mods can manage your music queue, without spamming chat with a bunch of messages!</p>
+			<div class="moderation-messages"></div>
+			<div class="control-buttons moderation">
+				<div class="volumeContainer clearfix">
+					<div class="slider">
+						<div class="linktoshare">
+							<span>Link To Share: </span>
+							<input type="text" readonly="readonly" value="" class="linktoshareinput darkinput" />
+						</div>
+						<input type="range" id="volumeRange" value="" max="100" min="0" step="5" onchange="updateRangeVolume(this.value)" />
+						<input type="text" name="volumeInput" id="volumeInput" class="currentvolume darkinput" disabled />
 					</div>
-					<div class="buttons clear">
-						<button type="button" class="blue-styled-button volBtn" id="down">Volume -10</button>
-						<button type="button" class="blue-styled-button volBtn" id="up">Volume +10</button>
-						<button type="button" class="blue-styled-button togglePlay">Pause</button>
-						<!-- <button type="button" class="blue-styled-button shuffleBtn" id="shuffle">Shuffle Songs</button> -->
+					<div class="buttons">
+						<button type="button" class="blue-styled-button volBtn" id="down">
+							<i class="fa fa-volume-down" title="Volume -10"></i>
+						</button>
+						<button type="button" class="blue-styled-button volBtn" id="up">
+							<i class="fa fa-volume-up" title="Volume +10"></i>
+						</button>
+						<button type="button" class="blue-styled-button togglePlay">
+							<i class="fa fa-pause" title="Pause"></i>
+						</button>
 					</div>
 				</div>
 			</div>
-			<div class="moderation-songlist songlist">
-				<table class="datatable moderation"><thead><th>#</th><th>Title</th><th>Requested</th><th></th><th></th></thead><tbody></tbody></table>
-				<div class="nosongs"></div>
+			<div class="song-container">
+					<table class="datatable moderation">
+						<thead>
+							<th class="moderation-number">#</th>
+							<th class="datatable-half">Title</th>
+							<th>Requested</th>
+							<th></th>
+						</thead>
+						<tbody></tbody>
+					</table>
+					<div class="nosongs"></div>
+			</div>
+			<div class="chatbox"></div>
+			<div class="details">
+				<div class="messagesFromBot clear"></div>
 			</div>
 		</div>
-		<div class="chatbox"></div>
-		<div class="details">
-			<div class="messagesFromBot clear"></div>
-		</div>
 	</div>
-</div><!-- /.container -->
+</div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
+	const loggedInChannel = userDetails[2];
+
 	async function initModeration() {
-		loadModerationPanels(channelName);
-		const songlist = await loadSonglist(channelData,'moderation');
+		showLoader($('.nosongs'));
+		const songlist = await loadFormattedSonglist(channelData,'moderation');
+		hideLoader($('.nosongs'));
+		const currentVolume = await getVolume(channelData);
+		const replacedChannel = channelName.replace('#','/');
+
+		if (getUrl.href.includes(replacedChannel)) {
+			$('.linktoshareinput').val(getUrl);
+		} else {
+			$('.linktoshareinput').val(getUrl + channelName.replace('#','/'));
+		};
+
 		if (songlist) {
-			dataTableStartSize = '5';
+			dataTableStartSize = '25';
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
 			$('.nosongs').hide();
 		} else {
 			$('.nosongs').html("Currently no songs in the queue!");
 		};
-		const currentVolume = await getVolume(channelData);
-		$('#volumeInput').val(currentVolume);
-		$('#volumeRange').val(currentVolume);
+
+		$('#volumeInput,#volumeRange').val(currentVolume);
+		$("#volumeRange").mousemove(function () {
+			$("#volumeInput").val($("#volumeRange").val());
+		});
+
+		loadTwitchChatIframe(channelName);
 		applyMusicStatus(channelData);
+		handlePlayPauseClick($('.togglePlay'));
+		handleVolumeClick($('.volBtn'));
 	};
-	const loggedInChannel = userDetails[2];
-	function loadModerationPanels(channelName) {
+
+	function loadTwitchChatIframe(channelName) {
 		if (channelName.includes('#')) {channelName = channelName.slice(1);};
 		const chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
 		$('.chatbox').html(chatPanel);
 	};
 
 	async function updateRangeVolume(newVol) {
-		$('#volumeInput').val(newVol);
 		await updateVolume(channelData,newVol);
-	}
-
-	$('.togglePlay').click(async function(e) {
-		e.preventDefault();
-		if ($(this).text() == 'Pause') {
-			await updateMusicStatus(channelData,'pause');
-			$(this).text('Play');
-		} else {
-			await updateMusicStatus(channelData,'play');
-			$(this).text('Pause');
-		};
-	});
+	};
 
 	$('body').on('click', '.removeButton', async function(e) {
 		const removeSongData = await removeSong($(this).attr('id'),channelName,loggedInChannel);
 		if (removeSongData != 'song removed') {
-			$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn("fast");
+			$('.messagesFromBot').html('<p>There was an error removing that song, please try again!</p>').fadeIn('fast');
 			setTimeout(function(){
 				$('.messagesFromBot').fadeOut("slow");
 			},2000);
@@ -82,26 +105,12 @@
 	$('body').on('click', '.promoteButton', async function(e) {
 		const promoteSongData = await promoteSong($(this).attr('id'),channelName,loggedInChannel);
 		if (promoteSongData != 'song promoted') {
-			$('.messagesFromBot').html('<p>There was an error promoting that song, please try again!</p>').fadeIn("fast");
+			$('.messagesFromBot').html('<p>There was an error promoting that song, please try again!</p>').fadeIn('fast');
 			setTimeout(function(){
 				$('.messagesFromBot').fadeOut("slow");
 			},2000);
 		};
 	});
 
-	$('.volBtn').click(async function(e) {
-		e.preventDefault();
-		let newVol = await volumeBtnClick($(this));
-		await updateVolume(channelData,newVol);
-		updateOnScreenVolume(newVol);
-	});
-
-	this['checkSonglistHeightChange'] = setInterval(function() {
-		if ($( window ).width() > 767) {
-			$('.chatbox,.song-container').height($( window ).height()-235);
-		} else {
-			$('.chatbox,.song-container').removeAttr('style');
-		}
-	}, 1000);
 	initModeration();
 </script>

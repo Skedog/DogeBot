@@ -6,12 +6,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		<title>SkedogBot</title>
 		<link href="/css/style.css" rel="stylesheet"/>
+		<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,700|Poppins:400,500,600,700" rel="stylesheet">
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 		<!--[if lt IE 9]>
 		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
 		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
 		<![endif]-->
 		<script src="/js/jquery.js"></script>
-		<script src="/js/bootstrap.min.js"></script>
+		<!--<script src="/js/bootstrap.js"></script>-->
 		<script src="/js/datatables.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/js/socket.js"></script>
@@ -20,27 +22,27 @@
 		<script src="/js/functions.js"></script>
 		<script src="/js/scripts.js"></script>
 		<script src="/js/pace.js"></script>
-		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 	</head>
 	<body>
 		<div class="navbar navbar-inverse navbar-top" role="navigation">
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
 					<span class="sr-only">Toggle navigation</span>
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="/">Skedog<span class="dark-blue-highlight">Bot</span></a>
-				</div>
-				<div class="collapse navbar-collapse">
-					<ul class="nav navbar-nav">
-					</ul>
-				</div>
-				<!--/.nav-collapse -->
+				</button>
+				<!-- <a href="#" class="navstatus blue-styled-button mini">Toggle Nav</a> -->
+				<a href="#" class="navstatus blue-styled-button mini"><i class="fa fa-bars"></i></a>
+				<a class="navbar-brand dont-hide" href="/">Skedog<span class="blue-highlight">Bot</span></a>
 			</div>
+			<div class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+				</ul>
+			</div>
+			<!--/.nav-collapse -->
 		</div>
+		<div class="left-bar-container"></div>
 		{{=it.body}}
 	</body>
 </html>

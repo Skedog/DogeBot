@@ -19,57 +19,62 @@ async function promoteSong(songToPromote,channelName,loggedInChannel) {
 
 async function getFirstSongInQueue(data) {
 	let dataToReturn;
-	await $.ajax({
-		url: '/getsonglist',
-		data: data,
-		type: 'POST',
-		success: function(data) {
-			if (data != '') {
-				dataToReturn = data[0]['songID'];
-			} else {
-				dataToReturn = undefined;
-			};
-		}
-	});
+	let songlist;
+	songlist = await loadSonglist(data);
+	if (songlist) {
+		dataToReturn = songlist[0];
+	} else {
+		dataToReturn = undefined;
+	}
 	return dataToReturn;
 }
 
-async function loadSonglist(data,page) {
+async function loadSonglist(data) {
 	let dataToReturn;
 	await $.ajax({
 		url: '/getsonglist',
 		data: data,
 		type: 'POST',
 		success: function(data) {
-			if (data != '') {
-				var contentData = '';
-				$.each(data, function(key, value) {
-					if (key == 0) {
-						$('.currentsong').html('<strong>Song Title:</strong> ' + data[0]['songTitle'] + '<br><strong>Requested:</strong> ' + data[0]['whoRequested']);
-					}
-					if (page == 'moderation') {
-						if (key == 0 || key == 1) {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td>&nbsp;</td><td><input type="button" value="X" id="' + (key + 1) + '" class="removeButton blue-styled-button mini" /></td></tr>';
-						} else {
-							contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td><td><input type="button" value="&uarr;" id="' + data[key]['songID'] + '" class="promoteButton blue-styled-button mini" /></td><td><input type="button" value="X" id="' + (key + 1) + '" class="removeButton blue-styled-button mini" /></td></tr>';
-						}
-					} else if (page == 'player') {
-						contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songTitle'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
-					} else {
-						contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + data[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + data[key]['songID'] + '" target="_blank">' + data[key]['songID'] + '</a></td><td>' + data[key]['whoRequested'] + '</td></tr>';
-					};
-				});
-				dataToReturn = contentData;
-			} else {
-				dataToReturn = false;
-			};
+			dataToReturn = data;
 		}
 	});
 	return dataToReturn;
 }
 
-async function loadSongCache(data) {
-	let dataToReturn = '';
+async function loadFormattedSonglist(data,page) {
+	let dataToReturn;
+	let songlist;
+	songlist = await loadSonglist(data);
+	if (songlist != '') {
+		var contentData = '';
+		$.each(songlist, function(key, value) {
+			if (key == 0) {
+				let currentSongTitle = songlist[0]['songTitle'];
+				let currentSongWhoRequested = songlist[0]['whoRequested'];
+				$('.currentsong').html('<strong>Song Title:</strong> ' + currentSongTitle + '<br><strong>Requested:</strong> ' + currentSongWhoRequested);
+			}
+			if (page == 'moderation') {
+				if (key == 0 || key == 1) {
+					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + songlist[key]['songID'] + '" target="_blank">' + songlist[key]['songTitle'] + '</a></td><td>' + songlist[key]['whoRequested'] + '</td><td><div class="moderationBtns"><input type="button" value="X" id="' + (key + 1) + '" class="removeButton blue-styled-button mini" /></div></td></tr>';
+				} else {
+					contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + songlist[key]['songID'] + '" target="_blank">' + songlist[key]['songTitle'] + '</a></td><td>' + songlist[key]['whoRequested'] + '</td><td><div class="moderationBtns"><input type="button" value="&uarr;" id="' + songlist[key]['songID'] + '" class="promoteButton blue-styled-button mini" /><input type="button" value="X" id="' + (key + 1) + '" class="removeButton blue-styled-button mini" /></div></td></tr>';
+				}
+			} else if (page == 'player') {
+				contentData = contentData + '<tr><td>' + (key + 1) + '</td><td><a href="https://youtu.be/' + songlist[key]['songID'] + '" target="_blank">' + songlist[key]['songTitle'] + '</a></td><td>' + songlist[key]['whoRequested'] + '</td></tr>';
+			} else {
+				contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + songlist[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + songlist[key]['songID'] + '" target="_blank">' + songlist[key]['songID'] + '</a></td><td>' + songlist[key]['whoRequested'] + '</td></tr>';
+			};
+		});
+		dataToReturn = contentData;
+	} else {
+		dataToReturn = false;
+	};
+	return dataToReturn;
+}
+
+async function loadFormattedSongCache(data) {
+	let dataToReturn;
 	await $.ajax({
 		url: '/getsongcache',
 		data: data,
@@ -160,12 +165,12 @@ async function applyMusicStatus(channelData) {
 		if (typeof player != 'undefined') {
 			player.pauseVideo();
 		};
-		$('.togglePlay').text('Play');
+		$('.togglePlay').html('<i class="fa fa-play" title="Play"></i>');
 	} else {
 		if (typeof player != 'undefined') {
 			player.playVideo();
 		};
-		$('.togglePlay').text('Pause');
+		$('.togglePlay').html('<i class="fa fa-pause" title="Pause"></i>');
 	};
 }
 
@@ -215,3 +220,38 @@ async function loadNextSong() {
 		}
 	};
 }
+
+function handlePlayPauseClick(item) {
+	item.click(async function(e) {
+		e.preventDefault();
+		if ($(this).html() == '<i class="fa fa-pause" title="Pause"></i>') {
+			await updateMusicStatus(channelData,'pause');
+			$(this).html('<i class="fa fa-play" title="Play"></i>');
+			player.pauseVideo();
+		} else {
+			await updateMusicStatus(channelData,'play');
+			$(this).html('<i class="fa fa-pause" title="Pause"></i>');
+			player.playVideo();
+		};
+	});
+}
+
+function handleVolumeClick(item) {
+	item.click(async function(e) {
+		e.preventDefault();
+		let newVol = await volumeBtnClick($(this));
+		await updateVolume(channelData,newVol);
+		if (player) {
+			player.setVolume(newVol);
+		}
+		updateOnScreenVolume(newVol);
+	});
+}
+
+function handleSkipClick(item) {
+	item.click(function(e) {
+		e.preventDefault();
+		loadNextSong();
+	});
+}
+

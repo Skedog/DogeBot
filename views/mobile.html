@@ -1,15 +1,26 @@
-<div class="container wrapper">
-	<div class="starter-template">
-		<h1><img src="/img/tablet.png" alt="" />Mobile Controller</h1>
-		<div class="mobile-buttons clearfix">
-			<button type="button" class="blue-styled-button togglePlay">Pause</button>
-			<button type="button" class="blue-styled-button skipBtn">Skip</button>
-			<button type="button" class="blue-styled-button volBtn" id="up">Volume +</button>
-			<button type="button" class="blue-styled-button volBtn" id="down">Volume -</button>
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-mobile"></i> Mobile Controller</h1>
+			<p>This page is specifically designed for you the streamer to control your music from a mobile device!</p>
+			<div class="mobile-buttons clearfix">
+				<button type="button" class="blue-styled-button volBtn" id="down">
+					<i class="fa fa-volume-down" title="Volume -10"></i>
+				</button>
+				<button type="button" class="blue-styled-button volBtn" id="up">
+					<i class="fa fa-volume-up" title="Volume +10"></i>
+				</button>
+				<button type="button" class="blue-styled-button togglePlay">
+					<i class="fa fa-pause" title="Pause"></i>
+				</button>
+				<button type="button" class="blue-styled-button skipBtn">
+					<i class="fa fa-fast-forward" title="Skip Song"></i>
+				</button>
+			</div>
+			<div class="currentsong"></div>
+			<div class="currentvolume"></div>
+			<div class="nosongs"></div>
 		</div>
-		<div class="currentsong"></div>
-		<div class="currentvolume"></div>
-		<div class="nosongs"></div>
 	</div>
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
@@ -17,39 +28,22 @@
 <script>
 
 async function initMobile() {
-	const songlist = await loadSonglist(channelData,'');
+	const songlist = await loadFormattedSonglist(channelData,'');
 	if (songlist) {
 		const currentVolume = await getVolume(channelData);
 		updateOnScreenVolume(currentVolume);
 	} else {
 		$('.nosongs').html("Currently no songs in the queue!");
 	};
+
 	applyMusicStatus(channelData);
+	handlePlayPauseClick($('.togglePlay'));
+	handleVolumeClick($('.volBtn'));
+	handleSkipClick($('.skipBtn'));
 };
+
 initMobile();
+
 $.ajaxSetup({ cache: false });
 
-$('.volBtn').click(async function(e) {
-	e.preventDefault();
-	let newVol = await volumeBtnClick($(this));
-	await updateVolume(channelData,newVol);
-	updateOnScreenVolume(newVol);
-});
-
-$('.togglePlay').click(async function(e) {
-	e.preventDefault();
-	if ($(this).text() == 'Pause') {
-		await updateMusicStatus(channelData,'pause');
-		$(this).text('Play');
-	} else {
-		await updateMusicStatus(channelData,'play');
-		$(this).text('Pause');
-	};
-});
-
-$('.skipBtn').click(function(e) {
-	e.preventDefault();
-	loadNextSong();
-	loadSonglist(channelData,'');
-});
 </script>

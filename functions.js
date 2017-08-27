@@ -12,11 +12,11 @@ function getRandomItemFromArray(arrayOfMessages) {
 
 function stripHash(passedStr) {
 	return passedStr.replace(/#/g, '');
-};
+}
 
 function shuffleArray(array) {
 	let currentIndex = array.length;
-	while (currentIndex !== 0) {
+	while (currentIndex != 0) {
 		const randomIndex = Math.floor(Math.random() * currentIndex);
 		currentIndex -= 1;
 		const temporaryValue = array[currentIndex];
@@ -28,7 +28,7 @@ function shuffleArray(array) {
 
 function parseQuery(qstr) {
 	const query = {};
-	const a = (qstr[0] === '?' ? qstr.substr(1) : qstr).split('&');
+	const a = (qstr[0] == '?' ? qstr.substr(1) : qstr).split('&');
 	for (let i = 0; i < a.length; i++) {
 		const b = a[i].split('=');
 		query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
@@ -39,12 +39,12 @@ function parseQuery(qstr) {
 function generateListOfRandomNumbers(numberOfItemsInList, maxNumberToGenerateFrom) {
 	let listOfNumbers;
 	for (let i = 0; i < numberOfItemsInList; i++) {
-		if (listOfNumbers === undefined) {
+		if (listOfNumbers == undefined) {
 			listOfNumbers = getRandomInt(1, maxNumberToGenerateFrom) + ',';
 		} else {
 			for (let x = 0; x < numberOfItemsInList - 1; x++) {
 				const randomNumber = getRandomInt(1, maxNumberToGenerateFrom);
-				if (listOfNumbers.indexOf(randomNumber + ',') === -1) {
+				if (listOfNumbers.indexOf(randomNumber + ',') == -1) {
 					listOfNumbers = listOfNumbers + randomNumber + ',';
 					break;
 				}

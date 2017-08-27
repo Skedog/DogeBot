@@ -18,27 +18,23 @@
 <script src="/js/scripts.js"></script>
 <script>
 $(document).ready(function() {
+
 	$.ajaxSetup({ cache: false });
+
+	async function getNewSongInfo() {
+		const firstSongInQueue = await getFirstSongInQueue(channelData);
+		if (firstSongInQueue) {
+			if ('{{=it.showText}}' == 'true') {
+				$('.commandssection').html('Current Song: ' + firstSongInQueue['songTitle']);
+			} else {
+				$('.commandssection').html(firstSongInQueue['songTitle']);
+			}
+		} else {
+			$('.commandssection').html('No song requested');
+		}
+	};
+
 	getNewSongInfo();
 });
-
-async function getNewSongInfo() {
-	$.ajax({
-		url: '/getsonglist',
-		data: channelData,
-		type: 'POST',
-		success: function(data) {
-			if (data) {
-				if ('{{=it.showText}}' == 'true') {
-					$('.commandssection').html('Current Song: ' + data[0]['songTitle']);
-				} else {
-					$('.commandssection').html(data[0]['songTitle']);
-				}
-			} else {
-				$('.commandssection').html('No song requested');
-			}
-		}
-	});
-};
 </script>
 </html>

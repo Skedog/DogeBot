@@ -1,6 +1,6 @@
 {
   "name": "SkedogBot",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "SkedogBot is a Twitch/Discord chat bot developed by Skedog!",
   "main": "app.js",
   "dependencies": {
@@ -26,5 +26,10 @@
     "test": "mocha"
   },
   "author": "Skedog <skedog@skedog.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "xo": {
+    "rules": {
+      "linebreak-style": 0
+    }
+  }
 }
