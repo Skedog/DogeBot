@@ -561,8 +561,8 @@ class songs {
 	}
 
 	async addSongWrapper(props) {
-		props.YTData = await this.getYouTubeSongData(props);
 		try {
+			props.YTData = await this.getYouTubeSongData(props);
 			await this.checkIfUserCanAddSong(props);
 			await this.checkIfSongExists(props);
 			await this.checkCacheTimeCheck(props);
@@ -676,7 +676,7 @@ class songs {
 	async requestCommaListOfSongs(props) {
 		props.ignoreMessageParamsForUserString = true;
 		props.songStatusArray = [];
-		for (let x=0; x < props.songsToAdd.length-1;x++) {
+		for (let x = 0; x <= props.songsToAdd.length - 1;x++) {
 			try {
 				const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songsToAdd[x]);
 				props.songToAdd = youTubeID;
@@ -770,8 +770,14 @@ class songs {
 						allowedRegions = [];
 					}
 					return [{"songID": props.songToAdd,"songTitle": videoTitle,"songLength": videoLength,"isEmbeddable": isEmbeddable,"allowedRegions": allowedRegions}];
+				} else {
+					throw 'failed getYouTubeSongData';
 				}
+			} else {
+				throw 'failed getYouTubeSongData';
 			}
+		} else {
+			throw 'failed getYouTubeSongData';
 		}
 	}
 

@@ -23,7 +23,7 @@ class Permissions {
 				return this.commandPermissionLevel(propsForAlias);
 			}
 			const modifier = props.messageParams[1];
-			if (sentCommand == '!commands' && modifier != 'edit' && modifier != 'delete' && modifier != 'remove' && modifier != 'permissions' && modifier != 'permission' && modifier != 'perms') {
+			if (sentCommand == '!commands' && modifier != 'add' && modifier != 'edit' && modifier != 'delete' && modifier != 'remove' && modifier != 'permissions' && modifier != 'permission' && modifier != 'perms') {
 				return 0;
 			}
 			if (sentCommand == '!volume' && !functions.isNumber(modifier)) {

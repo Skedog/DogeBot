@@ -6,6 +6,7 @@
   "dependencies": {
     "async-request": "^1.2.0",
     "body-parser": "^1.16.1",
+    "chai": "^4.1.1",
     "chance": "^1.0.6",
     "cookie-parser": "^1.4.3",
     "discord.js": "^11.1.0",

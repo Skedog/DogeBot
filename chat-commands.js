@@ -20,15 +20,6 @@ class Chat {
 		};
 		let results = await database.select(propsForSelect);
 		if (results) {
-			if (results[0].isAlias) {
-				commandCalled = results[0].aliasFor;
-				const propsForcallCommand = {
-					userstate: props.userstate,
-					channel: props.channel,
-					messageParams: props.messageParams
-				};
-				return this.callCommand(propsForcallCommand);
-			}
 			props.resultsToPass = results;
 			return this.callUserAddedCommand(props);
 		}
@@ -39,15 +30,6 @@ class Chat {
 		};
 		results = await database.select(propsForSelect);
 		if (results) {
-			if (results[0].isAlias) {
-				commandCalled = results[0].aliasFor;
-				const propsForcallCommand = {
-					userstate: props.userstate,
-					channel: props.channel,
-					messageParams: props.messageParams
-				};
-				return this.callCommand(propsForcallCommand);
-			}
 			props.resultsToPass = results;
 			return this.callDefaultCommand(props);
 		}
