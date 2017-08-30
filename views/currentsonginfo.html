@@ -8,7 +8,6 @@
 <div class="commandssection"></div>
 </body>
 <script src="/js/jquery.js"></script>
-<script src="/js/bootstrap.min.js"></script>
 <script src="/js/datatables.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/socket.js"></script>
@@ -17,24 +16,22 @@
 <script src="/js/functions.js"></script>
 <script src="/js/scripts.js"></script>
 <script>
-$(document).ready(function() {
 
-	$.ajaxSetup({ cache: false });
+$.ajaxSetup({ cache: false });
 
-	async function getNewSongInfo() {
-		const firstSongInQueue = await getFirstSongInQueue(channelData);
-		if (firstSongInQueue) {
-			if ('{{=it.showText}}' == 'true') {
-				$('.commandssection').html('Current Song: ' + firstSongInQueue['songTitle']);
-			} else {
-				$('.commandssection').html(firstSongInQueue['songTitle']);
-			}
+async function getNewSongInfo() {
+	const firstSongInQueue = await getFirstSongInQueue(channelData);
+	if (firstSongInQueue) {
+		if ('{{=it.showText}}' == 'true') {
+			$('.commandssection').html('Current Song: ' + firstSongInQueue['songTitle']);
 		} else {
-			$('.commandssection').html('No song requested');
+			$('.commandssection').html(firstSongInQueue['songTitle']);
 		}
-	};
+	} else {
+		$('.commandssection').html('No song requested');
+	}
+};
 
-	getNewSongInfo();
-});
+getNewSongInfo();
 </script>
 </html>
