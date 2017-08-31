@@ -23,14 +23,14 @@ class Permissions {
 				return this.commandPermissionLevel(propsForAlias);
 			}
 			const modifier = props.messageParams[1];
-			if (sentCommand == '!commands' && modifier != 'add' && modifier != 'edit' && modifier != 'delete' && modifier != 'remove' && modifier != 'permissions' && modifier != 'permission' && modifier != 'perms') {
+			if (sentCommand === '!commands' && modifier !== 'add' && modifier !== 'edit' && modifier !== 'delete' && modifier !== 'remove' && modifier !== 'permissions' && modifier !== 'permission' && modifier !== 'perms') {
 				return 0;
 			}
-			if (sentCommand == '!volume' && !functions.isNumber(modifier)) {
+			if (sentCommand === '!volume' && !functions.isNumber(modifier)) {
 				return 0;
 			}
 			for (const channelPermission of results[0].permissionsPerChannel) {
-				if (channelPermission.channel == props.channel) {
+				if (channelPermission.channel === props.channel) {
 					return channelPermission.permissionLevel;
 				}
 			}
@@ -66,22 +66,22 @@ class Permissions {
 			case '0':
 				return true;
 			case '1':
-				if (isRegular || (props.userstate.mod || props.userstate.subscriber || '#' + props.userstate.username == props.channel)) {
+				if (isRegular || (props.userstate.mod || props.userstate.subscriber || '#' + props.userstate.username === props.channel)) {
 					return true;
 				}
 				break;
 			case '2':
-				if (props.userstate.mod || props.userstate.subscriber || '#' + props.userstate.username == props.channel) {
+				if (props.userstate.mod || props.userstate.subscriber || '#' + props.userstate.username === props.channel) {
 					return true;
 				}
 				break;
 			case '3':
-				if (props.userstate.mod || '#' + props.userstate.username == props.channel) {
+				if (props.userstate.mod || '#' + props.userstate.username === props.channel) {
 					return true;
 				}
 				break;
 			case '4':
-				if ('#' + props.userstate.username == props.channel) {
+				if ('#' + props.userstate.username === props.channel) {
 					return true;
 				}
 				break;
@@ -93,7 +93,7 @@ class Permissions {
 
 	async getUserPermissionLevel(props) {
 		try {
-			if ('#' + props.userstate.username == props.channel) {
+			if ('#' + props.userstate.username === props.channel) {
 				return 4;
 			} else if (props.userstate.mod) {
 				return 3;

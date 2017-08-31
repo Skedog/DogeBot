@@ -4,9 +4,9 @@ const functions = require('./functions.js');
 class Regulars {
 
 	async call(props) {
-		if (props.messageParams[1] == 'add') {
+		if (props.messageParams[1] === 'add') {
 			return this.add(props);
-		} else if (props.messageParams[1] == 'remove' || props.messageParams[1] == 'delete') {
+		} else if (props.messageParams[1] === 'remove' || props.messageParams[1] === 'delete') {
 			return this.remove(props);
 		}
 	}

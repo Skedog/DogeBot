@@ -136,7 +136,7 @@ async function setupRoutes() {
 		let details;
 		if (req.cookies.userDetails) {
 			const userDetails = req.cookies.userDetails.split(',');
-			if (userDetails[1] == 'null') {
+			if (userDetails[1] === 'null') {
 				details = {
 					layout: false,
 					channelLogo: '/img/default-user-logo.png',
@@ -209,7 +209,7 @@ async function setupRoutes() {
 		if (results) {
 			const fakeUserstate = [];
 			fakeUserstate['display-name'] = 'skippedfromweb';
-			if (req.body.musicStatus == 'play') {
+			if (req.body.musicStatus === 'play') {
 				const propsForPlay = {
 					channel: req.body.channel,
 					userstate: fakeUserstate,
@@ -217,7 +217,7 @@ async function setupRoutes() {
 				};
 				await songs.play(propsForPlay);
 				res.send('');
-			} else if (req.body.musicStatus == 'pause') {
+			} else if (req.body.musicStatus === 'pause') {
 				const propsForPause = {
 					channel: req.body.channel,
 					userstate: fakeUserstate,

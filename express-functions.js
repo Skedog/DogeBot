@@ -3,7 +3,7 @@ const constants = require('./constants.js');
 const twitch = require('./twitch.js');
 
 function wwwRedirect(req, res, next) {
-	if (req.headers.host.slice(0, 4) == 'www.') {
+	if (req.headers.host.slice(0, 4) === 'www.') {
 		const newHost = req.headers.host.slice(4);
 		return res.redirect(301, req.protocol + '://' + newHost + req.originalUrl);
 	}
@@ -134,7 +134,7 @@ async function handleLogin(props) {
 	const userToUpdate = '#' + props.ChannelName;
 	let propsForUpdate;
 	let dataToUse;
-	if (results[0].ChannelName.toLowerCase() != userToUpdate.toLowerCase()) {
+	if (results[0].ChannelName.toLowerCase() !== userToUpdate.toLowerCase()) {
 		// This should only fire if a user has changed their username on Twitch
 		// We need to update all the tables that contain the username
 		dataToUse = {};
@@ -208,9 +208,9 @@ async function checkModStatus(req) {
 	if (req.cookies.userDetails) {
 		const userDetails = req.cookies.userDetails.split(',');
 		let channelToCheckMods;
-		if (req.params.channel != undefined) {
+		if (req.params.channel !== undefined) {
 			channelToCheckMods = req.params.channel; // From URL, never has #
-		} else if (req.body.channel != undefined) {
+		} else if (req.body.channel !== undefined) {
 			if (req.body.channel.includes('#')) {
 				channelToCheckMods = req.body.channel.substring(1); // Has #, needs to be removed
 			} else {
@@ -235,7 +235,7 @@ async function checkModStatus(req) {
 				// User is a mod
 				return true;
 			}
-			if (channelToCheckMods == loggedInChannel) {
+			if (channelToCheckMods === loggedInChannel) {
 				// User is the channel owner
 				return true;
 			}

@@ -13,7 +13,7 @@ class Chat {
 
 	async callCommand(props) {
 		// Select from user added commands
-		let commandCalled = props.messageParams[0].toLowerCase();
+		const commandCalled = props.messageParams[0].toLowerCase();
 		let propsForSelect = {
 			table: 'commands',
 			query: {channel: props.channel, trigger: commandCalled}

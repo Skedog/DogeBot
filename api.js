@@ -27,7 +27,7 @@ class API {
 		} else {
 			userToCheck = props.userstate['display-name'];
 		}
-		if (props.channel.slice(1) == userToCheck) {
+		if (props.channel.slice(1) === userToCheck) {
 			return 'You can\'t follow your own channel!';
 		}
 		const url = 'https://beta.decapi.me/twitch/followage/' + props.channel.slice(1) + '/' + userToCheck.replace('@', '');
@@ -57,7 +57,7 @@ class API {
 		const URLtoUse = 'http://tmi.twitch.tv/group/user/' + props.channel.slice(1) + '/chatters';
 		const twitchAPIRequest = await request(URLtoUse);
 		const currentViewerCount = JSON.parse(twitchAPIRequest.body).chatter_count;
-		if (currentViewerCount) {
+		if (currentViewerCount >= 0) {
 			return functions.buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
 		}
 	}

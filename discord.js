@@ -26,65 +26,80 @@ function monitorDiscordChat() {
 async function handleChatMessage(message) {
 	const messageChannel = message.channel;
 	const messageContent = message.content;
-	if (message.author.username != 'SkedogBot' && messageContent.startsWith('!')) {
+	if (message.author.username !== 'SkedogBot' && messageContent.startsWith('!')) {
 		const messageSplit = messageContent.split(' ');
 		const sentCommand = messageSplit[0];
-		if (sentCommand == '!setstatus' && message.author.username == 'Skedog') {
+		if (sentCommand === '!setstatus' && message.author.username === 'Skedog') {
 			const statusToSet = messageSplit.slice(1, messageSplit.length).join(' ').replace('\'', '&apos;');
 			discordClient.users.find('username', 'SkedogBot').setGame(statusToSet, null);
 			message.delete().then(msg => console.log(`Deleted message from ${msg.author}`)).catch(console.error);
 		} else {
-			handleDiscordCommand(message, messageChannel, messageSplit, sentCommand);
+			const props = {
+				message,
+				messageChannel,
+				messageSplit,
+				sentCommand
+			};
+			handleDiscordCommand(props);
 		}
 	}
 }
 
-async function handleDiscordCommand(message, messageChannel, messageSplit, sentCommand) {
+async function handleDiscordCommand(props) {
 	const arrayOfCommands = ['!ayylmao', '!dansgame', '!derpdoge', '!doge', '!letoucan', '!patrick', '!skedoge', '!skegasm', '!skeleton', '!dansgame', '!shrug'];
-	if (!arrayOfCommands.includes(sentCommand)) {
-		if (sentCommand == '!about') {
-			message.reply('Really? Come on, learn to Google you lazy fuck. Here: http://lmgtfy.com/?q=skedogbot');
-		} else if (sentCommand == '!commands') {
-			message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://skedogbot.com/commands/ygtskedog');
+	if (!arrayOfCommands.includes(props.sentCommand)) {
+		if (props.sentCommand === '!about') {
+			props.message.reply('Really? Come on, learn to Google you lazy fuck. Here: http://lmgtfy.com/?q=skedogbot');
+		} else if (props.sentCommand === '!commands') {
+			props.message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://skedogbot.com/commands/ygtskedog');
 		} else {
-			const propsForSelect = {
-				table: 'commands',
-				query: {channel: '#ygtskedog', trigger: sentCommand}
-			};
-			const results = await database.select(propsForSelect);
-			if (results) {
-				if (results[0].permissionsLevel == 0) {
-					if (results[0].chatmessage.includes('$(list)')) {
-						const testUserstate = [];
-						testUserstate['display-name'] = message.author;
-						const propsForListCommands = {
-							channel: '#ygtskedog',
-							messageParams: [sentCommand,messageSplit[1]],
-							results: results,
-							userstate: testUserstate
-						};
-						try {
-							const returnedMessage = await lists.getListCommandItem(propsForListCommands);
-							if (messageSplit[1] != undefined && !functions.isNumber(messageSplit[1])) {
-								const finalMessage = returnedMessage.split(' -> #');
-								messageChannel.send(messageSplit[1] + ' -> #' + finalMessage[1]);
-							} else {
-								const finalMessage = returnedMessage.split(' -> #');
-								messageChannel.send(message.author + ' -> #' + finalMessage[1]);
-							}
-						} catch (err) {
-							console.log(err);
-						}
-					} else {
-						let messageToSend = results[0].chatmessage;
-						messageToSend = messageSplit[1] ?
-							messageToSend.replace('$(touser)', messageSplit[1]).replace('$(user)', messageSplit[1]) :
-							messageToSend.replace('$(touser)', message.author).replace('$(user)', message.author);
-						messageChannel.send(messageToSend);
-					}
-				}
+			callCommandFromDiscord(props);
+		}
+	}
+}
+
+async function callCommandFromDiscord(props) {
+	const propsForSelect = {
+		table: 'commands',
+		query: {channel: '#ygtskedog', trigger: props.sentCommand}
+	};
+	const results = await database.select(propsForSelect);
+	if (results) {
+		props.results = results;
+		if (results[0].permissionsLevel === 0) {
+			if (results[0].chatmessage.includes('$(list)')) {
+				handleListCommand(props);
+			} else {
+				let messageToSend = results[0].chatmessage;
+				messageToSend = props.messageSplit[1] ?
+					messageToSend.replace('$(touser)', props.messageSplit[1]).replace('$(user)', props.messageSplit[1]) :
+					messageToSend.replace('$(touser)', props.message.author).replace('$(user)', props.message.author);
+				props.messageChannel.send(messageToSend);
 			}
 		}
+	}
+}
+
+async function handleListCommand(props) {
+	const testUserstate = [];
+	testUserstate['display-name'] = props.message.author;
+	const propsForListCommands = {
+		channel: '#ygtskedog',
+		messageParams: [props.sentCommand, props.messageSplit[1]],
+		results: props.results,
+		userstate: testUserstate
+	};
+	try {
+		const returnedMessage = await lists.getListCommandItem(propsForListCommands);
+		if (props.messageSplit[1] !== undefined && !functions.isNumber(props.messageSplit[1])) {
+			const finalMessage = returnedMessage.split(' -> #');
+			props.messageChannel.send(props.messageSplit[1] + ' -> #' + finalMessage[1]);
+		} else {
+			const finalMessage = returnedMessage.split(' -> #');
+			props.messageChannel.send(props.message.author + ' -> #' + finalMessage[1]);
+		}
+	} catch (err) {
+		console.log(err);
 	}
 }
 

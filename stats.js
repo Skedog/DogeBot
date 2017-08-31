@@ -30,7 +30,7 @@ class Stats {
 
 	async addTrackedUser(props) {
 		let username;
-		if (props.userstate == undefined) {
+		if (props.userstate === undefined) {
 			username = props.username;
 		} else {
 			username = props.userstate.username;

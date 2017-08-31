@@ -22,7 +22,7 @@ userstate.subscriber = false;
 
 // - - - - - - GENERAL FUNCTIONS - - - - - - - -//
 
-it('should start the app', async function() {
+it('test start the app', async function() {
 	dbConstants = await database.connect();
  	twitchClient = await twitch.connectToTwitch();
  	await socket.start(express.server);
@@ -34,13 +34,13 @@ it('should start the app', async function() {
 	};
 });
 
-it('should test getRandomItemFromArray()', async function() {
+it('test getRandomItemFromArray()', async function() {
 	const arrayToSearch = ["test3","test2","test4","test5","test6","test1"];
 	const randomItem = functions.getRandomItemFromArray(arrayToSearch);
 	assert(arrayToSearch.includes(randomItem[1]));
 });
 
-it('should test parseQuery()', function() {
+it('test parseQuery()', function() {
 	const queryToParse = "v=-PMd1PaI3M0&list=PLS84tqhbWDgNj3NnBMEN3DxM0n_cEiJCM";
 	const songID = '-PMd1PaI3M0';
 	assert(functions.parseQuery(queryToParse)["v"] == songID);
@@ -49,14 +49,14 @@ it('should test parseQuery()', function() {
 
 // - - - - - - DATABASE FUNCTIONS - - - - - - - -//
 
-it('should test database.getDbConstants()', function() {
+it('test database.getDbConstants()', function() {
 	assert(Object.keys(dbConstants).length == 5);
 });
 
 
 // - - - - - - COMMAND FUNCTIONS - - - - - - - -//
 
-it('should test !commands', async function() {
+it('test !commands', async function() {
 	props.messageParams = ['!commands'];
 	props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 	await permissions.canUserCallCommand(props);
@@ -64,7 +64,7 @@ it('should test !commands', async function() {
 	expect(res).to.equal('@skedogbot -> The commands for this channel are available here: http://localhost:3000/commands/ygtskedogtest');
 });
 
-it('should test !commands add, edit, permissions and delete', async function() {
+it('test !commands add, edit, permissions and delete', async function() {
 	let res;
 
 	props.messageParams = ['!commands', 'add', '!testcommand', 'this', 'is', 'a', 'test'];
@@ -84,7 +84,7 @@ it('should test !commands add, edit, permissions and delete', async function() {
 	expect(res).to.equal('@skedogbot -> The command !testcommand has been deleted!');
 });
 
-it('should test !regulars add and remove', async function() {
+it('test !regulars add and remove', async function() {
 	props.messageParams = ['!regulars', 'add', 'skedogbot'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> skedogbot has been added as a regular!');
@@ -94,147 +94,147 @@ it('should test !regulars add and remove', async function() {
 	expect(res).to.equal('@skedogbot -> skedogbot has been removed as a regular!');
 });
 
-it('should test !uptime', async function() {
+it('test !uptime', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!uptime'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> ygtskedogtest is offline!');
 });
 
-it('should test !followage', async function() {
+it('test !followage', async function() {
 	props.messageParams = ['!followage'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> skedogbot is not following! BibleThump');
 });
 
-it('should test !game', async function() {
+it('test !game', async function() {
 	props.messageParams = ['!game'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The current game is Battlefield 4!');
 });
 
-it('should test !viewers', async function() {
+it('test !viewers', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!viewers'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('currently has');
 });
 
-it('should test !winner', async function() {
+it('test !winner', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!winner'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The winner is');
 });
 
-it('should test !bf4stats', async function() {
+it('test !bf4stats', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!bf4stats', 'TwitchYgTSkedog'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('TwitchYgTSkedog has played');
 });
 
-it('should test !8ball', async function() {
+it('test !8ball', async function() {
 	props.messageParams = ['!8ball'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string(' ');
 });
 
-it('should test !lastseen', async function() {
+it('test !lastseen', async function() {
 	props.messageParams = ['!lastseen', 'skedogbot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('was last seen');
 });
 
-it('should test !firstseen', async function() {
+it('test !firstseen', async function() {
 	props.messageParams = ['!firstseen', 'skedogbot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('was first seen');
 });
 
-it('should test !songlist', async function() {
+it('test !songlist', async function() {
 	props.messageParams = ['!songlist'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The song list is available');
 });
 
-it('should test !songcache', async function() {
+it('test !songcache', async function() {
 	props.messageParams = ['!songcache'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The song cache is available');
 });
 
-it('should test !currentsong', async function() {
+it('test !currentsong', async function() {
 	props.messageParams = ['!currentsong'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('requested');
 });
 
-it('should test !volume', async function() {
+it('test !volume', async function() {
 	props.messageParams = ['!volume'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The current volume is');
 });
 
-it('should test !volume 50', async function() {
+it('test !volume 50', async function() {
 	props.messageParams = ['!volume', '50'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The volume has been updated');
 });
 
-it('should test !play', async function() {
+it('test !play', async function() {
 	props.messageParams = ['!play'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Music is now playing!');
 });
 
-it('should test !pause', async function() {
+it('test !pause', async function() {
 	props.messageParams = ['!pause'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Music has been paused!');
 });
 
-it('should test !removesongs skedogbot', async function() {
+it('test !removesongs skedogbot', async function() {
 	props.messageParams = ['!removesongs', 'skedogbot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Songs removed!');
 });
 
-it('should test maintenance.clearSongCache', function() {
+it('test maintenance.clearSongCache', function() {
 	const propsForClearSongCache = {
 		channel: '#ygtskedogtest'
 	};
 	return maintenance.clearSongCache(propsForClearSongCache);
 });
 
-it('should test !sr skedog speedpaint', async function() {
+it('test !sr skedog speedpaint', async function() {
 	props.messageParams = ['!sr', 'skedog', 'speedpaint'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The song SkeDog Fanart Speedpaint has been added to the queue');
 });
 
-it('should test !sr multi', async function() {
+it('test !sr multi', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!sr', '8i-tonOhzSg,z--CnoHrkds,QeBaxc4Cglo'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('3 songs added!');
 });
 
-it('should test !sr multi fails', async function() {
+it('test !sr multi fails', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!sr', '8i-tonOhzSg,3pKGYqCK5yg,Jwux_c8cIQ8,z--CnoHrkds,KX8U8guRLSk,KX8U8guRlSk,kqUpnHEdjn0'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@skedogbot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in: US, 1 song was not allowed to be embedded, and 1 ID was invalid!');
 });
 
-it('should test !sr multi all get added', async function() {
+it('test !sr multi all get added', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!sr', 'https://www.youtube.com/watch?v=EMfNB3fakB8&feature=youtu.be,https://www.youtube.com/watch?v=zO3J12uQIXI,https://www.youtube.com/watch?v=V5-AQTPFJSg,https://www.youtube.com/watch?v=OmnDEUD9NyI&feature=youtu.be,https://www.youtube.com/watch?v=3OC2aPCuzjo&feature=youtu.be'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@skedogbot -> 5 songs added!');
 });
 
-it('should test !pr over 50 songs', async function() {
+it('test !pr over 50 songs', async function() {
 	this.timeout(50000);
 
 	// Remove all songs
@@ -254,7 +254,7 @@ it('should test !pr over 50 songs', async function() {
 	expect(res).to.have.string('@skedogbot -> 10 songs added!');
 });
 
-it('should test !pr under 50 songs', async function() {
+it('test !pr under 50 songs', async function() {
 	this.timeout(50000);
 
 	// Remove all songs
@@ -274,7 +274,7 @@ it('should test !pr under 50 songs', async function() {
 	expect(res).to.have.string('@skedogbot -> 10 songs added!');
 });
 
-it('should test !shuffle', async function() {
+it('test !shuffle', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!shuffle'];
 	res = await chat.callCommand(props);
@@ -283,7 +283,7 @@ it('should test !shuffle', async function() {
 
 // - - - - - - PERMISSIONS FUNCTIONS - - - - - - - -//
 
-it('should test permissions', async function() {
+it('test permissions', async function() {
 	props.messageParams = ['!commands', 'add'];
 	props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 	expect(props.permissionLevelNeeded).to.equal(3);

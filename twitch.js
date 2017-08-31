@@ -24,7 +24,7 @@ async function getListOfJoinedChannels() {
 	const channels = await database.select(props);
 	const channelArray = [];
 	for (const channel of channels) {
-		if (channel.ChannelName != '#ygtskedogtest') {
+		if (channel.ChannelName !== '#ygtskedogtest') {
 			startTimedMessages(channel.ChannelName.substr(1));
 			channelArray.push(channel.ChannelName);
 		}
@@ -78,7 +78,7 @@ async function joinSingleChannel(channelToJoin) {
 			dataToUse
 		};
 		const res = await database.update(propsForUpdate);
-		if (res == 'updated') {
+		if (res === 'updated') {
 			log.info('Joined channel: ' + channelToJoin);
 			getCurrentChatUsers(channelToJoin.substring(1));
 		}
@@ -114,7 +114,7 @@ function monitorChat() {
 
 function monitorWhispers() {
 	twitchClient.on('whisper', (from, userstate, message) => {
-		if (from.toLowerCase() == '#ygtskedogtest' && message.startsWith('!')) {
+		if (from.toLowerCase() === '#ygtskedogtest' && message.startsWith('!')) {
 			log.info('got a whisper from ' + from + ' that says: ' + message + '.');
 			const props = {
 				from,
@@ -275,7 +275,7 @@ async function checkIfChannelIsLive(channel) {
 		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchClientID;
 	}
 	const twitchAPIRequest = await request(URLtoUse);
-	if (JSON.parse(twitchAPIRequest.body).stream == null) {
+	if (JSON.parse(twitchAPIRequest.body).stream === null) {
 		return false;
 	}
 	return true;

@@ -39,7 +39,7 @@ class Maintenance {
 			for (let i = results.length - 1; i >= 0; i--) {
 				const arrayOfPermissions = results[i].permissionsPerChannel;
 				for (let x = 0; x < arrayOfPermissions.length; x++) {
-					if (results[i].permissionsPerChannel[x].channel == props.channel) {
+					if (results[i].permissionsPerChannel[x].channel === props.channel) {
 						arrayOfPermissions.splice(x, 1);
 					}
 				}
@@ -85,7 +85,7 @@ class Maintenance {
 					query: {ChannelName: '#' + body.name},
 					dataToUse
 				};
-				if (body.name != undefined) {
+				if (body.name !== undefined) {
 					database.update(propsForUpdate);
 				}
 			});
