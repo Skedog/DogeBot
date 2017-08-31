@@ -266,7 +266,7 @@ class Songs {
 
 	async promote(props) {
 		props.ignoreMessageParamsForUserString = true;
-		const indexToMove = props.messageParams[1];
+		let indexToMove = props.messageParams[1];
 		let propsForSelect;
 		let results;
 		let propsForUpdate;
@@ -277,6 +277,10 @@ class Songs {
 		};
 		results = await database.select(propsForSelect);
 		for (let i = 0; i < results.length; i++) {
+			if (!functions.isNumber(indexToMove)) {
+				return;
+			}
+			indexToMove = parseInt(indexToMove, 10);
 			if (indexToMove === i + 1 || indexToMove === results[i].songID) {
 				const songToPromote = results[i]._id;
 				propsForSelect = {

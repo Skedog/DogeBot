@@ -22,7 +22,7 @@ userstate.subscriber = false;
 
 // - - - - - - GENERAL FUNCTIONS - - - - - - - -//
 
-it('test start the app', async function() {
+it.only('test start the app', async function() {
 	dbConstants = await database.connect();
  	twitchClient = await twitch.connectToTwitch();
  	await socket.start(express.server);
@@ -194,13 +194,13 @@ it('test !pause', async function() {
 	expect(res).to.have.string('Music has been paused!');
 });
 
-it('test !removesongs skedogbot', async function() {
+it.only('test !removesongs skedogbot', async function() {
 	props.messageParams = ['!removesongs', 'skedogbot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Songs removed!');
 });
 
-it('test maintenance.clearSongCache', function() {
+it.only('test maintenance.clearSongCache', function() {
 	const propsForClearSongCache = {
 		channel: '#ygtskedogtest'
 	};
@@ -227,7 +227,7 @@ it('test !sr multi fails', async function() {
 	expect(res).to.have.string('@skedogbot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in: US, 1 song was not allowed to be embedded, and 1 ID was invalid!');
 });
 
-it('test !sr multi all get added', async function() {
+it.only('test !sr multi all get added', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!sr', 'https://www.youtube.com/watch?v=EMfNB3fakB8&feature=youtu.be,https://www.youtube.com/watch?v=zO3J12uQIXI,https://www.youtube.com/watch?v=V5-AQTPFJSg,https://www.youtube.com/watch?v=OmnDEUD9NyI&feature=youtu.be,https://www.youtube.com/watch?v=3OC2aPCuzjo&feature=youtu.be'];
 	res = await chat.callCommand(props);
@@ -279,6 +279,13 @@ it('test !shuffle', async function() {
 	props.messageParams = ['!shuffle'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@skedogbot -> Songs shuffled!');
+});
+
+it.only('test !promote', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!promote','3'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('@skedogbot -> Song #3 has been promoted!');
 });
 
 // - - - - - - PERMISSIONS FUNCTIONS - - - - - - - -//
