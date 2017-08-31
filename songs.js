@@ -185,7 +185,7 @@ class Songs {
 			let songCount = 0;
 			for (const song of results) {
 				songCount += 1;
-				if (props.messageParams[1] === songCount) {
+				if (parseInt(props.messageParams[1], 10) === songCount) {
 					const songToRemove = song._id;
 					const songTitle = song.songTitle;
 					const propsForDelete = {
@@ -271,17 +271,18 @@ class Songs {
 		let results;
 		let propsForUpdate;
 		let dataToUse;
+		let numberIndex;
 		propsForSelect = {
 			table: 'songs',
 			query: {channel: props.channel}
 		};
 		results = await database.select(propsForSelect);
+		if (functions.isNumber(indexToMove)) {
+			// Song to promote is a number
+			numberIndex = parseInt(indexToMove, 10);
+		}
 		for (let i = 0; i < results.length; i++) {
-			if (!functions.isNumber(indexToMove)) {
-				return;
-			}
-			indexToMove = parseInt(indexToMove, 10);
-			if (indexToMove === i + 1 || indexToMove === results[i].songID) {
+			if (numberIndex === i + 1 || indexToMove === results[i].songID) {
 				const songToPromote = results[i]._id;
 				propsForSelect = {
 					table: 'channels',
