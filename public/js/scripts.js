@@ -19,6 +19,16 @@ if (typeof userDetails[2] != 'undefined') {
 			type: 'GET',
 			success: function(data) {
 				$('.left-bar-container').html(data);
+				$('.main-nav h4 a i').each(function(index, el) {
+					if ($(this).hasClass('fa-plus')) {
+						$(this).parent().parent().next().hide();
+					}
+				});
+				setNavShowingSection(page);
+				$('.main-nav h4 a').click(function(e) {
+					e.preventDefault();
+					changeNavIconState($(this).parent().next());
+				});
 			}
 		});
 	}
@@ -104,16 +114,6 @@ async function init() {
 				},2000);
 			}
 		}
-	});
-	$('.main-nav h4 a i').each(function(index, el) {
-		if ($(this).hasClass('fa-plus')) {
-			$(this).parent().parent().next().hide();
-		}
-	});
-	setNavShowingSection(page);
-	$('.main-nav h4 a').click(function(e) {
-		e.preventDefault();
-		changeNavIconState($(this).parent().next());
 	});
 
 	let toggleMe = true;
