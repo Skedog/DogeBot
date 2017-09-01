@@ -10,6 +10,8 @@ class Commands {
 		switch (props.messageParams[1]) {
 			case 'add':
 				return this.add(props);
+			case 'addalias':
+				return this.addAlias(props);
 			case 'edit':
 				return this.edit(props);
 			case 'delete':
@@ -55,6 +57,35 @@ class Commands {
 			await database.add(propsForAdd);
 			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
 			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been added!';
+		}
+		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' already exists!';
+	}
+
+	async addAlias(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandExistence = await this.doesUserAddedCommandExist(props);
+		if (!commandExistence) {
+			if (props.messageParams[3]) {
+				if (props.messageParams[2].charAt(0) === '!' && props.messageParams[3].charAt(0) === '!') {
+					const dataToUse = {};
+					dataToUse.trigger = props.messageParams[2].toLowerCase();
+					dataToUse.chatmessage = 'Alias for ' + props.messageParams[3];
+					dataToUse.commandcounter = 0;
+					dataToUse.channel = props.channel;
+					dataToUse.permissionsLevel = 0;
+					dataToUse.isAlias = true;
+					dataToUse.aliasFor = props.messageParams[3];
+					dataToUse.listArray = [];
+					const propsForAdd = {
+						table: 'commands',
+						dataToUse
+					};
+					await database.add(propsForAdd);
+					socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
+					return functions.buildUserString(props) + 'The alias command ' + props.messageParams[2] + ' has been added!';
+				}
+			}
+			return functions.buildUserString(props) + 'The syntax to add an alias is !commands addalias !newcommandname !commandtoalias';
 		}
 		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' already exists!';
 	}
