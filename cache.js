@@ -2,13 +2,13 @@ const log = require('npmlog');
 
 async function start() {
 	const NodeCache = require('node-cache');
-	const botCache = new NodeCache({stdTTL: 100000, checkperiod: 0});
+	const botCache = new NodeCache({stdTTL: 300, checkperiod: 0});
 	module.exports.botCache = botCache;
 	log.info('Cache created');
 }
 
-async function set(cacheName, val) {
-	module.exports.botCache.set(cacheName, val, 100000);
+async function set(cacheName, val, time = 300) {
+	module.exports.botCache.set(cacheName, val, time);
 }
 
 async function get(cacheToGet) {

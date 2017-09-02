@@ -217,6 +217,41 @@ async function setupRoutes() {
 		}
 	});
 
+	app.post('/dashboardstats', async (req, res) => {
+		const cachedStats = await cache.get(req.body.channel + 'stats');
+		if (cachedStats === undefined) {
+			let propsForSelect;
+			let propsForCount;
+			propsForCount = {
+				table: 'songs',
+				query: {channel: req.body.channel}
+			}
+			const numberOfSongs = await database.count(propsForCount);
+
+			propsForSelect = {
+				table: 'chatmessages',
+				query: {channel: req.body.channel}
+			}
+			const numberOfChatMessages = await database.select(propsForSelect);
+
+			propsForCount = {
+				table: 'commands',
+				query: {channel: req.body.channel}
+			}
+			const numberOfCommands = await database.count(propsForCount);
+
+			propsForCount = {
+				table: 'chatusers',
+				query: {channel: req.body.channel}
+			}
+			const numberOfChatUsers = await database.count(propsForCount);
+			await cache.set(req.body.channel + 'stats', [numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers], 300);
+			res.send([numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers]);
+		} else {
+			res.send(cachedStats);
+		}
+	});
+
 	app.post('/updatemusicstatus', async (req, res) => {
 		const results = await expressFunctions.checkModStatus(req);
 		if (results) {

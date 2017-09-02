@@ -28,6 +28,15 @@ class Database {
 		}
 	}
 
+	async count(props) {
+		try {
+			const result = await module.exports.db.collection(props.table).count(props.query);
+			return result;
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
 	async selectone(props) {
 		try {
 			const result = await module.exports.db.collection(props.table).findOne(props.query);

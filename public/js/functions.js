@@ -136,6 +136,36 @@ function showLoader(item) {
 	item.html('<div class="gear"><div class="center"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div></div>');
 }
 
+async function loadDashboard(channelData) {
+	let dataToReturn = '';
+	await $.ajax({
+		url: '/dashboardstats',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			/*numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers*/
+			temp = '<div class="statbox">';
+				temp = temp + '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+				temp = temp + '<p># of <a href="/songs">Songs in Queue</a></p>';
+			temp = temp + '</div>';
+			temp = temp + '<div class="statbox">';
+				temp = temp + '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+				temp = temp + '<p># of <a href="/commands">Commands</a></p>';
+			temp = temp + '</div>';
+			temp = temp + '<div class="statbox">';
+				temp = temp + '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+				temp = temp + '<p># of Users Seen</p>';
+			temp = temp + '</div>';
+			temp = temp + '<div class="statbox">';
+				temp = temp + '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+				temp = temp + '<p># of Chat Messages Seen</p>';
+			temp = temp + '</div>';
+			dataToReturn = temp;
+		}
+	});
+	return dataToReturn;
+}
+
 function hideLoader(item) {
 	item.html('');
 }
