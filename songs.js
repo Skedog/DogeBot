@@ -573,13 +573,8 @@ class Songs {
 
 	async buildMessageToSendForAddSong(props) {
 		const userStr = functions.buildUserString(props);
-		let numberOfSongsRequested;
 		let msgToSend;
-		if (props.songsToAdd) {
-			numberOfSongsRequested = props.songsToAdd.length;
-		} else {
-			numberOfSongsRequested = 1;
-		}
+		const numberOfSongsRequested = props.songStatusArray.length;
 		const numberOfAddedSongs = await this.countInArray(props.songStatusArray, 'PASSED');
 		const propsForErrorMessage = {
 			numberOfTooSoon: await this.countInArray(props.songStatusArray, 'failed toosoon'),
@@ -909,10 +904,10 @@ class Songs {
 				msgArray.push(props.numberOfFailedIDs + ' IDs were invalid');
 			}
 		}
-		if (msgArray[0]) {
-			return msgArray;
-		}
-		msgArray.push('Invalid song ID');
+		// if (msgArray[0]) {
+		// 	return msgArray;
+		// }
+		// msgArray.push('Invalid song ID');
 		return msgArray;
 	}
 
