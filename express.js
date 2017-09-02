@@ -303,7 +303,6 @@ async function setupRoutes() {
 				messageParams,
 				userstate: fakeUserstate
 			};
-			console.log(propsForRemove);
 			await songs.remove(propsForRemove);
 			res.send('song removed');
 		} else {

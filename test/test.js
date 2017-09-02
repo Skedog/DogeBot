@@ -79,6 +79,14 @@ it('test !commands add, edit, permissions and delete', async function() {
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The command !testcommand permissions have been updated!');
 
+	props.messageParams = ['!commands', 'perms', '!cs','3'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@skedogbot -> The command !cs permissions have been updated!');
+
+	props.messageParams = ['!commands', 'perms', '!cs','0'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@skedogbot -> The command !cs permissions have been updated!');
+
 	props.messageParams = ['!commands', 'delete', '!testcommand'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The command !testcommand has been deleted!');
@@ -234,6 +242,18 @@ it('test !sr multi all get added', async function() {
 	expect(res).to.have.string('@skedogbot -> 5 songs added!');
 });
 
+it('test !removesong 3', async function() {
+	props.messageParams = ['!removesong', '3'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been removed');
+});
+
+it('test !removesongs 1,2', async function() {
+	props.messageParams = ['!removesongs', '1,2'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('Songs removed');
+});
+
 it('test !pr over 50 songs', async function() {
 	this.timeout(50000);
 
@@ -281,11 +301,53 @@ it('test !shuffle', async function() {
 	expect(res).to.have.string('@skedogbot -> Songs shuffled!');
 });
 
-it('test !promote', async function() {
+it('test !promote 3', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!promote','3'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@skedogbot -> Song #3 has been promoted!');
+});
+
+it('test !skipsong', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!skipsong'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been skipped');
+});
+
+it('test !sr QeBaxc4Cglo', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!sr', 'QeBaxc4Cglo'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('@skedogbot -> The song Alison Wonderland x Fishing x Leaderboy - Get Ready (Tasker\'s Illegitimate Rmx) [FREE DL] has been added to the queue');
+});
+
+it('test !promote QeBaxc4Cglo', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!promote','QeBaxc4Cglo'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('@skedogbot -> Song #QeBaxc4Cglo has been promoted!');
+});
+
+it('test !wrongsong', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!wrongsong'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been removed');
+});
+
+it('test !mute', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!mute'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been muted');
+});
+
+it('test !unmute', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!unmute'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been unmuted');
 });
 
 // - - - - - - PERMISSIONS FUNCTIONS - - - - - - - -//

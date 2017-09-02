@@ -127,11 +127,11 @@ class Commands {
 
 	async permission(props) {
 		props.ignoreMessageParamsForUserString = true;
-		const propsForSelect = {
+		let propsForSelect = {
 			table: 'commands',
 			query: {channel: props.channel, trigger: props.messageParams[2]}
 		};
-		const results = await database.select(propsForSelect);
+		let results = await database.select(propsForSelect);
 		if (results) {
 			const permissionLevelToSet = props.messageParams[3];
 			const commandPermissionlevelNeeded = results[0].permissionsLevel;
@@ -151,7 +151,48 @@ class Commands {
 				}
 			}
 		} else {
-			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
+			// Select from default commands
+			propsForSelect = {
+				table: 'defaultCommands',
+				query: {trigger: props.messageParams[2]}
+			};
+			results = await database.select(propsForSelect);
+			if (results) {
+				const aliasResults = await this.getAliasedDefaultCommand(props, results);
+				const permissionLevelToSet = props.messageParams[3];
+				const arrayOfPermissions = aliasResults[0].permissionsPerChannel;
+				const userPermissionLevel = await permissions.getUserPermissionLevel(props);
+				let commandPermissionlevelNeeded;
+				for (let x = 0; x < arrayOfPermissions.length; x++) {
+					if (aliasResults[0].permissionsPerChannel[x].channel === props.channel) {
+						commandPermissionlevelNeeded = arrayOfPermissions[x].permissionLevel;
+						break;
+					}
+				}
+				if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionlevelNeeded) {
+					const propsForUpdate = {
+						table: 'defaultCommands',
+						query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
+						dataToUse: {'permissionsPerChannel.$.permissionLevel': permissionLevelToSet}
+					};
+					results = await database.update(propsForUpdate);
+					return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
+				}
+			}
+		}
+		return functions.buildUserString(props) + 'Error setting permissions for ' + props.messageParams[2] + '!';
+	}
+
+	async getAliasedDefaultCommand(props, results) {
+		if (results[0].isAlias) {
+			const propsForSelect = {
+				table: 'defaultCommands',
+				query: {trigger: results[0].aliasFor}
+			};
+			const newResults =  await database.select(propsForSelect);
+			return this.getAliasedDefaultCommand(props, newResults);
+		} else {
+			return results;
 		}
 	}
 
