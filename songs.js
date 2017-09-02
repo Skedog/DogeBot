@@ -8,6 +8,7 @@ const stats = require('./stats.js');
 const functions = require('./functions.js');
 const messages = require('./chat-messages.js');
 const socket = require('./socket.js');
+const cache = require('./cache.js');
 
 /* - - - - - EXPORT FUNCTIONS - - - - - - */
 
@@ -149,6 +150,7 @@ class Songs {
 				dataToUse
 			};
 			await database.update(propsForUpdate);
+			await cache.del(props.channel + 'songlist');
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['skipped', songToPassToEmit]);
 			const msgToSend = songTitle + ' has been skipped!';
 			return functions.buildUserString(props) + msgToSend;
@@ -169,6 +171,8 @@ class Songs {
 				query: {channel: props.channel, _id: songToRemove}
 			};
 			await database.delete(propsForDelete);
+			await cache.del(props.channel + 'songlist');
+			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['removed']);
 			const msgToSend = songTitle + ' has been removed!';
 			return functions.buildUserString(props) + msgToSend;
 		}
@@ -193,6 +197,7 @@ class Songs {
 						query: {channel: props.channel, _id: songToRemove}
 					};
 					await database.delete(propsForDelete);
+					await cache.del(props.channel + 'songlist');
 					socket.io.in(functions.stripHash(props.channel)).emit('songs', ['removed']);
 					const msgToSend = 'The song ' + songTitle + ' has been removed!';
 					return functions.buildUserString(props) + msgToSend;
@@ -231,6 +236,7 @@ class Songs {
 				}
 			}
 			if (atLeastOneSongRemoved) {
+				await cache.del(props.channel + 'songlist');
 				socket.io.in(functions.stripHash(props.channel)).emit('songs', ['removed']);
 				msgToSend = functions.buildUserString(props) + 'Songs removed!';
 			} else {
@@ -251,6 +257,7 @@ class Songs {
 			query: {channel: props.channel, whoRequested: {$regex: new RegExp(userToRemove, 'i')}}
 		};
 		await database.deleteall(propsForDelete);
+		await cache.del(props.channel + 'songlist');
 		socket.io.in(functions.stripHash(props.channel)).emit('songs', ['removed']);
 		return functions.buildUserString(props) + 'Songs removed!';
 	}
@@ -266,7 +273,7 @@ class Songs {
 
 	async promote(props) {
 		props.ignoreMessageParamsForUserString = true;
-		let indexToMove = props.messageParams[1];
+		const indexToMove = props.messageParams[1];
 		let propsForSelect;
 		let results;
 		let propsForUpdate;
@@ -306,9 +313,9 @@ class Songs {
 					dataToUse
 				};
 				await database.update(propsForUpdate);
-				const msgToSend = 'Song #' + indexToMove + ' has been promoted!';
+				await cache.del(props.channel + 'songlist');
 				socket.io.in(functions.stripHash(props.channel)).emit('songs', ['promoted']);
-				return functions.buildUserString(props) + msgToSend;
+				return functions.buildUserString(props) + 'Song #' + indexToMove + ' has been promoted!';
 			}
 		}
 	}
@@ -342,6 +349,7 @@ class Songs {
 				i++;
 			}
 			const msgToSend = 'Songs shuffled!';
+			await cache.del(props.channel + 'songlist');
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['shuffled']);
 			return functions.buildUserString(props) + msgToSend;
 		}
@@ -645,6 +653,8 @@ class Songs {
 			const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songToAdd);
 			props.songToAdd = youTubeID;
 			await this.addSongWrapper(props);
+			await cache.del(props.channel + 'songlist');
+			await cache.del(props.channel + 'songcache');
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['added']);
 			return await this.buildMessageToSendForAddSong(props) + '!';
 		} catch (err) {
@@ -666,6 +676,8 @@ class Songs {
 				}
 			}
 		}
+		await cache.del(props.channel + 'songlist');
+		await cache.del(props.channel + 'songcache');
 		socket.io.in(functions.stripHash(props.channel)).emit('songs', ['added']);
 		return await this.buildMessageToSendForAddSong(props) + '!';
 	}
@@ -904,10 +916,6 @@ class Songs {
 				msgArray.push(props.numberOfFailedIDs + ' IDs were invalid');
 			}
 		}
-		// if (msgArray[0]) {
-		// 	return msgArray;
-		// }
-		// msgArray.push('Invalid song ID');
 		return msgArray;
 	}
 

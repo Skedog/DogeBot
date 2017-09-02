@@ -10,6 +10,7 @@ const database = require('./database.js');
 const constants = require('./constants.js');
 const expressFunctions = require('./express-functions.js');
 const songs = require('./songs.js');
+const cache = require('./cache.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -157,21 +158,33 @@ async function setupRoutes() {
 	});
 
 	app.post('/getsonglist', async (req, res) => {
-		const propsForSelect = {
-			table: 'songs',
-			query: {channel: req.body.channel}
-		};
-		const results = await database.select(propsForSelect);
-		res.send(results);
+		const cachedSonglist = await cache.get(req.body.channel + 'songlist');
+		if (cachedSonglist === undefined) {
+			const propsForSelect = {
+				table: 'songs',
+				query: {channel: req.body.channel}
+			};
+			const results = await database.select(propsForSelect);
+			await cache.set(req.body.channel + 'songlist', results);
+			res.send(results);
+		} else {
+			res.send(cachedSonglist);
+		}
 	});
 
 	app.post('/getsongcache', async (req, res) => {
-		const propsForSelect = {
-			table: 'songcache',
-			query: {channel: req.body.channel}
-		};
-		const results = await database.select(propsForSelect);
-		res.send(results);
+		const cachedCache = await cache.get(req.body.channel + 'songcache');
+		if (cachedCache === undefined) {
+			const propsForSelect = {
+				table: 'songcache',
+				query: {channel: req.body.channel}
+			};
+			const results = await database.select(propsForSelect);
+			await cache.set(req.body.channel + 'songcache', results);
+			res.send(results);
+		} else {
+			res.send(cachedCache);
+		}
 	});
 
 	app.post('/getmusicstatus', async (req, res) => {
