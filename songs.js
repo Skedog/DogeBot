@@ -488,11 +488,8 @@ class Songs {
 			minutes = songLength.replace('H', ' ').split('M');
 			minutes = minutes[0].split(' ');
 			minutes = minutes[0].replace('PT', '');
-		} else {
-			if (songLength !== 'PT0S') {
-				minutes = 0;
-			}
-			throw 'failed length';
+		} else if (songLength !== 'PT0S') {
+			minutes = 0;
 		}
 		if ((channelMaxSongLength === 0) || ((minutes <= channelMaxSongLength && channelMaxSongLength !== 0) && !(songLength.includes('H')))) {
 			return 'good';
