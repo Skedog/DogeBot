@@ -19,11 +19,11 @@ Just go to [skedogbot.com](http://skedogbot.com) and click login - this will ask
   * !commands addalias **_!newcommand_** **_!commandtoalias_**: Adds **_!newcommand_** as an alias for **_!commandtoalias_**
   * !commands edit **_!command_** **_command text_**: Edits **_!command_**
   * !commands permissions **_!command_** **_(0-4)_**: Sets the needed permission level for the given **_!command_**
-    0) Everyone
-    1) Regulars
-    2) Subs
-    3) Mods
-    4) Channel Owner
+    * Everyone (0)
+    * Regulars (1)
+    * Subs (2)
+    * Mods (3)
+    * Channel Owner (4)
   * !commands delete **_!command_**: Removes **_!command_**
 * !currentsong: Returns the currently playing song
   * !cs: Alias for !currentsong
