@@ -477,9 +477,33 @@ body.home .navbar-inverse .navbar-brand {
 	dashboard
    ========================================================================== */
 
- .statbox {float:left;width:25%;padding:30px 60px;background:rgba(12, 33, 51, 0.8);border:3px solid rgba(14, 45, 60, 0.7);margin:10px;}
+.statbox-container {
+	float:left;
+	width:60%;
+}
 
-  .statbox:nth-child(2n+1) {clear:both;}
+.statbox {
+	float:left;
+	width:45%;
+	padding:30px 60px;
+	background:rgba(12, 33, 51, 0.8);
+	border:3px solid rgba(14, 45, 60, 0.7);
+	margin:10px;
+}
+.statbox:nth-child(2n+1) {
+	clear:both;
+}
+
+.topchatters {
+	float:left;
+	width:25%;
+	padding:55px 60px;
+	background:rgba(12, 33, 51, 0.8);
+	border:3px solid rgba(14, 45, 60, 0.7);
+	margin:10px;
+}
+
+
 /* =============================================================================
 	player
    ========================================================================== */
@@ -650,6 +674,10 @@ table.dataTable {
 	float: right;
 }
 
+.left {
+	float:left;
+}
+
 .dont-hide {display: block!important;}
 .navbar a.navstatus {display: none;}
 
@@ -669,6 +697,18 @@ table.dataTable {
 	}
 	.control-buttons.moderation,.song-container {
 		width:68%;
+	}
+
+
+	.statbox-container {
+		clear:left;
+	}
+	.statbox {
+		padding:10px 30px;
+	}
+	.topchatters {
+		width:55%;
+		padding:10px 30px;
 	}
 }
 
@@ -775,6 +815,9 @@ table.dataTable {
 	}
 	.volumeContainer {
 		width: 95%;
+	}
+	.topchatters,.statbox-container {
+		width:95%;
 	}
 }
 @media screen and (max-width:767px) {
@@ -1001,7 +1044,9 @@ table.dataTable {
 	}
 
 
-
+	.topchatters,.statbox-container,.statbox {
+		width:95%;
+	}
 }
 @media screen and (max-width:350px) {
 

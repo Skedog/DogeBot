@@ -252,6 +252,23 @@ async function setupRoutes() {
 		}
 	});
 
+	app.post('/topchatters', async (req, res) => {
+		const cachedChatters = await cache.get(req.body.channel + 'chatters');
+		if (cachedChatters === undefined) {
+			const propsForSelect = {
+				table: 'chatusers',
+				query: {channel: req.body.channel, userName: {'$ne': 'skedogbot'}},
+				sortBy: {'numberOfChatMessages': -1},
+				limit: 5
+			}
+			const topChatters = await database.select(propsForSelect);
+			await cache.set(req.body.channel + 'chatters', topChatters, 300);
+			res.send(topChatters);
+		} else {
+			res.send(cachedChatters);
+		}
+	});
+
 	app.post('/updatemusicstatus', async (req, res) => {
 		const results = await expressFunctions.checkModStatus(req);
 		if (results) {

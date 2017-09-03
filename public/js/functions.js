@@ -141,28 +141,46 @@ function showLoader(item) {
 async function loadDashboard(channelData) {
 	let dataToReturn = '';
 	await $.ajax({
+		url: '/topchatters',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			temp = '<div class="topchatters">';
+				temp = temp + '<h3>Top Chatters</h3>';
+				temp = temp + '<p>1) ' + data[0].userName + ' - ' + data[0].numberOfChatMessages + ' messages</p>';
+				temp = temp + '<p>2) ' + data[1].userName + ' - ' + data[1].numberOfChatMessages + ' messages</p>';
+				temp = temp + '<p>3) ' + data[2].userName + ' - ' + data[2].numberOfChatMessages + ' messages</p>';
+				temp = temp + '<p>4) ' + data[3].userName + ' - ' + data[3].numberOfChatMessages + ' messages</p>';
+				temp = temp + '<p>5) ' + data[4].userName + ' - ' + data[4].numberOfChatMessages + ' messages</p>';
+			temp = temp + '</div>';
+			dataToReturn = temp;
+		}
+	});
+	await $.ajax({
 		url: '/dashboardstats',
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
 			/*numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers*/
-			temp = '<div class="statbox">';
-				temp = temp + '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-				temp = temp + '<p># of <a href="/songs">Songs in Queue</a></p>';
+			temp = '<div class="statbox-container">'
+				temp = temp + '<div class="statbox">';
+					temp = temp + '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+					temp = temp + '<p># of <a href="/songs">Songs in Queue</a></p>';
+				temp = temp + '</div>';
+				temp = temp + '<div class="statbox">';
+					temp = temp + '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+					temp = temp + '<p># of <a href="/commands">Commands</a></p>';
+				temp = temp + '</div>';
+				temp = temp + '<div class="statbox">';
+					temp = temp + '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+					temp = temp + '<p># of Users Seen</p>';
+				temp = temp + '</div>';
+				temp = temp + '<div class="statbox">';
+					temp = temp + '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+					temp = temp + '<p># of Chat Messages Seen</p>';
+				temp = temp + '</div>';
 			temp = temp + '</div>';
-			temp = temp + '<div class="statbox">';
-				temp = temp + '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-				temp = temp + '<p># of <a href="/commands">Commands</a></p>';
-			temp = temp + '</div>';
-			temp = temp + '<div class="statbox">';
-				temp = temp + '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-				temp = temp + '<p># of Users Seen</p>';
-			temp = temp + '</div>';
-			temp = temp + '<div class="statbox">';
-				temp = temp + '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-				temp = temp + '<p># of Chat Messages Seen</p>';
-			temp = temp + '</div>';
-			dataToReturn = temp;
+			dataToReturn = dataToReturn + temp;
 		}
 	});
 	return dataToReturn;
