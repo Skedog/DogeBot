@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const request = require('async-request');
 const log = require('npmlog');
-const nodalytics = require('nodalytics');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const expressFunctions = require('./express-functions.js');
@@ -38,7 +37,6 @@ function setupApp() {
 	app.use(cookieParser());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
-	app.use(nodalytics(dbConstants.googleAnalyticsID));
 }
 
 async function setupRoutes() {

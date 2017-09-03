@@ -61,7 +61,6 @@ function setNavShowingSection(page) {
 				$(this).attr('href',$(this).attr('href') + '/' + stripHash(userDetails[2]) + '?showText=true');
 			}
 		} else if ($(this).attr('href') == '/moderation') {
-			console.log(channelName);
 			if (channelName === userDetails[2]) {
 				$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName));
 			};
