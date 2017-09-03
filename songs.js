@@ -361,8 +361,8 @@ class Songs {
 		if (searchTerm.slice(-1) === ',') {
 			searchTerm = searchTerm.slice(0, -1);
 		}
-		if (searchTerm.includes(',') && !searchTerm.includes(' ')) {
-			props.songsToAdd = searchTerm.split(',');
+		if (searchTerm.includes(',')) {
+			props.songsToAdd = searchTerm.replace(/ /g, '').split(',');
 			return this.requestCommaListOfSongs(props);
 		}
 		if (searchTerm) {
@@ -604,8 +604,10 @@ class Songs {
 				return userStr + numberOfAddedSongs + ' songs added';
 			}
 			if (props.songStatusArray.includes('failed limit')) {
-				if (numberOfAddedSongs > 0) {
+				if (numberOfAddedSongs > 1) {
 					return userStr + numberOfAddedSongs + ' songs were added, but you reached the limit';
+				} else if (numberOfAddedSongs > 0) {
+					return userStr + numberOfAddedSongs + ' song was added, but you reached the limit';
 				}
 				return userStr + 'Song request limit reached, please try again later';
 			}

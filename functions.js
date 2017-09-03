@@ -73,6 +73,40 @@ function buildUserString(props) {
 	return userStr;
 }
 
+function isEmptyArray(value) {
+	if (value.isArray()) {
+		return value.length === 0;
+	}
+	return toString(value).length === 0;
+}
+
+function queue(func, limit = 1) {
+	const pending = [];
+	let running = 0;
+
+	const run = async function (args) {
+		running++;
+		await func(args);
+		running--;
+		if (!isEmptyArray(pending)) {
+			run(pending.shift());
+		}
+	};
+
+	return {
+		add(props) {
+			if (running >= limit) {
+				return pending.push(props);
+			}
+			run(props);
+		},
+		isRunning() {
+			return running !== 0;
+		},
+		pending
+	};
+}
+
 module.exports = {
 	isNumber,
 	getRandomItemFromArray,
@@ -81,5 +115,6 @@ module.exports = {
 	generateListOfRandomNumbers,
 	getRandomInt,
 	buildUserString,
-	stripHash
+	stripHash,
+	queue
 };

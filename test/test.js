@@ -8,6 +8,7 @@ const chat = require('.././chat-commands.js');
 const maintenance = require('.././maintenance.js');
 const express = require('.././express.js');
 const socket = require('.././socket.js');
+const cache = require('.././cache.js');
 
 let dbConstants;
 let twitchClient;
@@ -23,9 +24,11 @@ userstate.subscriber = false;
 // - - - - - - GENERAL FUNCTIONS - - - - - - - -//
 
 it('test start the app', async function() {
+	this.timeout(5000);
 	dbConstants = await database.connect();
  	twitchClient = await twitch.connectToTwitch();
  	await socket.start(express.server);
+ 	await cache.start();
  	assert(dbConstants);
  	props = {
 		channel: '#ygtskedogtest',
@@ -50,7 +53,7 @@ it('test parseQuery()', function() {
 // - - - - - - DATABASE FUNCTIONS - - - - - - - -//
 
 it('test database.getDbConstants()', function() {
-	assert(Object.keys(dbConstants).length == 5);
+	assert(Object.keys(dbConstants).length == 6);
 });
 
 

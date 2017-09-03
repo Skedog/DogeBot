@@ -1088,6 +1088,10 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
+nodalytics@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/nodalytics/-/nodalytics-1.1.0.tgz#75afcfe540f461cafc8db0aa3b6c2c0eda8864e4"
+
 node-cache@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/node-cache/-/node-cache-4.1.1.tgz#08524645ee4039dedc3dcc1dd7c6b979e0619e44"

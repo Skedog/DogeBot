@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const request = require('async-request');
 const log = require('npmlog');
+const nodalytics = require('nodalytics');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const expressFunctions = require('./express-functions.js');
@@ -15,8 +16,10 @@ const cache = require('./cache.js');
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT ? process.env.PORT : 3000;
+let dbConstants;
 
 async function start() {
+	dbConstants = await database.constants();
 	setupApp();
 	await setupRoutes();
 	server.listen(port, () => {
@@ -35,11 +38,11 @@ function setupApp() {
 	app.use(cookieParser());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
+	app.use(nodalytics(dbConstants.googleAnalyticsID));
 }
 
 async function setupRoutes() {
 	app.get('/', [expressFunctions.wwwRedirect, expressFunctions.checkUserLoginStatus], async (req, res) => {
-		const dbConstants = await database.constants();
 		let templateData;
 		if (constants.testMode) {
 			templateData = {title: 'SkedogBot', apiKey: dbConstants.twitchTestClientID, postURL: constants.testPostURL};
@@ -50,7 +53,6 @@ async function setupRoutes() {
 	});
 
 	app.get('/login', async (req, res) => {
-		const dbConstants = await database.constants();
 		let templateData;
 		if (constants.testMode) {
 			templateData = {title: 'Logging in...', apiKey: dbConstants.twitchTestClientID, postURL: constants.testPostURL};

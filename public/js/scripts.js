@@ -55,9 +55,16 @@ async function startPageLoad(cookieChannel) {
 function setNavShowingSection(page) {
 	$('.left-bar .main-nav ul li a').each(function(index, el) {
 		if ($(this).attr('href') == '/currentsonginfo') {
-			$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName) + '?showText=true');
+			if (channelName === userDetails[2]) {
+				$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName) + '?showText=true');
+			} else {
+				$(this).attr('href',$(this).attr('href') + '/' + stripHash(userDetails[2]) + '?showText=true');
+			}
 		} else if ($(this).attr('href') == '/moderation') {
-			$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName));
+			console.log(channelName);
+			if (channelName === userDetails[2]) {
+				$(this).attr('href',$(this).attr('href') + '/' + stripHash(channelName));
+			};
 		};
 		if ('/' + page == $(this).attr('href') || '/' + page + '/' + stripHash(channelName) == $(this).attr('href')) {
 			if ($(this).parent().parent().is(":hidden")) {

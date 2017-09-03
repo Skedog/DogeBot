@@ -18,7 +18,13 @@ class Database {
 
 	async select(props) {
 		try {
-			const result = await module.exports.db.collection(props.table).find(props.query, {sort: [['sortOrder', 'asc'], ['_id', 'asc']]}).toArray();
+			if (props.sortBy === undefined) {
+				props.sortBy = {'sortOrder': 1, '_id': 1};
+			}
+			if (props.limit === undefined) {
+				props.limit = 0;
+			}
+			const result = await module.exports.db.collection(props.table).find(props.query).sort(props.sortBy).limit(props.limit).toArray();
 			if (result.length > 0) {
 				return result;
 			}
@@ -111,7 +117,8 @@ class Database {
 			twitchClientID: constants[0].twitchClientID,
 			twitchTestClientID: constants[0].twitchTestClientID,
 			YouTubeAPIKey: constants[0].YouTubeAPIKey,
-			discordAPIKey: constants[0].discordAPIKey
+			discordAPIKey: constants[0].discordAPIKey,
+			googleAnalyticsID: constants[0].googleAnalyticsID
 		};
 		return dbArray;
 	}

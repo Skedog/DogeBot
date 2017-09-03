@@ -50,6 +50,8 @@ class Commands {
 			dataToUse.isAlias = false;
 			dataToUse.aliasFor = '';
 			dataToUse.listArray = [];
+			dataToUse.globalDelay = 0;
+			dataToUse.userDelay = 0;
 			const propsForAdd = {
 				table: 'commands',
 				dataToUse
@@ -76,6 +78,8 @@ class Commands {
 					dataToUse.isAlias = true;
 					dataToUse.aliasFor = props.messageParams[3];
 					dataToUse.listArray = [];
+					dataToUse.globalDelay = 0;
+					dataToUse.userDelay = 0;
 					const propsForAdd = {
 						table: 'commands',
 						dataToUse
@@ -189,11 +193,10 @@ class Commands {
 				table: 'defaultCommands',
 				query: {trigger: results[0].aliasFor}
 			};
-			const newResults =  await database.select(propsForSelect);
+			const newResults = await database.select(propsForSelect);
 			return this.getAliasedDefaultCommand(props, newResults);
-		} else {
-			return results;
 		}
+		return results;
 	}
 
 	async doesUserAddedCommandExist(props) {
