@@ -19,7 +19,9 @@ function getUrlVars() {
 };
 
 function stripHash(passedStr) {
-	return passedStr.replace(/#/g, '');
+	if (passedStr) {
+		return passedStr.replace(/#/g, '');
+	}
 };
 
 function readCookie(cname) {
