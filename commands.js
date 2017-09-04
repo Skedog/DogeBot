@@ -52,13 +52,16 @@ class Commands {
 			dataToUse.listArray = [];
 			dataToUse.globalDelay = 0;
 			dataToUse.userDelay = 0;
-			const propsForAdd = {
-				table: 'commands',
-				dataToUse
-			};
-			await database.add(propsForAdd);
-			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
-			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been added!';
+			if (dataToUse.trigger.charAt(0) === '!' && dataToUse.chatmessage !== '') {
+				const propsForAdd = {
+					table: 'commands',
+					dataToUse
+				};
+				await database.add(propsForAdd);
+				socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
+				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been added!';
+			}
+			return functions.buildUserString(props) + 'The syntax to add a command is !commands add !commandtoadd text';
 		}
 		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' already exists!';
 	}
