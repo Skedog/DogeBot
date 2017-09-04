@@ -563,6 +563,25 @@ table.datatable thead th {
 	moderation
    ========================================================================== */
 
+.error {
+	margin:0 auto;
+	display: block;
+	text-align: center;
+}
+.error h1 {
+	font-size:7em;
+}
+.error img {
+	margin:20px 0;
+}
+.error p {
+	font-size:2em;
+}
+
+/* =============================================================================
+	moderation
+   ========================================================================== */
+
 .moderation-songlist {
 	float: left;
 	width: 100%;

@@ -53,6 +53,7 @@ async function startPageLoad(cookieChannel) {
 }
 
 function setNavShowingSection(page) {
+	let changedOne = false;
 	$('.left-bar .main-nav ul li a').each(function(index, el) {
 		if ($(this).attr('href') == '/currentsonginfo') {
 			if (channelName === userDetails[2]) {
@@ -68,10 +69,14 @@ function setNavShowingSection(page) {
 		if ('/' + page == $(this).attr('href') || '/' + page + '/' + stripHash(channelName) == $(this).attr('href')) {
 			if ($(this).parent().parent().is(":hidden")) {
 				changeNavIconState($(this).parent().parent());
+				changedOne = true;
 			};
 			$(this).addClass('current-page');
 		}
 	});
+	if (!changedOne) {
+		changeNavIconState($('.left-bar .main-nav ul:first-of-type'));
+	}
 }
 
 function changeNavIconState(itemToChange) {
