@@ -49,6 +49,18 @@ class Songs {
 		return functions.buildUserString(props) + msgToSend;
 	}
 
+	async currentSongID(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel: props.channel}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return results[0].songID;
+		}
+		return 'No current song';
+	}
+
 	async callVolume(props) {
 		if (functions.isNumber(props.messageParams[1])) {
 			return this.updateVolume(props);
@@ -427,6 +439,19 @@ class Songs {
 		}
 	}
 
+	async checkIfSongExistsInBlacklist(props) {
+		const propsForSelect = {
+			table: 'songblacklist',
+			query: {channel: props.channel, songID: props.songToAdd}
+		};
+		const res = await database.select(propsForSelect);
+		if (res) {
+			throw 'failed exists in blacklist';
+		} else {
+			return 'doesn\'t exist';
+		}
+	}
+
 	async checkCacheTimeCheck(props) {
 		let propsForSelect;
 		propsForSelect = {
@@ -554,11 +579,29 @@ class Songs {
 		return 'added';
 	}
 
+	async addSongToBlacklist(props) {
+		const dataToAdd = {};
+		const currentdate = new Date();
+		dataToAdd.songID = props.YTData[0].songID;
+		dataToAdd.songTitle = props.YTData[0].songTitle;
+		dataToAdd.songLength = props.YTData[0].songLength;
+		dataToAdd.whoRequested = props.userstate['display-name'];
+		dataToAdd.channel = props.channel;
+		dataToAdd.whenRequested = currentdate;
+		const propsForAdd = {
+			table: 'songblacklist',
+			dataToUse: dataToAdd
+		};
+		await database.add(propsForAdd);
+		return 'added';
+	}
+
 	async addSongWrapper(props) {
 		try {
 			props.YTData = await this.getYouTubeSongData(props);
 			await this.checkIfUserCanAddSong(props);
 			await this.checkIfSongExists(props);
+			await this.checkIfSongExistsInBlacklist(props);
 			await this.checkCacheTimeCheck(props);
 			await this.checkCountryRestrictions(props);
 			await this.checkIfSongIsTooLong(props);
@@ -585,6 +628,7 @@ class Songs {
 			numberOfTooSoon: await this.countInArray(props.songStatusArray, 'failed toosoon'),
 			numberOfLength: await this.countInArray(props.songStatusArray, 'failed length'),
 			numberOfExists: await this.countInArray(props.songStatusArray, 'failed exists'),
+			numberOfExistsInBlacklist: await this.countInArray(props.songStatusArray, 'failed exists in blacklist'),
 			numberOfFailedIDs: await this.countInArray(props.songStatusArray, 'failed getYouTubeSongData'),
 			unavailableInCountry: await this.countInArray(props.songStatusArray, 'failed countryCheck'),
 			numberOfFailedEmbed: await this.countInArray(props.songStatusArray, 'failed embedCheck'),
@@ -751,7 +795,7 @@ class Songs {
 			const resultsFromCache = await database.select(propsForCacheSelect);
 			if (resultsFromCache) {
 				// Only pull cache results if they are less than a month old
-				const currentDateMinus30 = new Date(new Date().getTime() + (-30*24*60*60*1000));
+				const currentDateMinus30 = new Date(new Date().getTime() + (-30 * 24 * 60 * 60 * 1000));
 				if (resultsFromCache[0].whenRequested > currentDateMinus30) {
 					return [{
 						songID: props.songToAdd,
@@ -873,7 +917,7 @@ class Songs {
 				// Only 1 song was requested too recently, but more than one song was requested
 				msgArray.push(props.numberOfTooSoon + ' song was played too recently');
 			}
-			if (props.numberOfLength > 1) {
+			if (props.numberOfTooSoon > 1) {
 				// More than one song was requested too recently
 				msgArray.push(props.numberOfTooSoon + ' songs were played too recently');
 			}
@@ -901,6 +945,17 @@ class Songs {
 			}
 			if (props.numberOfExists > 1) {
 				msgArray.push(props.numberOfExists + ' songs already exist');
+			}
+		}
+		if (props.numberOfExistsInBlacklist) {
+			if (props.numberOfSongsRequested === 1 && props.numberOfExistsInBlacklist === 1) {
+				msgArray.push('The song ' + props.YTData[0].songTitle + ' is blacklisted');
+			}
+			if (props.numberOfSongsRequested > 1 && props.numberOfExistsInBlacklist === 1) {
+				msgArray.push(props.numberOfExistsInBlacklist + ' song is blacklisted');
+			}
+			if (props.numberOfExistsInBlacklist > 1) {
+				msgArray.push(props.numberOfExistsInBlacklist + ' songs are blacklisted');
 			}
 		}
 		if (props.unavailableInCountry) {

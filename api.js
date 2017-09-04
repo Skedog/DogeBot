@@ -66,6 +66,14 @@ class API {
 		const url = 'https://2g.be/twitch/randomviewer.php?channel=' + props.channel.slice(1);
 		const twitchAPIRequest = await request(url);
 		if (twitchAPIRequest.body.includes('skedogbot') || twitchAPIRequest.body.includes(props.channel.slice(1))) {
+			if (props.attempts === undefined) {
+				props.attempts = 1;
+			} else {
+				props.attempts += 1;
+			}
+			if (props.attempts === 5) {
+				return 'Error getting winner, try again in a few minutes!';
+			}
 			return this.randomViewer(props);
 		}
 		if (twitchAPIRequest.body.trim().length <= 25) {

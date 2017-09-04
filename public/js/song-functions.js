@@ -42,6 +42,19 @@ async function loadSonglist(data) {
 	return dataToReturn;
 }
 
+async function loadBlacklist(data) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/getblacklist',
+		data: data,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
+
 async function loadFormattedSonglist(data,page) {
 	let dataToReturn;
 	let songlist;
@@ -65,6 +78,22 @@ async function loadFormattedSonglist(data,page) {
 			} else {
 				contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + songlist[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + songlist[key]['songID'] + '" target="_blank">' + songlist[key]['songID'] + '</a></td><td>' + songlist[key]['whoRequested'] + '</td></tr>';
 			};
+		});
+		dataToReturn = contentData;
+	} else {
+		dataToReturn = false;
+	};
+	return dataToReturn;
+}
+
+async function loadFormattedSongBlacklist(data,page) {
+	let dataToReturn;
+	let blacklist;
+	blacklist = await loadBlacklist(data);
+	if (blacklist != '') {
+		var contentData = '';
+		$.each(blacklist, function(key, value) {
+			contentData = contentData + '<tr><td>' + (key + 1) + '</td><td>' + blacklist[key]['songTitle'] + '</td><td><a href="https://youtu.be/' + blacklist[key]['songID'] + '" target="_blank">' + blacklist[key]['songID'] + '</a></td><td>' + blacklist[key]['whoRequested'] + '</td></tr>';
 		});
 		dataToReturn = contentData;
 	} else {

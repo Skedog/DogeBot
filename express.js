@@ -82,6 +82,12 @@ async function setupRoutes() {
 		res.redirect('/logout');
 	});
 
+	app.get('/blacklist/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
+		next();
+	}, (req, res) => {
+		res.redirect('/logout');
+	});
+
 	app.get('/songcache/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
 		next();
 	}, (req, res) => {
@@ -172,6 +178,21 @@ async function setupRoutes() {
 		}
 	});
 
+	app.post('/getblacklist', async (req, res) => {
+		const cachedBlacklist = await cache.get(req.body.channel + 'blacklist');
+		if (cachedBlacklist === undefined) {
+			const propsForSelect = {
+				table: 'songblacklist',
+				query: {channel: req.body.channel}
+			};
+			const results = await database.select(propsForSelect);
+			await cache.set(req.body.channel + 'blacklist', results);
+			res.send(results);
+		} else {
+			res.send(cachedBlacklist);
+		}
+	});
+
 	app.post('/getsongcache', async (req, res) => {
 		const cachedCache = await cache.get(req.body.channel + 'songcache');
 		if (cachedCache === undefined) {
@@ -220,30 +241,29 @@ async function setupRoutes() {
 	app.post('/dashboardstats', async (req, res) => {
 		const cachedStats = await cache.get(req.body.channel + 'stats');
 		if (cachedStats === undefined) {
-			let propsForSelect;
 			let propsForCount;
 			propsForCount = {
 				table: 'songs',
 				query: {channel: req.body.channel}
-			}
+			};
 			const numberOfSongs = await database.count(propsForCount);
 
-			propsForSelect = {
+			const propsForSelect = {
 				table: 'chatmessages',
 				query: {channel: req.body.channel}
-			}
+			};
 			const numberOfChatMessages = await database.select(propsForSelect);
 
 			propsForCount = {
 				table: 'commands',
 				query: {channel: req.body.channel}
-			}
+			};
 			const numberOfCommands = await database.count(propsForCount);
 
 			propsForCount = {
 				table: 'chatusers',
 				query: {channel: req.body.channel}
-			}
+			};
 			const numberOfChatUsers = await database.count(propsForCount);
 			await cache.set(req.body.channel + 'stats', [numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers], 300);
 			res.send([numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers]);
@@ -257,10 +277,10 @@ async function setupRoutes() {
 		if (cachedChatters === undefined) {
 			const propsForSelect = {
 				table: 'chatusers',
-				query: {channel: req.body.channel, userName: {'$ne': 'skedogbot'}},
-				sortBy: {'numberOfChatMessages': -1},
+				query: {channel: req.body.channel, userName: {$ne: 'skedogbot'}},
+				sortBy: {numberOfChatMessages: -1},
 				limit: 5
-			}
+			};
 			const topChatters = await database.select(propsForSelect);
 			await cache.set(req.body.channel + 'chatters', topChatters, 300);
 			res.send(topChatters);
@@ -444,13 +464,16 @@ async function setupRoutes() {
 		}
 	});
 
-	app.use(function(req, res, next) {
-		var err = new Error('Not Found');
+	app.use((req, res, next) => {
+		const err = new Error('Not Found');
 		err.status = 404;
 		next(err);
 	});
 
-	app.use(function(err, req, res, next) {
+	app.use((err, req, res) => {
+		if (req.originalUrl.substr(req.originalUrl.length - 1) === '/') {
+			return res.redirect(req.originalUrl.slice(0, -1));
+		}
 		res.status(err.status || 500);
 		log.error(err.status + ' ' + err + ' ' + req.originalUrl);
 		res.render('error.html', {

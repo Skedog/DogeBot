@@ -19,7 +19,7 @@ class Database {
 	async select(props) {
 		try {
 			if (props.sortBy === undefined) {
-				props.sortBy = {'sortOrder': 1, '_id': 1};
+				props.sortBy = {sortOrder: 1, _id: 1};
 			}
 			if (props.limit === undefined) {
 				props.limit = 0;

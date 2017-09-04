@@ -135,7 +135,7 @@ it('test !winner', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!winner'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('The winner is');
+	expect(res).to.have.string(' ');
 });
 
 it('test !bf4stats', async function() {
@@ -323,6 +323,20 @@ it('test !sr QeBaxc4Cglo', async function() {
 	props.messageParams = ['!sr', 'QeBaxc4Cglo'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@skedogbot -> The song Alison Wonderland x Fishing x Leaderboy - Get Ready (Tasker\'s Illegitimate Rmx) [FREE DL] has been added to the queue');
+});
+
+it('test !blacklist add lX44CAz-JhU', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!blacklist', 'add', 'lX44CAz-JhU'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('@skedogbot -> The song SIAMÉS - "The Wolf" [Official Video] has been added to the blacklist!');
+});
+
+it('test !blacklist remove lX44CAz-JhU', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!blacklist', 'remove', 'lX44CAz-JhU'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('@skedogbot -> The song SIAMÉS - "The Wolf" [Official Video] has been removed from the blacklist!');
 });
 
 it('test !promote QeBaxc4Cglo', async function() {

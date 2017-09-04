@@ -3,6 +3,7 @@ const permissions = require('./permissions.js');
 const lists = require('./lists.js');
 const messages = require('./chat-messages.js');
 const commands = require('./commands.js');
+const blacklist = require('./blacklist.js');
 const regulars = require('./regulars.js');
 const api = require('./api.js');
 const users = require('./users.js');
@@ -41,6 +42,8 @@ class Chat {
 				case '!commands':
 				case '!command':
 					return await commands.call(props);
+				case '!blacklist':
+					return await blacklist.call(props);
 				case '!regular':
 				case '!regulars':
 					return await regulars.call(props);

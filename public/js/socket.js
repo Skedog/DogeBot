@@ -19,6 +19,12 @@ async function startSocket(socketURL, page, channelData) {
 		}
 	});
 
+	socket.on('blacklist', async function(data) {
+		if (data[0] == 'added' || data[0] == 'removed') {
+			handleBlacklistChangeSocket(data, page, channelData);
+		}
+	});
+
 	socket.on('commands', async function(data) {
 		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
 			handleCommandChangeSocket(data, page, channelData);
@@ -110,6 +116,23 @@ async function handleSonglistChangeSocket(data, page, channelData) {
 	}
 	if (page == 'currentsonginfo') {
 		getNewSongInfo(); //currentsonginfo page
+	}
+}
+
+async function handleBlacklistChangeSocket(data, page, channelData) {
+	if (page == 'blacklist') {
+		const blacklist = await loadFormattedSongBlacklist(channelData,page);
+		if (blacklist) {
+			dataTableStartSize = '25';
+			if ($('.datatable').length) {
+				buildDataTable(blacklist,'.datatable',dataTableStartSize);
+			};
+			$('.nosongs').hide();
+		} else {
+			$('.dataTables_wrapper').hide();
+			$('.nosongs').show();
+			$('.nosongs').html("Currently no songs in the blacklist!");
+		};
 	}
 }
 

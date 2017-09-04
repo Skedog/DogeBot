@@ -108,6 +108,7 @@ async function handleLogin(props) {
 					case '!firstseen':
 					case '!mute':
 					case '!unmute':
+					case '!blacklist':
 						newData = [{channel: userToAdd, permissionLevel: 3}];
 						break;
 					default:
