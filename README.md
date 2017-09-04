@@ -13,6 +13,10 @@ Just go to [skedogbot.com](http://skedogbot.com) and click login - this will ask
 ### All Default Commands
 * !8ball: Returns a random '8-Ball' type of message
 * !bf4stats **_username_**: Returns **_username_**'s rank, k/d and full stats link
+* !blacklist: Returns a link to the song blacklist for the channel
+  * !blacklist add **_song_**: Adds **_song_** to the blacklist
+  * !blacklist add current: Adds the current playing song to the blacklist and skips the song
+  * !blacklist delete **_song_**: Removes **_song_** from the blacklist
 * !commands: Returns a link to the user added commands for the channel
   * !command: Alias for !commands
   * !commands add **_!command_** **_command text_**: Adds **_!command_** to the channel
@@ -50,7 +54,7 @@ Just go to [skedogbot.com](http://skedogbot.com) and click login - this will ask
 * !songlist: Returns the list of songs in the queue
   * !sl: Alias for !songslist
   * !songs: Alias for !songslist
-* !songrequest **_song_**: Adds the song to the song list. Can be a URL, videoID, or song title.
+* !songrequest **_song_**: Adds the **_song_** to the song list. Can be a URL, videoID, or song title.
   * !sr: Alias for !songrequest
 * !uptime: Returns the uptime
 * !viewers: Returns the current number of viewers
