@@ -742,6 +742,27 @@ class Songs {
 		const youTube = new YouTube();
 		youTube.setKey(dbConstants.YouTubeAPIKey);
 		if (props.songToAdd.length === 11 && !props.songToAdd.includes(' ')) {
+			// Try pulling data from songcache first, instead of always kicking out to YouTube
+			// This would mean that the title may not match if it gets updated
+			const propsForCacheSelect = {
+				table: 'songcache',
+				query: {songID: props.songToAdd}
+			};
+			const resultsFromCache = await database.select(propsForCacheSelect);
+			if (resultsFromCache) {
+				// Only pull cache results if they are less than a month old
+				const currentDateMinus30 = new Date(new Date().getTime() + (-30*24*60*60*1000));
+				if (resultsFromCache[0].whenRequested > currentDateMinus30) {
+					return [{
+						songID: props.songToAdd,
+						songTitle: resultsFromCache[0].songTitle,
+						songLength: resultsFromCache[0].songLength,
+						isEmbeddable: true,
+						allowedRegions: []
+					}];
+				}
+			}
+			// Song not in cache, get info from YouTube instead
 			const getById = await promisify(youTube.getById);
 			const result = await getById(props.songToAdd);
 			if (result) {
