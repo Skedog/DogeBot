@@ -486,9 +486,6 @@ async function setupRoutes() {
 	});
 
 	app.use((req, res) => {
-		if (req.originalUrl.substr(req.originalUrl.length - 1) === '/') {
-			return res.redirect(req.originalUrl.slice(0, -1));
-		}
 		const err = new Error('Not Found');
 		err.status = 404;
 		res.status(err.status || 500);
