@@ -11,6 +11,7 @@ const constants = require('./constants.js');
 const expressFunctions = require('./express-functions.js');
 const songs = require('./songs.js');
 const cache = require('./cache.js');
+const twitch = require('./twitch.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -221,7 +222,7 @@ async function setupRoutes() {
 				channel: req.body.channel,
 				timestamp: {
 					$gte: (req.body.timestampStart * 1000),
-					$lte: (req.body.timestampEnd  * 1000)
+					$lte: (req.body.timestampEnd * 1000)
 				}
 			}
 		};
@@ -359,6 +360,16 @@ async function setupRoutes() {
 		} else {
 			res.send('error');
 		}
+	});
+
+	app.post('/joinchannel', async (req, res) => {
+		await twitch.joinSingleChannel(req.body.channel);
+		res.send('joined');
+	});
+
+	app.post('/partchannel', async (req, res) => {
+		await twitch.leaveSingleChannel(req.body.channel);
+		res.send('parted');
 	});
 
 	app.post('/promotesong', async (req, res) => {

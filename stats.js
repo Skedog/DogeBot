@@ -1,5 +1,4 @@
 const database = require('./database.js');
-const cache = require('./cache.js');
 
 class Stats {
 
@@ -95,7 +94,7 @@ class Stats {
 				channel,
 				userstate,
 				message,
-				timestamp: (new Date).getTime()
+				timestamp: new Date().getTime()
 			}
 		};
 		await database.add(propsForAdd);

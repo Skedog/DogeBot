@@ -87,6 +87,25 @@ async function joinSingleChannel(channelToJoin) {
 	}
 }
 
+async function leaveSingleChannel(channelToLeave) {
+	try {
+		await twitchClient.part(channelToLeave);
+		const dataToUse = {};
+		dataToUse.inChannel = false;
+		const propsForUpdate = {
+			table: 'channels',
+			query: {ChannelName: channelToLeave},
+			dataToUse
+		};
+		const res = await database.update(propsForUpdate);
+		if (res === 'updated') {
+			log.info('Left channel: ' + channelToLeave);
+		}
+	} catch (err) {
+		log.info(err);
+	}
+}
+
 function monitorChat() {
 	twitchClient.on('chat', (channel, userstate, message, self) => {
 		stats.addChatMessage(channel, userstate, message);
@@ -318,3 +337,4 @@ async function start() {
 module.exports.start = start;
 module.exports.connectToTwitch = connectToTwitch;
 module.exports.joinSingleChannel = joinSingleChannel;
+module.exports.leaveSingleChannel = leaveSingleChannel;
