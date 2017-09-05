@@ -24,9 +24,9 @@ async function checkUserLoginStatus(req, res, next) {
 			const results = await database.select(propsForSelect);
 			if (results) {
 				const pageToRender = req.originalUrl.slice(1).split('?');
-				// if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl) {
-				// 	return res.redirect(req.originalUrl.slice(0, -1));
-				// }
+				if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
+					return res.redirect(req.originalUrl.slice(0, -1));
+				}
 				if (pageToRender[0]) {
 					res.render(pageToRender[0] + '.html');
 				} else {
@@ -202,7 +202,7 @@ function renderPageWithChannel(req, res, next) {
 	if (req.params.channel) {
 		const templateData = {passedUser: req.params.channel};
 		const pageToRender = req.originalUrl.split('/');
-		res.render(pageToRender[1].replace('/','') + '.html', templateData);
+		res.render(pageToRender[1].replace('/', '') + '.html', templateData);
 	} else {
 		next();
 	}

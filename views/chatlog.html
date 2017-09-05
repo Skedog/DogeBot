@@ -3,6 +3,9 @@
 		<div class="container wrapper">
 			<h1><i class="fa fa-comments"></i> Chatlog</h1>
 			<p>Below is a list of your channel's chatlog!</p>
+			<div class="chat-search">
+				<label for="chat-date"><span>Jump to date: <i class="fa fa-calendar"></i></span><input type="date" name="chat-date" id="chat-date" /></label>
+			</div>
 			<div class="chatlog-box"></div>
 		</div>
 	</div>
@@ -11,16 +14,14 @@
 <script>
 	async function startChatlog() {
 		showLoader($('.chatlog-box'));
-		let chatlogs = await loadChatlogs(channelData,'chatlog');
+		let chatlogs = await loadChatlogs(channelData, 'chatlog', (new Date));
 		$('.chatlog-box').html(chatlogs);
-		/*let blacklist = await loadFormattedSongBlacklist(channelData,'blacklist');
-		if (blacklist) {
-			hideLoader($('.nosongs'));
-			dataTableStartSize = '25';
-			buildDataTable(blacklist,'.datatable',dataTableStartSize);
-		} else {
-			$('.nosongs').html("Currently no songs in the blacklist!");
-		};*/
+		$('#chat-date').val(new Date().toDateInputValue());
 	};
 	startChatlog();
+
+	$('#chat-date').change(async function(e) {
+		let chatlogs = await loadChatlogs(channelData, 'chatlog', (new Date($(this).val() + 'T00:00:00')));
+		$('.chatlog-box').html(chatlogs);
+	});
 </script>

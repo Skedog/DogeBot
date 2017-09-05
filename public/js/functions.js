@@ -145,15 +145,17 @@ async function loadDashboard(channelData) {
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			temp = '<div class="topchatters">';
-				temp = temp + '<h3>Top Chatters</h3>';
-				temp = temp + '<p>1) ' + data[0].userName + ' - ' + data[0].numberOfChatMessages + ' messages</p>';
-				temp = temp + '<p>2) ' + data[1].userName + ' - ' + data[1].numberOfChatMessages + ' messages</p>';
-				temp = temp + '<p>3) ' + data[2].userName + ' - ' + data[2].numberOfChatMessages + ' messages</p>';
-				temp = temp + '<p>4) ' + data[3].userName + ' - ' + data[3].numberOfChatMessages + ' messages</p>';
-				temp = temp + '<p>5) ' + data[4].userName + ' - ' + data[4].numberOfChatMessages + ' messages</p>';
-			temp = temp + '</div>';
-			dataToReturn = temp;
+			if (data) {
+				temp = '<div class="topchatters">';
+					temp = temp + '<h3>Top Chatters</h3>';
+					temp = temp + '<p>1) ' + data[0].userName + ' - ' + data[0].numberOfChatMessages + ' messages</p>';
+					temp = temp + '<p>2) ' + data[1].userName + ' - ' + data[1].numberOfChatMessages + ' messages</p>';
+					temp = temp + '<p>3) ' + data[2].userName + ' - ' + data[2].numberOfChatMessages + ' messages</p>';
+					temp = temp + '<p>4) ' + data[3].userName + ' - ' + data[3].numberOfChatMessages + ' messages</p>';
+					temp = temp + '<p>5) ' + data[4].userName + ' - ' + data[4].numberOfChatMessages + ' messages</p>';
+				temp = temp + '</div>';
+				dataToReturn = temp;
+			}
 		}
 	});
 	await $.ajax({
@@ -161,26 +163,28 @@ async function loadDashboard(channelData) {
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			/*numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers*/
-			temp = '<div class="statbox-container">'
-				temp = temp + '<div class="statbox">';
-					temp = temp + '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-					temp = temp + '<p># of <a href="/songs">Songs in Queue</a></p>';
+			if (data !== 'no stats') {
+				/*numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers*/
+				temp = '<div class="statbox-container">'
+					temp = temp + '<div class="statbox">';
+						temp = temp + '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+						temp = temp + '<p># of <a href="/songs">Songs in Queue</a></p>';
+					temp = temp + '</div>';
+					temp = temp + '<div class="statbox">';
+						temp = temp + '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+						temp = temp + '<p># of <a href="/commands">Commands</a></p>';
+					temp = temp + '</div>';
+					temp = temp + '<div class="statbox">';
+						temp = temp + '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+						temp = temp + '<p># of Users Seen</p>';
+					temp = temp + '</div>';
+					temp = temp + '<div class="statbox">';
+						temp = temp + '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
+						temp = temp + '<p># of Chat Messages Seen</p>';
+					temp = temp + '</div>';
 				temp = temp + '</div>';
-				temp = temp + '<div class="statbox">';
-					temp = temp + '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-					temp = temp + '<p># of <a href="/commands">Commands</a></p>';
-				temp = temp + '</div>';
-				temp = temp + '<div class="statbox">';
-					temp = temp + '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-					temp = temp + '<p># of Users Seen</p>';
-				temp = temp + '</div>';
-				temp = temp + '<div class="statbox">';
-					temp = temp + '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-					temp = temp + '<p># of Chat Messages Seen</p>';
-				temp = temp + '</div>';
-			temp = temp + '</div>';
-			dataToReturn = dataToReturn + temp;
+				dataToReturn = dataToReturn + temp;
+			}
 		}
 	});
 	return dataToReturn;
@@ -205,11 +209,11 @@ function debounce(func, wait, immediate) {
 	}
 }
 
-async function getChatlogs(data) {
+async function getChatlogs(data, dateStart, dateEnd) {
 	let dataToReturn;
 	await $.ajax({
 		url: '/getchatlogs',
-		data: data,
+		data: data + '&timestampStart=' + dateStart + '&timestampEnd=' + dateEnd,
 		type: 'POST',
 		success: function(data) {
 			dataToReturn = data;
@@ -218,28 +222,47 @@ async function getChatlogs(data) {
 	return dataToReturn;
 }
 
-async function loadChatlogs(data,page) {
+Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
+
+Date.prototype.toDateInputValue = (function() {
+    var local = new Date(this);
+    local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+    return local.toJSON().slice(0,10);
+});
+
+async function loadChatlogs(data,page,date) {
+	date.setHours(0,0,0,0);
+	const dateStart = date.getUnixTime();
+	date.setHours(23,59,59,999);
+	const dateEnd = date.getUnixTime();
 	let dataToReturn = '';
 	let chatlogs;
-	chatlogs = await getChatlogs(data);
+	chatlogs = await getChatlogs(data,dateStart,dateEnd);
 	if (chatlogs != '') {
+		dataToReturn = '<div class="chatlogs">';
 		$.each(chatlogs, function(key, value) {
-			const d = new Date(parseInt(chatlogs[key].userstate['sent-ts'], 10));
-			const localDate = d.toLocaleString();
+			const d = chatlogs[key].timestamp;
+			const localTestDate = new Date(d).toLocaleString();
 			const displayName = chatlogs[key].userstate['display-name'];
 			const username = chatlogs[key].userstate.username;
-			const color = chatlogs[key].userstate.color;
+			let color = chatlogs[key].userstate.color;
+			if (!color) {
+				color = '#428bca'
+			}
 			const message = chatlogs[key].message;
 			dataToReturn += '<div class="chat-message">';
-			 	dataToReturn += '<span class="date">' + localDate + '</span>';
-			 	if (displayName) {
-			 		dataToReturn += '<span class="displayName" style="color:' + color + '">' + displayName + ':</span>';
-			 	} else {
-			 		dataToReturn += '<span class="displayName" style="color:' + color + '">' + username + ':</span>';
-			 	}
-			 	dataToReturn += '<span class="message">' + message + '</span>';
-			 dataToReturn += '</div>';
+				dataToReturn += '<span class="date">' + localTestDate + '</span>';
+				if (displayName) {
+					dataToReturn += '<span class="displayName" style="color:' + color + '">' + displayName + ':</span>';
+				} else {
+					dataToReturn += '<span class="displayName" style="color:' + color + '">' + username + ':</span>';
+				}
+				dataToReturn += '<span class="message">' + message + '</span>';
+			dataToReturn += '</div>';
 		});
+		dataToReturn += '</div>';
+	} else {
+		dataToReturn = '<p>No chat logs to be found, go say hello or pick a different date above!</p>'
 	};
 	return dataToReturn;
 }

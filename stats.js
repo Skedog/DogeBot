@@ -91,9 +91,13 @@ class Stats {
 	async addChatMessage(channel, userstate, message) {
 		const propsForAdd = {
 			table: 'chatlog',
-			dataToUse: {channel: channel, userstate: userstate, message: message}
+			dataToUse: {
+				channel,
+				userstate,
+				message,
+				timestamp: (new Date).getTime()
+			}
 		};
-		await cache.del(channel + 'chatlog');
 		await database.add(propsForAdd);
 	}
 }

@@ -215,18 +215,19 @@ async function setupRoutes() {
 	});
 
 	app.post('/getchatlogs', async (req, res) => {
-		const cachedChatlog = await cache.get(req.body.channel + 'chatlog');
-		if (cachedChatlog === undefined) {
-			const propsForSelect = {
-				table: 'chatlog',
-				query: {channel: req.body.channel}
-			};
-			const results = await database.select(propsForSelect);
-			await cache.set(req.body.channel + 'chatlog', results);
-			res.send(results);
-		} else {
-			res.send(cachedChatlog);
-		}
+		const propsForSelect = {
+			table: 'chatlog',
+			query: {
+				channel: req.body.channel,
+				timestamp: {
+					$gte: (req.body.timestampStart * 1000),
+					$lte: (req.body.timestampEnd  * 1000)
+				}
+			}
+		};
+		const results = await database.select(propsForSelect);
+		await cache.set(req.body.channel + 'chatlog' + req.body.timestampStart + req.body.timestampEnd, results);
+		res.send(results);
 	});
 
 	app.post('/getmusicstatus', async (req, res) => {
@@ -262,32 +263,36 @@ async function setupRoutes() {
 	app.post('/dashboardstats', async (req, res) => {
 		const cachedStats = await cache.get(req.body.channel + 'stats');
 		if (cachedStats === undefined) {
-			let propsForCount;
-			propsForCount = {
-				table: 'songs',
-				query: {channel: req.body.channel}
-			};
-			const numberOfSongs = await database.count(propsForCount);
+			try {
+				let propsForCount;
+				propsForCount = {
+					table: 'songs',
+					query: {channel: req.body.channel}
+				};
+				const numberOfSongs = await database.count(propsForCount);
 
-			const propsForSelect = {
-				table: 'chatmessages',
-				query: {channel: req.body.channel}
-			};
-			const numberOfChatMessages = await database.select(propsForSelect);
+				const propsForSelect = {
+					table: 'chatmessages',
+					query: {channel: req.body.channel}
+				};
+				const numberOfChatMessages = await database.select(propsForSelect);
 
-			propsForCount = {
-				table: 'commands',
-				query: {channel: req.body.channel}
-			};
-			const numberOfCommands = await database.count(propsForCount);
+				propsForCount = {
+					table: 'commands',
+					query: {channel: req.body.channel}
+				};
+				const numberOfCommands = await database.count(propsForCount);
 
-			propsForCount = {
-				table: 'chatusers',
-				query: {channel: req.body.channel}
-			};
-			const numberOfChatUsers = await database.count(propsForCount);
-			await cache.set(req.body.channel + 'stats', [numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers], 300);
-			res.send([numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers]);
+				propsForCount = {
+					table: 'chatusers',
+					query: {channel: req.body.channel}
+				};
+				const numberOfChatUsers = await database.count(propsForCount);
+				await cache.set(req.body.channel + 'stats', [numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers], 300);
+				res.send([numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers]);
+			} catch (err) {
+				res.send('no stats');
+			}
 		} else {
 			res.send(cachedStats);
 		}

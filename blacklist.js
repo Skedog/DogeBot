@@ -34,6 +34,7 @@ class Blacklist {
 		if (props.messageParams[2] === 'current') {
 			return this.addcurrent(props);
 		}
+		props.ignoreMessageParamsForUserString = true;
 		props.messageParams.splice(0, 2);
 		const searchTerm = props.messageParams.join(' ');
 		props.songToAdd = searchTerm;
@@ -74,6 +75,7 @@ class Blacklist {
 	}
 
 	async delete(props) {
+		props.ignoreMessageParamsForUserString = true;
 		props.messageParams.splice(0, 2);
 		const searchTerm = props.messageParams.join(' ');
 		props.songToAdd = searchTerm;

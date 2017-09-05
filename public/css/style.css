@@ -88,7 +88,7 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 	color: #fff!important;
 	/*display: none;*/
 	z-index:11;
-	position: fixed;
+	position: absolute;
 	margin-left: 20px;
 }
 .navbar-inverse .navbar-nav>li>a {
@@ -581,20 +581,28 @@ table.datatable thead th {
 	chatlog
    ========================================================================== */
 
-.chatlog-box {
+.chatlogs {
 	border:3px solid rgba(14, 45, 60, 0.7);
 	width:80%;
 	padding:20px;
+	max-height:calc(100vh - 300px);
+	overflow-y:auto;
 }
-.chatlog-box .date {
+.chatlogs .date {
 	display: block;
 	float:left;
 	margin:0 10px 0 0;
 }
-.chatlog-box .displayName {
+.chatlogs .displayName {
 	display: block;
 	float:left;
 	margin:0 10px 0 0;
+}
+
+.chat-search label span {margin-right: 10px;}
+.chat-search label span i {margin-left: 10px;}
+.chat-search input[type="date"] {
+	line-height: inherit;
 }
 
 /* =============================================================================
@@ -787,7 +795,7 @@ table.dataTable {
 		display: block;
 		margin-left: 20px;
 		z-index:11;
-		position: fixed;
+		position: absolute;
 		color:#fff!important;
 	}
 	.navbar-inverse .navbar-brand {
