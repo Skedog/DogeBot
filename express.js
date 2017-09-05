@@ -88,6 +88,12 @@ async function setupRoutes() {
 		res.redirect('/logout');
 	});
 
+	app.get('/chatlog/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
+		next();
+	}, (req, res) => {
+		res.redirect('/logout');
+	});
+
 	app.get('/songcache/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
 		next();
 	}, (req, res) => {
@@ -205,6 +211,21 @@ async function setupRoutes() {
 			res.send(results);
 		} else {
 			res.send(cachedCache);
+		}
+	});
+
+	app.post('/getchatlogs', async (req, res) => {
+		const cachedChatlog = await cache.get(req.body.channel + 'chatlog');
+		if (cachedChatlog === undefined) {
+			const propsForSelect = {
+				table: 'chatlog',
+				query: {channel: req.body.channel}
+			};
+			const results = await database.select(propsForSelect);
+			await cache.set(req.body.channel + 'chatlog', results);
+			res.send(results);
+		} else {
+			res.send(cachedChatlog);
 		}
 	});
 

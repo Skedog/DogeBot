@@ -486,7 +486,6 @@ body.home .navbar-inverse .navbar-brand {
 	float:left;
 	width:45%;
 	padding:30px 60px;
-	background:rgba(12, 33, 51, 0.8);
 	border:3px solid rgba(14, 45, 60, 0.7);
 	margin:10px;
 }
@@ -576,6 +575,26 @@ table.datatable thead th {
 }
 .error p {
 	font-size:2em;
+}
+
+/* =============================================================================
+	chatlog
+   ========================================================================== */
+
+.chatlog-box {
+	border:3px solid rgba(14, 45, 60, 0.7);
+	width:80%;
+	padding:20px;
+}
+.chatlog-box .date {
+	display: block;
+	float:left;
+	margin:0 10px 0 0;
+}
+.chatlog-box .displayName {
+	display: block;
+	float:left;
+	margin:0 10px 0 0;
 }
 
 /* =============================================================================

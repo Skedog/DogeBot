@@ -204,3 +204,42 @@ function debounce(func, wait, immediate) {
 		if (callNow) func.apply(context, args);
 	}
 }
+
+async function getChatlogs(data) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/getchatlogs',
+		data: data,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
+
+async function loadChatlogs(data,page) {
+	let dataToReturn = '';
+	let chatlogs;
+	chatlogs = await getChatlogs(data);
+	if (chatlogs != '') {
+		$.each(chatlogs, function(key, value) {
+			const d = new Date(parseInt(chatlogs[key].userstate['sent-ts'], 10));
+			const localDate = d.toLocaleString();
+			const displayName = chatlogs[key].userstate['display-name'];
+			const username = chatlogs[key].userstate.username;
+			const color = chatlogs[key].userstate.color;
+			const message = chatlogs[key].message;
+			dataToReturn += '<div class="chat-message">';
+			 	dataToReturn += '<span class="date">' + localDate + '</span>';
+			 	if (displayName) {
+			 		dataToReturn += '<span class="displayName" style="color:' + color + '">' + displayName + ':</span>';
+			 	} else {
+			 		dataToReturn += '<span class="displayName" style="color:' + color + '">' + username + ':</span>';
+			 	}
+			 	dataToReturn += '<span class="message">' + message + '</span>';
+			 dataToReturn += '</div>';
+		});
+	};
+	return dataToReturn;
+}

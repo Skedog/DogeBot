@@ -89,6 +89,7 @@ async function joinSingleChannel(channelToJoin) {
 
 function monitorChat() {
 	twitchClient.on('chat', (channel, userstate, message, self) => {
+		stats.addChatMessage(channel, userstate, message);
 		if (!self && message.startsWith('!')) {
 			const props = {
 				channel,

@@ -1,4 +1,5 @@
 const database = require('./database.js');
+const cache = require('./cache.js');
 
 class Stats {
 
@@ -85,6 +86,15 @@ class Stats {
 		} else {
 			await this.addTrackedUser(props);
 		}
+	}
+
+	async addChatMessage(channel, userstate, message) {
+		const propsForAdd = {
+			table: 'chatlog',
+			dataToUse: {channel: channel, userstate: userstate, message: message}
+		};
+		await cache.del(channel + 'chatlog');
+		await database.add(propsForAdd);
 	}
 }
 
