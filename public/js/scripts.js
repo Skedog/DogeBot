@@ -4,6 +4,8 @@ const getUrl = window.location;
 const urlUser = URLSplit[2];
 
 let userDetails = decodeURIComponent(readCookie("userDetails")).split(',');
+const channelName = getChannelName(urlUser);
+const channelData = buildChannelDataString(channelName);
 // If user is logged in
 if (typeof userDetails[2] != 'undefined') {
 	$.ajax({
@@ -11,6 +13,7 @@ if (typeof userDetails[2] != 'undefined') {
 		type: 'GET',
 		success: function(data) {
 			$('.navbar-nav').html(data);
+			getChannelStatus();
 		}
 	});
 	if (page != 'logout') {
@@ -45,8 +48,14 @@ if (typeof userDetails[2] != 'undefined') {
 	}, 100);
 };
 
-const channelName = getChannelName(urlUser);
-const channelData = buildChannelDataString(channelName);
+async function getChannelStatus() {
+	let inChannel = await checkIfInChannel(channelName);
+	if (inChannel) {
+		$('.botStatusBtn').text('Leave Channel');
+	} else {
+		$('.botStatusBtn').text('Join Channel');
+	};
+}
 
 async function startPageLoad(cookieChannel) {
 	let channelName = await getChannelName(cookieChannel);
@@ -92,13 +101,8 @@ function changeNavIconState(itemToChange) {
 }
 
 async function init() {
-	let inChannel = await checkIfInChannel(channelName);
-	if (inChannel) {
-		$('.botStatusBtn').text('Leave Channel');
-	} else {
-		$('.botStatusBtn').text('Join Channel');
-	};
 	let socketURL;
+	await getChannelStatus();
 	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL,page,channelData);
 	if (!page || page == 'login'|| page == 'logout') {
