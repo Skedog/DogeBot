@@ -2,6 +2,7 @@ const http = require('http');
 const path = require('path');
 const express = require('express');
 const doT = require('express-dot');
+const subdomain = require('express-subdomain');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const request = require('async-request');
@@ -14,6 +15,7 @@ const cache = require('./cache.js');
 const twitch = require('./twitch.js');
 
 const app = express();
+const router = express.Router();
 const server = http.createServer(app);
 const port = process.env.PORT ? process.env.PORT : 3000;
 let dbConstants;
@@ -31,6 +33,7 @@ function setupApp() {
 	app.set('views', path.join(__dirname, '/views'));
 	app.set('view engine', 'dot');
 	app.engine('html', doT.__express);
+	app.use(subdomain('docs', router));
 	app.use('/css', express.static(path.join(__dirname, '/public/css')));
 	app.use('/img', express.static(path.join(__dirname, '/public/img')));
 	app.use('/js', express.static(path.join(__dirname, '/public/js')));
@@ -512,6 +515,20 @@ async function setupRoutes() {
 			error: {}
 		});
 	});
+
+	// Documentation routes
+	router.get('/', async (req, res) => {
+		res.render('getting-started.html', {layout: false});
+	});
+
+	router.get('/default-commands', async (req, res) => {
+		res.render('default-commands.html', {layout: false});
+	});
+
+	router.get('/docnav', async (req, res) => {
+		res.render('docnav.html', {layout: false});
+	});
+
 }
 
 module.exports.server = server;

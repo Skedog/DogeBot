@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>SkedogBot</title>
+		<link href="/css/style.css" rel="stylesheet"/>
+		<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,700|Poppins:400,500,600,700" rel="stylesheet">
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+		<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+		<script src="/js/jquery.js"></script>
+		<!--<script src="/js/bootstrap.js"></script>-->
+		<script src="/js/datatables.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/js/socket.js"></script>
+		<script src="/js/song-functions.js"></script>
+		<script src="/js/command-functions.js"></script>
+		<script src="/js/functions.js"></script>
+		<script src="/js/scripts.js"></script>
+		<script src="/js/pace.js"></script>
+	</head>
+	<body class="documentation home">
+		<div class="navbar navbar-inverse navbar-top" role="navigation">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<!-- <a href="#" class="navstatus blue-styled-button mini">Toggle Nav</a> -->
+				<a href="#" class="navstatus blue-styled-button mini"><i class="fa fa-bars"></i></a>
+				<a class="navbar-brand dont-hide" href="/">Skedog<span class="blue-highlight">Bot</span> Docs</a>
+			</div>
+		</div>
+		<div class="left-bar-container"></div>
+		<div class="documentation-wrapper">
+			<section class="content">
+				<h1><i class="fa fa-magic"></i> Default Commands</h1>
+				<div class="link-container">
+					<ul>
+						<li><code>!8ball</code> - Returns a random '8-Ball' type of message</li>
+						<li><code>!bf4stats</code> <code>username</code> <code>platform (pc/xbox/ps3/xone/ps4)</code> - Returns <code>username</code>'s rank, k/d and full stats link</li>
+						<li><code>!blacklist</code> - Returns a link to the song blacklist for the channel
+							<ul>
+								<li><code>add</code> <code>song</code> - Adds <code>song</code> to the blacklist</li>
+								<li><code>add</code> <code>current</code> - Adds the current playing song to the blacklist and skips the song</li>
+								<li><code>delete</code> <code>song</code> - Removes <code>song</code> from the blacklist</li>
+							</ul>
+						</li>
+						<li><code>!commands</code> - Returns a link to the user added commands for the channel
+							<ul>
+								<li><code>add</code> <code>!command</code> <code>text</code> - Adds <code>!command</code> to the channel</li>
+								<li><code>addalias</code> <code>!newcommand</code> <code>!commandtoalias</code> - Adds <code>!newcommand</code> as an alias for <code>!commandtoalias</code></li>
+								<li><code>edit</code> <code>!command</code> <code>command text</code> - Edits <code>!command</code> to contain <code>command text</code></li>
+								<li><code>permissions</code> <code>!command</code> <code>0 - 4</code> - Sets the needed permission level for the given <code>!command</code></li>
+								<li><code>delete</code> <code>!command</code> - Removes <code>!command</code></li>
+							</ul>
+						</li>
+						<li><code>!currentsong</code> - Returns the currently playing song</li>
+						<li><code>!firstseen</code> <code>username</code> - Returns when <code>username</code> was first seen in the channel</li>
+						<li><code>!followage</code> <code>username</code> - Returns how long <code>username</code> has been following the channel</li>
+						<li><code>!game</code> - Returns the game currently being played on the channel</li>
+						<li><code>!lastseen</code> <code>username</code> - Returns when <code>username</code> was first seen in the channel</li>
+						<li><code>!pause</code> - Pauses the music</li>
+						<li><code>!play</code> - Plays the music</li>
+						<li><code>!playlistrequest</code> <code>playlist</code> - Allows users to request <code>x</code> amount of songs from a YouTube playlist. Can be a URL or playlistID.</li>
+						<li><code>!promote</code> <code>queue position</code> - Promotes <code>queue position</code> to be the next song played</li>
+						<li><code>!regulars</code> - Used to add and remove regulars from the channel
+							<ul>
+								<li><code>add</code> <code>username</code> - Add <code>username</code> as a regular for the channel</li>
+								<li><code>delete</code> <code>username</code> - Deletes <code>username</code> as a regular for the channel</li>
+							</ul>
+						</li>
+						<li><code>!removesongs</code> <code>queue position or username</code>: Removes song by queue position or all songs by <code>username</code>.</li>
+						<li><code>!shuffle</code> - Shuffles all songs in the song queue</li>
+						<li><code>!skipsong</code> - Skips the currently playing song</li>
+						<li><code>!songcache</code> - Keeps a record of all songs that have been requested, and doesn't allow the same songs to be repeated within <code>x</code> time frame.</li>
+						<li><code>!songlist</code> - Returns the list of songs in the queue</li>
+						<li><code>!songrequest</code> <code>song</code> - Adds the <code>song</code> to the song list. Can be a URL, videoID, or song title.</li>
+						<li><code>!uptime</code> - Returns the uptime</li>
+						<li><code>!viewers</code> - Returns the current number of viewers</li>
+						<li><code>!volume</code> - Returns the volume for the currently playing song</li>
+						<li><code>!winner</code> - Returns a random user from the viewer list as a 'winner'</li>
+						<li><code>!wrongsong</code> - Removes the last song requested by the user calling the command.</li>
+					</ul>
+				</div>
+			</section>
+		</div>
+		<script type="text/javascript">
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+				(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+				m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+			ga('create', 'UA-105813556-1', 'auto');
+			ga('send', 'pageview');
+		</script>
+	</body>
+</html>

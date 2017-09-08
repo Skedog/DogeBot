@@ -537,6 +537,10 @@ express-dot@^0.1.0:
     async ">= 0.1.22"
     dot ">= 0.2.6"
 
+express-subdomain@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/express-subdomain/-/express-subdomain-1.0.5.tgz#990ef97940b7f4c2823d9593648b79be858a638b"
+
 express@^4.14.1:
   version "4.15.4"
   resolved "https://registry.yarnpkg.com/express/-/express-4.15.4.tgz#032e2253489cf8fce02666beca3d11ed7a2daed1"

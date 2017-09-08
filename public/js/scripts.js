@@ -36,13 +36,27 @@ if (typeof userDetails[2] != 'undefined') {
 		});
 	}
 } else {
-	$.ajax({
-		url: '/nav',
-		type: 'GET',
-		success: function(data) {
-			$('.navbar-nav').html(data);
-		}
-	});
+	if (window.location.href.includes('docs.')) {
+		$.ajax({
+			url: '/docnav',
+			type: 'GET',
+			success: function(data) {
+				$('.left-bar-container').html(data);
+				$('.doc-nav h4 a').click(function(e) {
+					e.preventDefault();
+					changeNavIconState($(this).parent().next());
+				});
+			}
+		});
+	} else {
+		$.ajax({
+			url: '/nav',
+			type: 'GET',
+			success: function(data) {
+				$('.navbar-nav').html(data);
+			}
+		});
+	}
 	setTimeout(function() {
 		$('.inner-content-wrapper').width('100%');
 	}, 100);
