@@ -42,10 +42,21 @@ if (typeof userDetails[2] != 'undefined') {
 			type: 'GET',
 			success: function(data) {
 				$('.left-bar-container').html(data);
+				$('.doc-nav h4 a i').each(function(index, el) {
+					if ($(this).hasClass('fa-plus')) {
+						$(this).parent().parent().next().hide();
+					}
+				});
 				$('.doc-nav h4 a').click(function(e) {
 					e.preventDefault();
 					changeNavIconState($(this).parent().next());
 				});
+				if (page == '') {
+					setNavShowingSection('getting-started');
+				} else {
+					setNavShowingSection(page);
+				}
+				$('body').addClass('documentation');
 			}
 		});
 	} else {
@@ -56,10 +67,10 @@ if (typeof userDetails[2] != 'undefined') {
 				$('.navbar-nav').html(data);
 			}
 		});
+		setTimeout(function() {
+			$('.inner-content-wrapper').width('100%');
+		}, 100);
 	}
-	setTimeout(function() {
-		$('.inner-content-wrapper').width('100%');
-	}, 100);
 };
 
 async function getChannelStatus() {
@@ -97,6 +108,15 @@ function setNavShowingSection(page) {
 			$(this).addClass('current-page');
 		}
 	});
+	$('.left-bar .doc-nav ul li a').each(function(index, el) {
+		if (($(this).attr('href') == '/' && page == 'getting-started') || '/' + page == $(this).attr('href')) {
+			if ($(this).parent().parent().is(":hidden")) {
+				changeNavIconState($(this).parent().parent());
+				changedOne = true;
+			};
+			$(this).addClass('current-page');
+		}
+	})
 	if (!changedOne) {
 		changeNavIconState($('.left-bar .main-nav ul:first-of-type'));
 	}
@@ -119,7 +139,7 @@ async function init() {
 	await getChannelStatus();
 	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL,page,channelData);
-	if (!page || page == 'login'|| page == 'logout') {
+	if (!page || page == 'login' || page == 'logout' || page == 'default-commands') {
 		$('body').addClass('home');
 	};
 	$('body').on('click', '.botStatusBtn', async function(e) {

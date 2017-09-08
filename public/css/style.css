@@ -716,11 +716,11 @@ section.content h1 {
 .documentation-wrapper {
 	margin-top: 75px;
 }
-.documentation-wrapper li {
+.link-container li {
 	margin-top: 15px;
 }
 
-.documentation-wrapper code {
+.link-container code {
 	background:#154671;
 	color:#fff;
 	margin-right: 5px;
@@ -728,16 +728,15 @@ section.content h1 {
 }
 
 body.documentation .navbar {
-	position: fixed;
+	position: relative;
 	float:none;
 	z-index:12;
 }
 
-body.documentation .left-bar {
-	position: fixed;
+/*body.documentation .left-bar {
+	position: relative;
 	float:left;
-	margin-top: 50px;
-}
+}*/
 
 body.documentation .left-bar .doc-nav {
 	/*margin-top: 40px;*/

@@ -518,11 +518,11 @@ async function setupRoutes() {
 
 	// Documentation routes
 	router.get('/', async (req, res) => {
-		res.render('getting-started.html', {layout: false});
+		res.render('getting-started.html');
 	});
 
 	router.get('/default-commands', async (req, res) => {
-		res.render('default-commands.html', {layout: false});
+		res.render('default-commands.html');
 	});
 
 	router.get('/docnav', async (req, res) => {
