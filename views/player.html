@@ -57,7 +57,11 @@ async function loadPlayer() {
 		});
 		songlist = await loadFormattedSonglist(channelData,'player');
 		if (songlist) {
-			dataTableStartSize = '5';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
 		} else {
 			$('.datatable tbody').hide();

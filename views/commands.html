@@ -24,7 +24,11 @@
 		const commandsData = await getCommands(channelName);
 		if (commandsData) {
 			hideLoader($('.commandssection'));
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(commandsData,'.datatable',dataTableStartSize);
 		} else {
 			$('.datatable tbody').hide();

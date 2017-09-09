@@ -22,7 +22,11 @@
 		const songCache = await loadFormattedSongCache(channelData);
 		if (songCache) {
 			hideLoader($('.nosongs'));
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(songCache,'.datatable',dataTableStartSize);
 		} else {
 			$('.nosongs').html("Currently no songs in the queue!");

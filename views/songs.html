@@ -23,7 +23,11 @@
 		let songlist = await loadFormattedSonglist(channelData,'');
 		if (songlist) {
 			hideLoader($('.nosongs'));
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
 		} else {
 			$('.nosongs').html("Currently no songs in the queue!");

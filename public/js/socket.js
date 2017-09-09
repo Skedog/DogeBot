@@ -39,7 +39,11 @@ async function handleSkippedSocket(data, page, channelData) {
 	if (page == 'songs' || page == 'player' || page == 'moderation' || page == 'mobile') {
 		const songlist = await loadFormattedSonglist(channelData,page);
 		if (songlist) {
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
 			$('.nosongs').hide();
 			const currentVolume = await getVolume(channelData);
@@ -91,7 +95,11 @@ async function handleSonglistChangeSocket(data, page, channelData) {
 	if (page == 'songs' || page == 'player' || page == 'moderation' || page == 'mobile') {
 		const songlist = await loadFormattedSonglist(channelData,page);
 		if (songlist) {
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			if ($('.datatable').length) {
 				buildDataTable(songlist,'.datatable',dataTableStartSize);
 			};
@@ -123,7 +131,11 @@ async function handleBlacklistChangeSocket(data, page, channelData) {
 	if (page == 'blacklist') {
 		const blacklist = await loadFormattedSongBlacklist(channelData,page);
 		if (blacklist) {
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			if ($('.datatable').length) {
 				buildDataTable(blacklist,'.datatable',dataTableStartSize);
 			};
@@ -140,7 +152,11 @@ async function handleCommandChangeSocket(data, page, channelData) {
 	if (page == 'commands') {
 		let commandsData = await getCommands(channelName);
 		if (commandsData) {
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(commandsData,'.datatable',dataTableStartSize);
 		} else {
 			$('.datatable tbody').hide();

@@ -64,7 +64,11 @@
 		};
 
 		if (songlist) {
-			dataTableStartSize = '25';
+			if (readCookie(page)) {
+				dataTableStartSize = readCookie(page);
+			} else {
+				dataTableStartSize = '25';
+			}
 			buildDataTable(songlist,'.datatable',dataTableStartSize);
 			$('.nosongs').hide();
 		} else {

@@ -104,16 +104,20 @@ function buildChannelDataString(channelName) {
 }
 
 function buildDataTable(passedData,elementToUse,startSize) {
+	$('.datatable').on('length.dt', function(e, settings, len) {
+		document.cookie = page + '=' + len;
+	});
 	$('.datatable').DataTable().destroy();
 	$(elementToUse + ' tbody').html(passedData);
 	const numberOfTDs = $(elementToUse + ' tbody tr:first > td').length;
-	if (startSize == '5') {
+	if (startSize === '-1') {
 		$(elementToUse).DataTable({
-			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]]
+			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]]
 		});
 	} else {
 		$(elementToUse).DataTable({
-			"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
+			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
+			'pageLength': startSize
 		});
 	}
 	/*if (startSize == '25') {
