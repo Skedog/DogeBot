@@ -713,7 +713,7 @@ class Songs {
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['added']);
 			return await this.buildMessageToSendForAddSong(props) + '!';
 		} catch (err) {
-			console.log(err);
+			return await functions.buildUserString(props) + err;
 		}
 	}
 
