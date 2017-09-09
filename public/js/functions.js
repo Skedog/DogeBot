@@ -117,7 +117,7 @@ function buildDataTable(passedData,elementToUse,startSize) {
 	} else {
 		$(elementToUse).DataTable({
 			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
-			'pageLength': startSize
+			'pageLength': parseInt(startSize, 10)
 		});
 	}
 	/*if (startSize == '25') {

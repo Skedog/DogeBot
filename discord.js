@@ -73,7 +73,7 @@ async function callCommandFromDiscord(props) {
 				let messageToSend = results[0].chatmessage;
 				messageToSend = props.messageSplit[1] ?
 					messageToSend.replace('$(touser)', props.messageSplit[1]).replace('$(user)', props.messageSplit[1]) :
-					messageToSend.replace('$(touser)', props.message.author).replace('$(user)', props.message.author);
+					messageToSend.replace('$(touser)', props.message.author).replace('$(user)', props.message.author).replace('&apos;','\'');
 				props.messageChannel.send(messageToSend);
 			}
 		}
