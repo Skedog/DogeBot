@@ -139,7 +139,7 @@ async function init() {
 	await getChannelStatus();
 	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL,page,channelData);
-	if (!page || page == 'login' || page == 'logout' || page == 'default-commands') {
+	if (!page || page == 'login' || page == 'logout' || page == 'default-commands' || page == 'privacy-policy') {
 		$('body').addClass('home');
 	};
 	$('body').on('click', '.botStatusBtn', async function(e) {

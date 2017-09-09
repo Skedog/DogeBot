@@ -935,6 +935,10 @@ table.dataTable {
 	.container {
 		/*width: 70%;*/
 	}
+
+	.policy-container {
+		width:100%;
+	}
 }
 @media screen and (max-width:885px) {
 	.moderation-songlist {
