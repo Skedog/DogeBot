@@ -88,7 +88,7 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 	color: #fff!important;
 	/*display: none;*/
 	z-index:11;
-	position: absolute;
+	position: fixed;
 	margin-left: 20px;
 }
 .navbar-inverse .navbar-nav>li>a {
@@ -732,7 +732,7 @@ section.content h1 {
 }
 
 body.documentation .navbar {
-	position: relative;
+	/*position: relative;*/
 	float:none;
 	z-index:12;
 }
@@ -741,6 +741,18 @@ body.documentation .navbar {
 	position: relative;
 	float:left;
 }*/
+
+body.documentation .navstatus {
+	z-index:50!important;
+	display: block!important;
+}
+
+body.documentation .left-bar {
+	padding-top: 50px;
+}
+body.documentation section.content {
+	padding-top: 70px;
+}
 
 body.documentation .left-bar .doc-nav {
 	/*margin-top: 40px;*/
@@ -882,6 +894,9 @@ table.dataTable {
 	.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form {
 		border:none!important;
 		box-shadow: none!important;
+	}
+	.navbar-inverse .navbar-brand {
+		position: absolute;
 	}
 	.navbar a.navstatus {
 		margin-top: 9px;
