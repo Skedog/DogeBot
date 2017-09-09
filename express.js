@@ -15,7 +15,7 @@ const cache = require('./cache.js');
 const twitch = require('./twitch.js');
 
 const app = express();
-const router = express.Router();
+const router = express.router();
 const server = http.createServer(app);
 const port = process.env.PORT ? process.env.PORT : 3000;
 let dbConstants;
@@ -532,7 +532,6 @@ async function setupRoutes() {
 	router.get('/docnav', async (req, res) => {
 		res.render('docnav.html', {layout: false});
 	});
-
 }
 
 module.exports.server = server;

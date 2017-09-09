@@ -742,11 +742,6 @@ body.documentation .navbar {
 	float:left;
 }*/
 
-body.documentation .navstatus {
-	z-index:50!important;
-	display: block!important;
-}
-
 body.documentation .left-bar {
 	padding-top: 50px;
 }
@@ -888,6 +883,10 @@ table.dataTable {
 	/*.container {
 		width: 85%;
 	}*/
+	body.documentation .navstatus {
+		z-index:50!important;
+		display: block!important;
+	}
 	.left-bar {
 		transform:translate(-285px,0);
 	}

@@ -47,14 +47,14 @@ class API {
 		let propsForSelect = {
 			table: 'channels',
 			query: {ChannelName: props.channel}
-		}
+		};
 		const results = await database.select(propsForSelect);
 		if (results) {
 			const twitchUserID = results[0].twitchUserID;
 			propsForSelect = {
 				table: 'sessions',
-				query: {twitchUserID: twitchUserID}
-			}
+				query: {twitchUserID}
+			};
 			const res = await database.select(propsForSelect);
 			if (res) {
 				return res[0].token;
