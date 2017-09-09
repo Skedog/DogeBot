@@ -49,6 +49,17 @@ class Songs {
 		return functions.buildUserString(props) + msgToSend;
 	}
 
+	async lastSong(props) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName: props.channel}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return functions.buildUserString(props) + 'The last song was "' + results[0].lastSong + '"';
+		}
+	}
+
 	async currentSongID(props) {
 		const propsForSelect = {
 			table: 'songs',
@@ -156,6 +167,7 @@ class Songs {
 			await database.delete(propsForDelete);
 			dataToUse = {};
 			dataToUse.tempSortVal = 199999;
+			dataToUse.lastSong = songTitle;
 			propsForUpdate = {
 				table: 'channels',
 				query: {ChannelName: props.channel},

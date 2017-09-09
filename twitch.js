@@ -322,7 +322,9 @@ function getCurrentChatUsers(channel) {
 async function start() {
 	try {
 		if (constants.testMode) {
-			log.info('***************Starting in test mode***************');
+			log.info('*********************');
+			log.info('Starting in test mode');
+			log.info('*********************');
 		}
 		await connectToTwitch();
 		monitorChat();

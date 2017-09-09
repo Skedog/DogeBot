@@ -78,6 +78,9 @@ class Chat {
 				case '!song':
 				case '!cs':
 					return await songs.currentSong(props);
+				case '!lastsong':
+				case '!previoussong':
+					return await songs.lastSong(props);
 				case '!volume':
 					return await songs.callVolume(props);
 				case '!play':
