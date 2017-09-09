@@ -525,6 +525,10 @@ async function setupRoutes() {
 		res.render('default-commands.html');
 	});
 
+	router.get('/privacy-policy', async (req, res) => {
+		res.render('privacy.html');
+	});
+
 	router.get('/docnav', async (req, res) => {
 		res.render('docnav.html', {layout: false});
 	});

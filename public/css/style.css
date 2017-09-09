@@ -694,6 +694,10 @@ table.datatable thead th {
 	documentation
    ========================================================================== */
 
+.policy-container {
+	width:60%;
+}
+
 .documentation-wrapper {
 	color: #fff;
 	float: none;
