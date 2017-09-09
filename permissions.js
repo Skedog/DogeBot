@@ -29,6 +29,12 @@ class Permissions {
 			if (sentCommand === '!volume' && !functions.isNumber(modifier)) {
 				return 0;
 			}
+			if (sentCommand === '!game' && modifier === undefined) {
+				return 0;
+			}
+			if (sentCommand === '!title' && modifier === undefined) {
+				return 0;
+			}
 			for (const channelPermission of results[0].permissionsPerChannel) {
 				if (channelPermission.channel === props.channel) {
 					return channelPermission.permissionLevel;

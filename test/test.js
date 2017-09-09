@@ -121,7 +121,13 @@ it('test !followage', async function() {
 it('test !game', async function() {
 	props.messageParams = ['!game'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The current game is Battlefield 4!');
+	expect(res).to.have.string('current game is');
+});
+
+it('test !title', async function() {
+	props.messageParams = ['!title'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('The title is');
 });
 
 it('test !viewers', async function() {
@@ -365,6 +371,20 @@ it('test !unmute', async function() {
 	props.messageParams = ['!unmute'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('has been unmuted');
+});
+
+it('test !game Battlefield 4', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!game','Battlefield','4'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been updated');
+});
+
+it('test !title testeroni', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!title','testeroni'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been updated');
 });
 
 // - - - - - - PERMISSIONS FUNCTIONS - - - - - - - -//

@@ -53,6 +53,8 @@ class Chat {
 					return await api.followage(props);
 				case '!game':
 					return await api.game(props);
+				case '!title':
+					return await api.title(props);
 				case '!viewers':
 					return await api.viewers(props);
 				case '!winner':

@@ -43,13 +43,86 @@ class API {
 		}
 	}
 
+	async getUserOAuthToken(props) {
+		let propsForSelect = {
+			table: 'channels',
+			query: {ChannelName: props.channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			const twitchUserID = results[0].twitchUserID;
+			propsForSelect = {
+				table: 'sessions',
+				query: {twitchUserID: twitchUserID}
+			}
+			const res = await database.select(propsForSelect);
+			if (res) {
+				return res[0].token;
+			}
+		}
+	}
+
 	async game(props) {
 		const dbConstants = await database.constants();
-		const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchTestClientID;
-		const twitchAPIRequest = await request(URLtoUse);
-		const currentGame = JSON.parse(twitchAPIRequest.body).game;
-		if (currentGame) {
-			return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
+		if (props.messageParams[1]) {
+			props.ignoreMessageParamsForUserString = true;
+			const newGame = props.messageParams.slice(1, props.messageParams.length).join(' ');
+			const token = await this.getUserOAuthToken(props);
+			const updateData = request.defaults({
+				method: 'PUT',
+				headers: {
+					Authorization: 'OAuth ' + token,
+					'Client-ID': dbConstants.twitchClientID
+				},
+				data: {
+					'channel[game]': newGame
+				}
+			});
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1);
+			const twitchAPIRequest = await updateData(URLtoUse);
+			const updatedGame = JSON.parse(twitchAPIRequest.body).game;
+			if (updatedGame) {
+				return functions.buildUserString(props) + 'The current game has been updated to ' + newGame + '!';
+			}
+		} else {
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID;
+			const twitchAPIRequest = await request(URLtoUse);
+			const currentGame = JSON.parse(twitchAPIRequest.body).game;
+			if (currentGame) {
+				return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
+			}
+		}
+	}
+
+	async title(props) {
+		const dbConstants = await database.constants();
+		if (props.messageParams[1]) {
+			props.ignoreMessageParamsForUserString = true;
+			const newTitle = props.messageParams.slice(1, props.messageParams.length).join(' ');
+			const token = await this.getUserOAuthToken(props);
+			const updateData = request.defaults({
+				method: 'PUT',
+				headers: {
+					Authorization: 'OAuth ' + token,
+					'Client-ID': dbConstants.twitchClientID
+				},
+				data: {
+					'channel[status]': newTitle
+				}
+			});
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1);
+			const twitchAPIRequest = await updateData(URLtoUse);
+			const updatedGame = JSON.parse(twitchAPIRequest.body).game;
+			if (updatedGame) {
+				return functions.buildUserString(props) + 'The title has been updated to ' + newTitle + '!';
+			}
+		} else {
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID;
+			const twitchAPIRequest = await request(URLtoUse);
+			const currentTitle = JSON.parse(twitchAPIRequest.body).status;
+			if (currentTitle) {
+				return functions.buildUserString(props) + 'The title is ' + currentTitle + '!';
+			}
 		}
 	}
 
