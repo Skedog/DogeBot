@@ -15,7 +15,7 @@ const cache = require('./cache.js');
 const twitch = require('./twitch.js');
 
 const app = express();
-const router = express.router();
+const router = express.Router();
 const server = http.createServer(app);
 const port = process.env.PORT ? process.env.PORT : 3000;
 let dbConstants;
