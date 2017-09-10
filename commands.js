@@ -107,7 +107,7 @@ class Commands {
 			dataToUse.chatmessage = messageToAdd;
 			const propsForUpdate = {
 				table: 'commands',
-				query: {channel: props.channel, trigger: props.messageParams[2]},
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
 				dataToUse
 			};
 			await database.update(propsForUpdate);
@@ -123,7 +123,7 @@ class Commands {
 		if (commandExistence) {
 			const propsForDelete = {
 				table: 'commands',
-				query: {channel: props.channel, trigger: props.messageParams[2]}
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()}
 			};
 			await database.delete(propsForDelete);
 			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['deleted']);
@@ -136,7 +136,7 @@ class Commands {
 		props.ignoreMessageParamsForUserString = true;
 		let propsForSelect = {
 			table: 'commands',
-			query: {channel: props.channel, trigger: props.messageParams[2]}
+			query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()}
 		};
 		let results = await database.select(propsForSelect);
 		if (results) {
@@ -149,7 +149,7 @@ class Commands {
 					dataToUse.permissionsLevel = permissionLevelToSet;
 					const propsForUpdate = {
 						table: 'commands',
-						query: {channel: props.channel, trigger: props.messageParams[2]},
+						query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
 						dataToUse
 					};
 					await database.update(propsForUpdate);
@@ -161,7 +161,7 @@ class Commands {
 			// Select from default commands
 			propsForSelect = {
 				table: 'defaultCommands',
-				query: {trigger: props.messageParams[2]}
+				query: {trigger: props.messageParams[2].toLowerCase()}
 			};
 			results = await database.select(propsForSelect);
 			if (results) {
@@ -203,13 +203,15 @@ class Commands {
 	}
 
 	async doesUserAddedCommandExist(props) {
-		const propsForSelect = {
-			table: 'commands',
-			query: {channel: props.channel, trigger: props.messageParams[2]}
-		};
-		const res = await database.select(propsForSelect);
-		if (res) {
-			return true;
+		if (props.messageParams[2]) {
+			const propsForSelect = {
+				table: 'commands',
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()}
+			};
+			const res = await database.select(propsForSelect);
+			if (res) {
+				return true;
+			}
 		}
 		return false;
 	}
