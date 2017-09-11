@@ -11,6 +11,7 @@
 	</div>
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script src="https://unpkg.com/twitch-emoji@^0.2.0/dist/twitchemoji.min.js"></script>
 <script>
 	async function startChatlog() {
 		showLoader($('.chatlog-box'));
@@ -21,6 +22,7 @@
 	startChatlog();
 
 	$('#chat-date').change(async function(e) {
+		showLoader($('.chatlog-box'));
 		let chatlogs = await loadChatlogs(channelData, 'chatlog', (new Date($(this).val() + 'T00:00:00')));
 		$('.chatlog-box').html(chatlogs);
 	});

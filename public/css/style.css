@@ -599,11 +599,17 @@ table.datatable thead th {
 	margin:0 10px 0 0;
 }
 
+.badges img {
+	margin-right: 5px;
+}
+
 .chat-search label span {margin-right: 10px;}
 .chat-search label span i {margin-left: 10px;}
 .chat-search input[type="date"] {
 	line-height: inherit;
 }
+
+.chat-message img {max-height:21px;}
 
 /* =============================================================================
 	moderation

@@ -226,6 +226,39 @@ async function getChatlogs(data, dateStart, dateEnd) {
 	return dataToReturn;
 }
 
+async function getBTTVChannelEmotes(data) {
+	const channel = data.replace('#', '').replace('channel=', '');
+	let dataToReturn;
+	await $.ajax({
+		url: 'https://api.betterttv.net/2/channels/' + channel,
+		type: 'GET',
+		success: function(data) {
+			dataToReturn = data.emotes;
+		}
+	});
+	return dataToReturn;
+}
+
+async function getBTTVGlobalEmotes() {
+	let dataToReturn;
+	await $.ajax({
+		url: 'https://api.betterttv.net/2/emotes',
+		type: 'GET',
+		success: function(data) {
+			dataToReturn = data.emotes;
+		}
+	});
+	return dataToReturn;
+}
+
+function parseBTTVemotes(message, channelEmotes, globalEmotes) {
+	const fullEmoteList = channelEmotes.concat(globalEmotes);
+	for (const emote of fullEmoteList) {
+		message = message.replace(emote.code, '<img src="https://cdn.betterttv.net/emote/' + emote.id + '/1x" alt="' + emote.code + '" title="' + emote.code + '" />');
+	}
+	return message;
+}
+
 Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
 
 Date.prototype.toDateInputValue = (function() {
@@ -242,26 +275,48 @@ async function loadChatlogs(data,page,date) {
 	let dataToReturn = '';
 	let chatlogs;
 	chatlogs = await getChatlogs(data,dateStart,dateEnd);
+	const bttvChannelEmotes = await getBTTVChannelEmotes(data);
+	const bttvGlobalEmotes = await getBTTVGlobalEmotes();
 	if (chatlogs != '') {
 		dataToReturn = '<div class="chatlogs">';
-		$.each(chatlogs, function(key, value) {
+		$.each(chatlogs, async function(key, value) {
 			const d = chatlogs[key].timestamp;
 			const localTestDate = new Date(d).toLocaleString();
 			const displayName = chatlogs[key].userstate['display-name'];
 			const username = chatlogs[key].userstate.username;
 			let color = chatlogs[key].userstate.color;
+			let badges = chatlogs[key].userstate.badges;
+			let parsedBadges = '';
+			if (badges) {
+				if (badges.broadcaster) {
+					parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1" alt="Broadcaster" title="Broadcaster" />'
+				}
+				if (badges.moderator) {
+					parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1" alt="Moderator" title="Moderator" />'
+				}
+				if (badges.subscriber === "0") {
+					parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1" alt="Subscriber" title="Subscriber" />'
+				}
+			}
 			if (!color) {
 				color = '#428bca'
 			}
-			const message = chatlogs[key].message;
+			const message = twitchEmoji.parse(chatlogs[key].message, {emojiSize: 'small'});
+			const doneMessage = parseBTTVemotes(message, bttvChannelEmotes, bttvGlobalEmotes);
 			dataToReturn += '<div class="chat-message">';
 				dataToReturn += '<span class="date">' + localTestDate + '</span>';
 				if (displayName) {
-					dataToReturn += '<span class="displayName" style="color:' + color + '">' + displayName + ':</span>';
+					dataToReturn += '<span class="displayName">';
+					 	dataToReturn += '<span class="badges">' + parsedBadges + '</span>';
+					 	dataToReturn += '<a href="https://twitch.tv/' + displayName + '" style="color:' + color + '" target="_blank">' + displayName + ':</a>';
+					dataToReturn += '</span>';
 				} else {
-					dataToReturn += '<span class="displayName" style="color:' + color + '">' + username + ':</span>';
+					dataToReturn += '<span class="displayName">';
+					 dataToReturn += '<span class="badges">' + parsedBadges + '</span>';
+						dataToReturn += '<a href="https://twitch.tv/' + username + '" style="color:' + color + '" target="_blank">' + username + ':</a>';
+					dataToReturn += '</span>';
 				}
-				dataToReturn += '<span class="message">' + message + '</span>';
+				dataToReturn += '<span class="message">' + doneMessage + '</span>';
 			dataToReturn += '</div>';
 		});
 		dataToReturn += '</div>';
