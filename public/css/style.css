@@ -267,7 +267,7 @@ table.dataTable {
 	overflow-y: auto;
 	padding: 0 20px;
 	height: 90%;
-	max-height: calc(100vh - 300px);
+	max-height: calc(100vh - 175px);
 }
 table.dataTable tbody tr {
 	font-size: 13px;

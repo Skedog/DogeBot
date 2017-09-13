@@ -83,6 +83,7 @@ async function handleLogin(props) {
 		dataToUse.songNumberLimit = 10; // How many songs per user
 		dataToUse.duplicateSongDelay = 20; // Stored in hours - hours before allowing duplicate song
 		dataToUse.isSilent = false;
+		dataToUse.ChannelCountry = 'US';
 		dataToUse.timedMessages = [];
 		const propsForAdd = {
 			table: 'channels',

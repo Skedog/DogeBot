@@ -7,6 +7,7 @@
 				<label for="duplicateSongDelay"><span>Duplicate song delay (hours): </span><input type="text" name="duplicateSongDelay" id="duplicateSongDelay" /></label>
 				<label for="songNumberLimit"><span>Songs per user (count): </span><input type="text" name="songNumberLimit" id="songNumberLimit" /></label>
 				<label for="maxSongLength"><span>Max song length (minutes): </span><input type="text" name="maxSongLength" id="maxSongLength" /></label>
+				<label for="channelCountry"><span>Country Code (<a href="http://www.nationsonline.org/oneworld/country_code_list.htm" target="_blank">2 letters</a>): </span><input type="text" name="channelCountry" id="channelCountry" maxlength="2" /></label>
 				<input type="submit" name="submit" value="Submit" class="blue-styled-button" />
 				<div class="messagesFromBot"></div>
 			</form>
@@ -24,6 +25,7 @@ $.ajax({
 		$('#duplicateSongDelay').val(data[0].duplicateSongDelay);
 		$('#songNumberLimit').val(data[0].songNumberLimit);
 		$('#maxSongLength').val(data[0].maxSongLength);
+		$('#channelCountry').val(data[0].ChannelCountry);
 	}
 });
 let failedField = false;
@@ -41,6 +43,7 @@ $('#settings').submit(function(e) {
 	const duplicateSongDelay = $('#duplicateSongDelay').val();
 	const songNumberLimit = $('#songNumberLimit').val();
 	const maxSongLength = $('#maxSongLength').val();
+	const channelCountry = $('#channelCountry').val();
 	$('#settings').children('label').children('input[type="text"]').each(function(){
 		try {
 			validateSettingsField($(this));
@@ -50,7 +53,8 @@ $('#settings').submit(function(e) {
 		};
 	});
 	if (!failedField) {
-		const data = channelData + '&duplicateSongDelay=' + duplicateSongDelay + '&songNumberLimit=' + songNumberLimit + '&maxSongLength=' + maxSongLength;
+		const data = channelData + '&duplicateSongDelay=' + duplicateSongDelay + '&songNumberLimit=' + songNumberLimit + '&maxSongLength=' + maxSongLength + '&channelCountry=' + channelCountry;
+		console.log(data);
 		$.ajax({
 			url: '/updatesettings',
 			data: data,
@@ -78,7 +82,10 @@ function validateSettingsField(fieldToCheck) {
 			reject('failed check');
 		}
 	}
-	if (!validator.isNumeric(fieldToCheck.val())) {
+	if (fieldToCheck.is('#channelCountry')) {
+		fieldToCheck.val(fieldToCheck.val().toUpperCase());
+	}
+	if (!fieldToCheck.is('#channelCountry') && !validator.isNumeric(fieldToCheck.val())) {
 		fieldToCheck.css({
 			'background-color':'#ff5252'
 		});

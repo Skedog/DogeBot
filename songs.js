@@ -491,12 +491,23 @@ class Songs {
 		}
 	}
 
-	checkCountryRestrictions(props) {
-		if (props.YTData[0].allowedRegions && props.YTData[0].allowedRegions.length !== 0) {
-			if (props.YTData[0].allowedRegions.includes('US')) {
-				return 'good';
+	async getChannelCountry(channel) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName: channel}
+		}
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return results[0].ChannelCountry;
+		}
+	}
+
+	async checkCountryRestrictions(props) {
+		if (props.YTData[0].blockedRegions && props.YTData[0].blockedRegions.length !== 0) {
+			const channelCountry = await this.getChannelCountry(props.channel);
+			if (props.YTData[0].blockedRegions.includes(channelCountry)) {
+				throw 'failed countryCheck';
 			}
-			throw 'failed countryCheck';
 		}
 		return 'good';
 	}
@@ -544,6 +555,9 @@ class Songs {
 		if (results) {
 			const dataToUse = {};
 			dataToUse.whenRequested = currentdate;
+			if (props.YTData[0].fromYoutube) {
+				dataToUse.lastYoutubeDate = currentdate;
+			}
 			const propsForUpdate = {
 				table: 'songcache',
 				query: {channel: props.channel, songID: props.dataToAdd.songID},
@@ -566,9 +580,12 @@ class Songs {
 		dataToAdd.songID = props.YTData[0].songID;
 		dataToAdd.songTitle = props.YTData[0].songTitle;
 		dataToAdd.songLength = props.YTData[0].songLength;
+		dataToAdd.allowedRegions = props.YTData[0].allowedRegions;
+		dataToAdd.blockedRegions = props.YTData[0].blockedRegions;
 		dataToAdd.whoRequested = props.userstate['display-name'];
 		dataToAdd.channel = props.channel;
 		dataToAdd.whenRequested = currentdate;
+		dataToAdd.lastYoutubeDate = currentdate;
 		const newSongSortOrder = await this.getNewSongSortOrder(props);
 		dataToAdd.sortOrder = newSongSortOrder;
 		props.dataToAdd = dataToAdd;
@@ -597,6 +614,8 @@ class Songs {
 		dataToAdd.songID = props.YTData[0].songID;
 		dataToAdd.songTitle = props.YTData[0].songTitle;
 		dataToAdd.songLength = props.YTData[0].songLength;
+		dataToAdd.allowedRegions = props.YTData[0].allowedRegions;
+		dataToAdd.blockedRegions = props.YTData[0].blockedRegions;
 		dataToAdd.whoRequested = props.userstate['display-name'];
 		dataToAdd.channel = props.channel;
 		dataToAdd.whenRequested = currentdate;
@@ -802,20 +821,28 @@ class Songs {
 			// This would mean that the title may not match if it gets updated
 			const propsForCacheSelect = {
 				table: 'songcache',
-				query: {songID: props.songToAdd}
+				query: {songID: props.songToAdd, channel: props.channel}
 			};
 			const resultsFromCache = await database.select(propsForCacheSelect);
 			if (resultsFromCache) {
 				// Only pull cache results if they are less than a month old
 				const currentDateMinus30 = new Date(new Date().getTime() + (-30 * 24 * 60 * 60 * 1000));
-				if (resultsFromCache[0].whenRequested > currentDateMinus30) {
-					return [{
+				if (resultsFromCache[0].lastYoutubeDate > currentDateMinus30) {
+					const propsForReturn = [{
 						songID: props.songToAdd,
 						songTitle: resultsFromCache[0].songTitle,
 						songLength: resultsFromCache[0].songLength,
 						isEmbeddable: true,
-						allowedRegions: []
+						allowedRegions: [],
+						blockedRegions: []
 					}];
+					if (resultsFromCache[0].allowedRegions) {
+						propsForReturn.allowedRegions = resultsFromCache[0].allowedRegions;
+					}
+					if (resultsFromCache[0].blockedRegions) {
+						propsForReturn.blockedRegions = resultsFromCache[0].blockedRegions;
+					}
+					return propsForReturn;
 				}
 			}
 			// Song not in cache, get info from YouTube instead
@@ -827,17 +854,25 @@ class Songs {
 					const isEmbeddable = result.items[0].status.embeddable;
 					const videoLength = result.items[0].contentDetails.duration;
 					let allowedRegions;
-					if (result.items[0].contentDetails.regionRestriction) {
+					let blockedRegions;
+					if (result.items[0].contentDetails.regionRestriction.allowed) {
 						allowedRegions = result.items[0].contentDetails.regionRestriction.allowed;
 					} else {
 						allowedRegions = [];
+					}
+					if (result.items[0].contentDetails.regionRestriction.blocked) {
+						blockedRegions = result.items[0].contentDetails.regionRestriction.blocked;
+					} else {
+						blockedRegions = [];
 					}
 					return [{
 						songID: props.songToAdd,
 						songTitle: videoTitle,
 						songLength: videoLength,
 						isEmbeddable,
-						allowedRegions
+						allowedRegions,
+						blockedRegions,
+						fromYoutube: true
 					}];
 				}
 			}
@@ -972,13 +1007,13 @@ class Songs {
 		}
 		if (props.unavailableInCountry) {
 			if (props.numberOfSongsRequested === 1 && props.unavailableInCountry === 1) {
-				msgArray.push('The song ' + props.YTData[0].songTitle + ' is unavailable for playback in: ' + channelDefaultCountry);
+				msgArray.push('The song ' + props.YTData[0].songTitle + ' is unavailable for playback in your country');
 			}
 			if (props.numberOfSongsRequested > 1 && props.unavailableInCountry === 1) {
-				msgArray.push(props.unavailableInCountry + ' song was unavailable for playback in: ' + channelDefaultCountry);
+				msgArray.push(props.unavailableInCountry + ' song was unavailable for playback in your country');
 			}
 			if (props.unavailableInCountry > 1) {
-				msgArray.push(props.unavailableInCountry + ' songs were unavailable for playback in: ' + channelDefaultCountry);
+				msgArray.push(props.unavailableInCountry + ' songs were unavailable for playback in your country');
 			}
 		}
 		if (props.numberOfFailedEmbed) {

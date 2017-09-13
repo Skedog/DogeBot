@@ -353,6 +353,7 @@ async function setupRoutes() {
 			dataToUse.duplicateSongDelay = parseInt(req.body.duplicateSongDelay, 10);
 			dataToUse.songNumberLimit = parseInt(req.body.songNumberLimit, 10);
 			dataToUse.maxSongLength = parseInt(req.body.maxSongLength, 10);
+			dataToUse.ChannelCountry = req.body.channelCountry;
 			const propsForUpdate = {
 				table: 'channels',
 				query: {ChannelName: req.body.channel},
