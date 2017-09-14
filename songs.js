@@ -853,17 +853,15 @@ class Songs {
 					const videoTitle = result.items[0].snippet.title;
 					const isEmbeddable = result.items[0].status.embeddable;
 					const videoLength = result.items[0].contentDetails.duration;
-					let allowedRegions;
-					let blockedRegions;
-					if (result.items[0].contentDetails.regionRestriction.allowed) {
-						allowedRegions = result.items[0].contentDetails.regionRestriction.allowed;
-					} else {
-						allowedRegions = [];
-					}
-					if (result.items[0].contentDetails.regionRestriction.blocked) {
-						blockedRegions = result.items[0].contentDetails.regionRestriction.blocked;
-					} else {
-						blockedRegions = [];
+					let allowedRegions = [];
+					let blockedRegions = [];
+					if (result.items[0].contentDetails.hasOwnProperty('regionRestriction')) {
+						if (result.items[0].contentDetails.regionRestriction.hasOwnProperty('allowed')) {
+							allowedRegions = result.items[0].contentDetails.regionRestriction.allowed;
+						}
+						if (result.items[0].contentDetails.regionRestriction.hasOwnProperty('block')) {
+							blockedRegions = result.items[0].contentDetails.regionRestriction.blocked;
+						}
 					}
 					return [{
 						songID: props.songToAdd,
