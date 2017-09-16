@@ -1,6 +1,6 @@
-const objectId = require('mongodb').ObjectId;
 const http = require('http');
 const path = require('path');
+const objectId = require('mongodb').ObjectId;
 const express = require('express');
 const doT = require('express-dot');
 const subdomain = require('express-subdomain');
@@ -265,7 +265,7 @@ async function setupRoutes() {
 			table: 'notifications',
 			query: {_id: objectId(req.body.id)}
 		};
-		let results = await database.select(propsForSelect);
+		const results = await database.select(propsForSelect);
 		if (results) {
 			const originalExclusionList = results[0].exclusionList;
 			originalExclusionList.push(req.body.channel);

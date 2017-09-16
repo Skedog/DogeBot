@@ -495,7 +495,7 @@ class Songs {
 		const propsForSelect = {
 			table: 'channels',
 			query: {ChannelName: channel}
-		}
+		};
 		const results = await database.select(propsForSelect);
 		if (results) {
 			return results[0].ChannelCountry;
@@ -508,6 +508,13 @@ class Songs {
 			if (props.YTData[0].blockedRegions.includes(channelCountry)) {
 				throw 'failed countryCheck';
 			}
+		}
+		if (props.YTData[0].allowedRegions && props.YTData[0].allowedRegions.length !== 0) {
+			const channelCountry = await this.getChannelCountry(props.channel);
+			if (props.YTData[0].allowedRegions.includes(channelCountry)) {
+				return 'good';
+			}
+			throw 'failed countryCheck';
 		}
 		return 'good';
 	}
@@ -855,12 +862,13 @@ class Songs {
 					const videoLength = result.items[0].contentDetails.duration;
 					let allowedRegions = [];
 					let blockedRegions = [];
-					if (result.items[0].contentDetails.hasOwnProperty('regionRestriction')) {
-						if (result.items[0].contentDetails.regionRestriction.hasOwnProperty('allowed')) {
-							allowedRegions = result.items[0].contentDetails.regionRestriction.allowed;
+					const contentDetails = result.items[0].contentDetails;
+					if (Object.prototype.hasOwnProperty.call(contentDetails, 'regionRestriction')) {
+						if (Object.prototype.hasOwnProperty.call(contentDetails.regionRestriction, 'allowed')) {
+							allowedRegions = contentDetails.regionRestriction.allowed;
 						}
-						if (result.items[0].contentDetails.regionRestriction.hasOwnProperty('block')) {
-							blockedRegions = result.items[0].contentDetails.regionRestriction.blocked;
+						if (Object.prototype.hasOwnProperty.call(contentDetails.regionRestriction, 'blocked')) {
+							blockedRegions = contentDetails.regionRestriction.blocked;
 						}
 					}
 					return [{
@@ -951,7 +959,6 @@ class Songs {
 	}
 
 	getFailedMessages(props) {
-		const channelDefaultCountry = 'US';
 		const msgArray = [];
 		if (props.numberOfTooSoon) {
 			if (props.numberOfSongsRequested === 1 && props.numberOfTooSoon === 1) {

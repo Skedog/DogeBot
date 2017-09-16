@@ -234,11 +234,6 @@ async function callCommandFromWhisper(props) {
 			break;
 		case '!notify':
 			if (props.messageParams[1]) {
-				const propsForNotify = {
-					twitchClient: props.twitchClient,
-					userstate: props.userstate,
-					isWhisper: true
-				};
 				const dataToUse = {};
 				dataToUse.message = props.messageParams.slice(1, props.messageParams.length).join(' ');
 				dataToUse.exclusionList = [];
@@ -250,7 +245,7 @@ async function callCommandFromWhisper(props) {
 				const propsForSelect = {
 					table: 'notifications',
 					query: {message: dataToUse.message}
-				}
+				};
 				await database.add(propsForAdd);
 				const results = await database.select(propsForSelect);
 				socket.emit('notification', [dataToUse.message, results[0]._id]);

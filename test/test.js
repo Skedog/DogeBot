@@ -241,7 +241,7 @@ it('test !sr multi fails', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!sr', '8i-tonOhzSg,3pKGYqCK5yg,Jwux_c8cIQ8,z--CnoHrkds,KX8U8guRLSk,KX8U8guRlSk,kqUpnHEdjn0'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in: US, 1 song was not allowed to be embedded, and 1 ID was invalid!');
+	expect(res).to.have.string('@skedogbot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in your country, 1 song was not allowed to be embedded, and 1 ID was invalid!');
 });
 
 it('test !sr multi all get added', async function() {
