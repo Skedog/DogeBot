@@ -149,7 +149,7 @@ async function loadDashboard(channelData) {
 		data: channelData,
 		type: 'POST',
 		success: function(data) {
-			if (data) {
+			if (data.length === 5) {
 				temp = '<div class="topchatters">';
 					temp = temp + '<h3>Top Chatters</h3>';
 					temp = temp + '<p>1) ' + data[0].userName + ' - ' + data[0].numberOfChatMessages + ' messages</p>';
