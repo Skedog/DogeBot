@@ -229,7 +229,7 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 	min-width: 160px;
 	box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
 	padding: 14px 16px;
-	z-index: 1;
+	z-index: 11;
 	right: 0;
 }
 .dropdown-content li {
@@ -697,6 +697,79 @@ table.datatable thead th {
 }
 
 /* =============================================================================
+	notifications
+   ========================================================================== */
+
+.notifications-link a {
+	font-size:20px;
+}
+.navbar-inverse .navbar-nav>li.notifications-link>a:hover, .navbar-inverse .navbar-nav>li.notifications-link>a:focus {
+	background:none;
+}
+.notifications-div {
+	display: none;
+}
+.notifications-div {
+	position: absolute;
+	right:20px;
+	background:#154671;
+	top:50px;
+	padding:0;
+	border:3px solid rgb(63, 130, 187);
+	color:#fff;
+	font-size:13px;
+	z-index:10;
+}
+.notifications-div ul {
+	list-style-type: none;
+	margin-left: 0;
+	padding-left: 0;
+	width:300px;
+}
+.notifications-div li a {
+	padding:5px 16px;
+	text-align: left;
+	display: block;
+	color:#fff;
+	border-bottom:1px solid rgb(63, 130, 187);
+}
+.notifications-div li a:hover {
+	text-decoration: none;
+	background:#1B5689;
+}
+.notifications-div h3 {
+	margin: 0;
+	font-size:20px;
+	border-bottom:1px solid rgb(63, 130, 187);
+	padding:10px 16px;
+}
+
+.notifications-div span.close {
+	margin-top:-5px;
+	/*position:absolute;
+	top:0;
+	right:0;*/
+	/*top: 50%;
+	right:0;
+  	transform: translateY(-50%);*/
+  	/*margin-top:10px;*/
+  	background:none;
+  	border:none;
+}
+.notification-counter {
+	position: absolute;
+	right:5px;
+	bottom:7px;
+	color:#fff;
+	/*display: none;*/
+}
+
+.notifications p {
+	text-align: center;
+	margin:10px 0;
+}
+
+/* =============================================================================
 	documentation
    ========================================================================== */
 
@@ -794,6 +867,10 @@ body.documentation .left-bar .doc-nav ul li a.current-page {
 }
 body.documentation .left-bar .doc-nav ul li a.current-page i {
 	color: #fff;
+}
+
+body.documentation blockquote {
+	font-size:14px;
 }
 
 /* =============================================================================

@@ -139,7 +139,7 @@ async function init() {
 	await getChannelStatus();
 	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL,page,channelData);
-	if (!page || page == 'login' || page == 'logout' || page == 'default-commands' || page == 'privacy-policy') {
+	if (!page || page == 'login' || page == 'logout' || getUrl.host.includes('docs.')) {
 		$('body').addClass('home');
 	};
 	$('body').on('click', '.botStatusBtn', async function(e) {
@@ -185,5 +185,63 @@ async function init() {
 			});
 		};
 	});
+
+	$('html').click(function() {
+		$('.notifications-div').hide();
+	});
+
+	$('.notifications-link a').click(function(e) {
+		e.stopPropagation();
+		$('.notifications-div').toggle();
+	});
+
+	$('body').on('click', '.notifications a', async function(e) {
+		e.stopPropagation();
+	});
+
+	// setTimeout(function() {
+	// 	$('.notifications-link .notification-counter').toggle();
+	// }, 2000);
+
+	setupNotificationPanel();
+
 }
 init();
+
+function toggleClass() {
+	if ($('.notifications-link i').hasClass('fa-bell-o')) {
+		$('.notifications-link i').removeClass('fa-bell-o');
+		$('.notifications-link i').addClass('fa-bell');
+	} else {
+		$('.notifications-link i').removeClass('fa-bell');
+		$('.notifications-link i').addClass('fa-bell-o');
+	}
+}
+
+async function setupNotificationPanel() {
+	const channel = userDetails[2];
+	const notifications = await getNotifications();
+	for (const notification of notifications) {
+		if (!notification.exclusionList.includes(channel)) {
+			$('ul.notifications').append('<li><a href="#"><span class="close" id="' + notification._id + '"><i class="fa fa-times"></i></span>' + notification.message + '</a></li>');
+		}
+	};
+	if ($('.notifications li').length === 0) {
+		$('.notifications').html('<p>Currently no notifications</p>');
+	}
+	$('body').on('click', '.notifications .close', async function(e) {
+		e.stopPropagation();
+		const idToRemove = $(this).attr('id');
+		e.preventDefault();
+		const notificationRemoved = await removeNotification(channel, idToRemove);
+		if (notificationRemoved === 'removed') {
+			$(this).parent().parent().remove();
+			$('.notifications-link .notification-counter').html($('.notifications li').length);
+			if ($('.notifications li').length === 0) {
+				$('.notifications').html('<p>Currently no notifications</p>');
+			}
+		}
+	});
+	$('.notifications-link .notification-counter').html($('.notifications li').length);
+	/*const notificationInterval = setInterval(toggleClass, 1000);*/
+}

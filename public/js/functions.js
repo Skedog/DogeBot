@@ -184,7 +184,7 @@ async function loadDashboard(channelData) {
 					temp = temp + '</div>';
 					temp = temp + '<div class="statbox">';
 						temp = temp + '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</h3>';
-						temp = temp + '<p># of Chat Messages Seen</p>';
+						temp = temp + '<p># of <a href="/chatlog">Chat Messages</a> Seen</p>';
 					temp = temp + '</div>';
 				temp = temp + '</div>';
 				dataToReturn = dataToReturn + temp;
@@ -228,14 +228,18 @@ async function getChatlogs(data, dateStart, dateEnd) {
 
 async function getBTTVChannelEmotes(data) {
 	const channel = data.replace('#', '').replace('channel=', '');
-	let dataToReturn;
-	await $.ajax({
-		url: 'https://api.betterttv.net/2/channels/' + channel,
-		type: 'GET',
-		success: function(data) {
-			dataToReturn = data.emotes;
-		}
-	});
+	let dataToReturn = '';
+	try {
+		await $.ajax({
+			url: 'https://api.betterttv.net/2/channels/' + channel,
+			type: 'GET',
+			success: function(data) {
+				dataToReturn = data.emotes;
+			}
+		});
+	} catch (err) {
+		return;
+	}
 	return dataToReturn;
 }
 
@@ -251,8 +255,38 @@ async function getBTTVGlobalEmotes() {
 	return dataToReturn;
 }
 
+async function getNotifications() {
+	let dataToReturn;
+	await $.ajax({
+		url: '/getnotifications',
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
+
+async function removeNotification(channel, idToRemove) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/removenotification',
+		data: 'channel=' + channel + '&id=' + idToRemove,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
+
 function parseBTTVemotes(message, channelEmotes, globalEmotes) {
-	const fullEmoteList = channelEmotes.concat(globalEmotes);
+	let fullEmoteList;
+	if (channelEmotes) {
+		fullEmoteList = channelEmotes.concat(globalEmotes);
+	} else {
+		fullEmoteList = globalEmotes;
+	}
 	for (const emote of fullEmoteList) {
 		message = message.replace(emote.code, '<img src="https://cdn.betterttv.net/emote/' + emote.id + '/1x" alt="' + emote.code + '" title="' + emote.code + '" />');
 	}

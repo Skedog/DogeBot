@@ -9,6 +9,7 @@ const chat = require('./chat-commands.js');
 const messages = require('./chat-messages.js');
 const maintenance = require('./maintenance.js');
 const functions = require('./functions.js');
+const socket = require('./socket.js');
 
 let twitchClient;
 
@@ -134,7 +135,7 @@ function monitorChat() {
 
 function monitorWhispers() {
 	twitchClient.on('whisper', (from, userstate, message) => {
-		if (from.toLowerCase() === '#ygtskedogtest' && message.startsWith('!')) {
+		if (from.toLowerCase() === '#ygtskedog' && message.startsWith('!')) {
 			log.info('got a whisper from ' + from + ' that says: ' + message + '.');
 			const props = {
 				from,
@@ -229,6 +230,31 @@ async function callCommandFromWhisper(props) {
 				};
 				propsForUnmute.messageToSend = await messages.unmute(propsForUnmute);
 				messages.send(propsForUnmute);
+			}
+			break;
+		case '!notify':
+			if (props.messageParams[1]) {
+				const propsForNotify = {
+					twitchClient: props.twitchClient,
+					userstate: props.userstate,
+					isWhisper: true
+				};
+				const dataToUse = {};
+				dataToUse.message = props.messageParams.slice(1, props.messageParams.length).join(' ');
+				dataToUse.exclusionList = [];
+				dataToUse.dateSent = new Date();
+				const propsForAdd = {
+					table: 'notifications',
+					dataToUse
+				};
+				const propsForSelect = {
+					table: 'notifications',
+					query: {message: dataToUse.message}
+				}
+				await database.add(propsForAdd);
+				const results = await database.select(propsForSelect);
+				socket.emit('notification', [dataToUse.message, results[0]._id]);
+				props.twitchClient.whisper(props.from, 'Notification sent!');
 			}
 			break;
 		default:

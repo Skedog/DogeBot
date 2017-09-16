@@ -1,3 +1,4 @@
+const objectId = require('mongodb').ObjectId;
 const http = require('http');
 const path = require('path');
 const express = require('express');
@@ -245,6 +246,33 @@ async function setupRoutes() {
 		const results = await expressFunctions.getChannelInfo(req);
 		if (results) {
 			res.send(results);
+		}
+	});
+
+	app.post('/getnotifications', async (req, res) => {
+		const propsForSelect = {
+			table: 'notifications'
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			res.send(results);
+		}
+	});
+
+	app.post('/removenotification', async (req, res) => {
+		const dataToUse = {};
+		const propsForSelect = {
+			table: 'notifications',
+			query: {_id: objectId(req.body.id)}
+		};
+		let results = await database.select(propsForSelect);
+		if (results) {
+			const originalExclusionList = results[0].exclusionList;
+			originalExclusionList.push(req.body.channel);
+			dataToUse.exclusionList = originalExclusionList;
+			propsForSelect.dataToUse = dataToUse;
+			await database.update(propsForSelect);
+			res.send('removed');
 		}
 	});
 
@@ -524,6 +552,14 @@ async function setupRoutes() {
 
 	router.get('/default-commands', async (req, res) => {
 		res.render('default-commands.html');
+	});
+
+	router.get('/commands/8ball', async (req, res) => {
+		res.render('commands/8ball.html');
+	});
+
+	router.get('/commands/bf4stats', async (req, res) => {
+		res.render('commands/bf4stats.html');
 	});
 
 	router.get('/privacy-policy', async (req, res) => {
