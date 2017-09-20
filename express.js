@@ -194,6 +194,7 @@ async function setupRoutes() {
 		if (results) {
 			res.send(results);
 		}
+		res.send('');
 	});
 
 	app.post('/removenotification', async (req, res) => {
