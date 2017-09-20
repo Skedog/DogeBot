@@ -28,6 +28,7 @@
 <script>
 
 async function initMobile() {
+	const channelData = await init($('.urlChannel').text());
 	const songlist = await loadFormattedSonglist(channelData,'');
 	if (songlist) {
 		const currentVolume = await getVolume(channelData);

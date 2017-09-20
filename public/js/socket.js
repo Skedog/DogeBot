@@ -1,6 +1,5 @@
-async function startSocket(socketURL, page, channelData) {
+async function startSocket(socketURL, page, channelData, channelName) {
 
-	const channelName = await getChannelName(passedUser);
 	const socket = io.connect(socketURL);
 
 	socket.on('connect', function(socket2) {
@@ -29,14 +28,14 @@ async function startSocket(socketURL, page, channelData) {
 		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
 			handleCommandChangeSocket(data, page, channelData);
 		}
-	})
+	});
 
 	socket.on('notification', async function(data) {
 		$('.notifications').append('<li><a href="#"><span class="close" id="' + data[1] + '"><i class="fa fa-times"></i></span>' + data[0] + '</a></li>');
 		$('.notifications-link .notification-counter').html($('.notifications li').length);
 		$('.notifications p').remove();
-		const notificationInterval = setInterval(toggleClass, 500);
-	})
+		const notificationInterval = setInterval(flashNotificationBell, 500);
+	});
 };
 
 async function handleSkippedSocket(data, page, channelData) {

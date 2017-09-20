@@ -18,6 +18,7 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
 	async function initSongCache() {
+		const channelData = await init($('.urlChannel').text());
 		showLoader($('.nosongs'));
 		const songCache = await loadFormattedSongCache(channelData);
 		if (songCache) {

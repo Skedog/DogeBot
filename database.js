@@ -117,7 +117,8 @@ class Database {
 			twitchClientID: constants[0].twitchClientID,
 			twitchTestClientID: constants[0].twitchTestClientID,
 			YouTubeAPIKey: constants[0].YouTubeAPIKey,
-			discordAPIKey: constants[0].discordAPIKey
+			discordAPIKey: constants[0].discordAPIKey,
+			sessionKey: constants[0].sessionKey
 		};
 		return dbArray;
 	}

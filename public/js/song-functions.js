@@ -250,7 +250,7 @@ async function loadNextSong() {
 	};
 }
 
-function handlePlayPauseClick(item) {
+function handlePlayPauseClick(item, channelData) {
 	item.click(async function(e) {
 		e.preventDefault();
 		if ($(this).html() == '<i class="fa fa-pause" title="Pause"></i>') {

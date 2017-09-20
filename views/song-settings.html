@@ -17,26 +17,33 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/validator.min.js"></script>
 <script>
-$.ajax({
-	url: '/getsettings',
-	data: channelData,
-	type: 'POST',
-	success: function(data) {
-		$('#duplicateSongDelay').val(data[0].duplicateSongDelay);
-		$('#songNumberLimit').val(data[0].songNumberLimit);
-		$('#maxSongLength').val(data[0].maxSongLength);
-		$('#channelCountry').val(data[0].ChannelCountry);
-	}
-});
-let failedField = false;
-$('#settings').children('label').children('input[type="text"]').keyup(function(e) {
-	try {
-		validateSettingsField($(this));
-		failedField = false;
-	} catch (err) {
-		failedField = true;
-	}
-});
+let channelData;
+async function initSongSettings() {
+	channelData = await init($('.urlChannel').text());
+	$.ajax({
+		url: '/getsettings',
+		data: channelData,
+		type: 'POST',
+		success: function(data) {
+			$('#duplicateSongDelay').val(data[0].duplicateSongDelay);
+			$('#songNumberLimit').val(data[0].songNumberLimit);
+			$('#maxSongLength').val(data[0].maxSongLength);
+			$('#channelCountry').val(data[0].ChannelCountry);
+		}
+	});
+	let failedField = false;
+	$('#settings').children('label').children('input[type="text"]').keyup(function(e) {
+		try {
+			validateSettingsField($(this));
+			failedField = false;
+		} catch (err) {
+			failedField = true;
+		}
+	});
+}
+
+initSongSettings();
+
 
 $('#settings').submit(function(e) {
 	e.preventDefault();
@@ -54,7 +61,6 @@ $('#settings').submit(function(e) {
 	});
 	if (!failedField) {
 		const data = channelData + '&duplicateSongDelay=' + duplicateSongDelay + '&songNumberLimit=' + songNumberLimit + '&maxSongLength=' + maxSongLength + '&channelCountry=' + channelCountry;
-		console.log(data);
 		$.ajax({
 			url: '/updatesettings',
 			data: data,

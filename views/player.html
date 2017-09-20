@@ -41,10 +41,12 @@
 <script src="/js/datatables.js"></script>
 <script>
 let player;
+let channelData;
 
 async function loadPlayer() {
 	let songlist;
 	showLoader($('.nosongs'));
+	channelData = await init($('.urlChannel').text());
 	songlist = await loadSonglist(channelData);
 	hideLoader($('.nosongs'));
 	if (songlist[0] != undefined) {
@@ -91,9 +93,9 @@ function onPlayerStateChange(event) {
 	};
 }
 
-function onYouTubeIframeAPIReady() {
-	loadPlayer();
-	handlePlayPauseClick($('.togglePlay'));
+async function onYouTubeIframeAPIReady() {
+	await loadPlayer();
+	handlePlayPauseClick($('.togglePlay'), channelData);
 	handleVolumeClick($('.volBtn'));
 	handleSkipClick($('.skipBtn'));
 };

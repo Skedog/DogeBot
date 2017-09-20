@@ -86,8 +86,8 @@ function getChannelName(urlUser) {
 		passedUser = urlUser;
 		return urlUser;
 	} else {
-		passedUser = userDetails[2];
-		return userDetails[2];
+		passedUser = $('.loggedInChannelName').text();
+		return $('.loggedInChannelName').text();
 	};
 };
 
@@ -120,20 +120,6 @@ function buildDataTable(passedData,elementToUse,startSize) {
 			'pageLength': parseInt(startSize, 10)
 		});
 	}
-	/*if (startSize == '25') {
-		$(elementToUse).DataTable({
-			"lengthMenu": [[25, 50, -1], [25, 50, "All"]]
-		});
-	} else if (startSize == '5') {
-		$(elementToUse).DataTable({
-			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]]
-		});
-	} else if (startSize == 'All') {
-		$(elementToUse).DataTable({
-			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]],
-			"columns": [{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false },{ "orderable": false }]
-		});
-	}*/
 	$('.songinfo').hide();
 	$(elementToUse).show();
 }

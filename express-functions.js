@@ -1,3 +1,4 @@
+const fs = require('fs-promise');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const twitch = require('./twitch.js');
@@ -10,10 +11,36 @@ function wwwRedirect(req, res, next) {
 	next();
 }
 
+function escapeRegExp(str) {
+	return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+}
+
+async function includeFile(fileToInclude, userDetails, passedChannel) {
+	const tempData = await fs.readFile(fileToInclude, 'utf8');
+	if (userDetails) {
+		return includeFileTemplate(tempData, {
+			channelLogo: userDetails[1] === 'null' ? '/img/default-user-logo.png' : userDetails[1],
+			channelToPass: userDetails[2].slice(1),
+			urlChannel: passedChannel
+		});
+	}
+	return includeFileTemplate(tempData, {urlChannel: passedChannel});
+}
+
+function includeFileTemplate(str, scope) {
+	for (const key in scope) {
+		if (Object.prototype.hasOwnProperty.call(scope, key)) {
+			str = str.replace(new RegExp(escapeRegExp(`{{=it.${key}}}`), 'g'), scope[key]);
+		}
+	}
+	return str;
+}
+
 async function checkUserLoginStatus(req, res, next) {
-	const token = req.cookies.token;
-	if (req.cookies.userDetails) {
-		const userDetails = req.cookies.userDetails.split(',');
+	const token = req.session.token;
+	if (req.session && req.session.userDetails) {
+		// User has a valid session
+		const userDetails = req.session.userDetails.split(',');
 		let twitchUserID = userDetails[3];
 		if (token) {
 			twitchUserID = parseInt(twitchUserID, 10);
@@ -23,23 +50,62 @@ async function checkUserLoginStatus(req, res, next) {
 			};
 			const results = await database.select(propsForSelect);
 			if (results) {
-				const pageToRender = req.originalUrl.slice(1).split('?');
-				if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
-					return res.redirect(req.originalUrl.slice(0, -1));
-				}
-				if (pageToRender[0]) {
-					res.render(pageToRender[0] + '.html');
-				} else {
-					// On homepage, but logged in, redirect to dashboard
-					res.redirect('/dashboard');
-				}
+				await renderLoggedInPage(req, res, userDetails);
 			} else {
-				next();
+				await renderRegularPage(req, res, userDetails);
 			}
 		} else {
-			next();
+			await renderRegularPage(req, res, userDetails);
 		}
 	} else {
+		// User is not logged in
+		await renderRegularPage(req, res, next);
+	}
+}
+
+async function renderLoggedInPage(req, res, userDetails) {
+	const pageToRender = req.originalUrl.slice(1).split('?');
+	if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
+		return res.redirect(req.originalUrl.slice(0, -1));
+	}
+	if (pageToRender[0]) {
+		let passedChannel;
+		let pageToShow;
+		if (req.params.channel) {
+			passedChannel = req.params.channel;
+			const tempPage = pageToRender[0].split('/');
+			pageToShow = tempPage[0].replace('/', '');
+		} else {
+			passedChannel = userDetails[2].slice(1);
+			pageToShow = pageToRender[0];
+		}
+		const nav = await includeFile('./views/loggedinnav.html', userDetails, passedChannel);
+		const leftbar = await includeFile('./views/leftbar.html', userDetails, passedChannel);
+		res.render(pageToShow + '.html', {nav, leftbar});
+	} else {
+		// On homepage, but logged in, redirect to dashboard
+		res.redirect('/dashboard');
+	}
+}
+
+async function renderRegularPage(req, res, next) {
+	// User is NOT logged in
+	const pageToRender = req.originalUrl.slice(1).split('?');
+	if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
+		return res.redirect(req.originalUrl.slice(0, -1));
+	}
+	if (pageToRender[0] && req.params.channel) {
+		const passedChannel = req.params.channel;
+		const tempPage = pageToRender[0].split('/');
+		const pageToShow = tempPage[0].replace('/', '');
+		const nav = await includeFile('./views/nav.html', null, passedChannel);
+		res.render(pageToShow + '.html', {nav, leftbar: ''});
+	} else {
+		if (pageToRender[0]) {
+			// Not logged in, and page is invalid, redirect to homepage
+			res.redirect('/logout');
+		}
+		// On the homepage, render that code
 		next();
 	}
 }
@@ -201,19 +267,9 @@ async function handleLogin(props) {
 	return 'userupdated';
 }
 
-function renderPageWithChannel(req, res, next) {
-	if (req.params.channel) {
-		const templateData = {passedUser: req.params.channel};
-		const pageToRender = req.originalUrl.split('/');
-		res.render(pageToRender[1].replace('/', '') + '.html', templateData);
-	} else {
-		next();
-	}
-}
-
 async function checkModStatus(req) {
-	if (req.cookies.userDetails) {
-		const userDetails = req.cookies.userDetails.split(',');
+	if (req.session.userDetails) {
+		const userDetails = req.session.userDetails.split(',');
 		let channelToCheckMods;
 		if (req.params.channel !== undefined) {
 			channelToCheckMods = req.params.channel; // From URL, never has #
@@ -270,7 +326,7 @@ module.exports = {
 	checkUserLoginStatus,
 	getChannelInfo,
 	handleLogin,
-	renderPageWithChannel,
 	checkModStatus,
-	allowCrossDomain
+	allowCrossDomain,
+	includeFile
 };

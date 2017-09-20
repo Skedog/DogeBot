@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const request = require('async-request');
 const log = require('npmlog');
+const session = require('client-sessions');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const expressFunctions = require('./express-functions.js');
@@ -42,91 +43,63 @@ function setupApp() {
 	app.use(cookieParser());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
+	app.use(session({
+		cookieName: 'session',
+		secret: dbConstants.sessionKey,
+		duration: 600 * 60 * 1000,
+		activeDuration: 5 * 60 * 1000
+	}));
 }
 
 async function setupRoutes() {
 	app.get('/', [expressFunctions.wwwRedirect, expressFunctions.checkUserLoginStatus], async (req, res) => {
 		let templateData;
+		const nav = await expressFunctions.includeFile('./views/nav.html', null, null);
 		if (constants.testMode) {
-			templateData = {title: 'SkedogBot', apiKey: dbConstants.twitchTestClientID, postURL: constants.testPostURL};
+			templateData = {title: 'SkedogBot', apiKey: dbConstants.twitchTestClientID, postURL: constants.testPostURL, nav, leftbar: ''};
 		} else {
-			templateData = {title: 'SkedogBot', apiKey: dbConstants.twitchClientID, postURL: constants.postURL};
+			templateData = {title: 'SkedogBot', apiKey: dbConstants.twitchClientID, postURL: constants.postURL, nav, leftbar: ''};
 		}
 		res.render('index.html', templateData);
 	});
 
 	app.get('/login', async (req, res) => {
 		let templateData;
+		const nav = await expressFunctions.includeFile('./views/nav.html', null, null);
 		if (constants.testMode) {
-			templateData = {title: 'Logging in...', apiKey: dbConstants.twitchTestClientID, postURL: constants.testPostURL};
+			templateData = {title: 'Logging in...', apiKey: dbConstants.twitchTestClientID, postURL: constants.testPostURL, nav, leftbar: ''};
 		} else {
-			templateData = {title: 'Logging in...', apiKey: dbConstants.twitchClientID, postURL: constants.postURL};
+			templateData = {title: 'Logging in...', apiKey: dbConstants.twitchClientID, postURL: constants.postURL, nav, leftbar: ''};
 		}
 		res.render('login.html', templateData);
 	});
 
 	app.get('/logout', (req, res) => {
+		req.session.reset();
 		res.render('logout.html', {title: 'Logging out...'});
 	});
 
-	app.get('/dashboard', [expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
+	const pages = ['dashboard', 'mobile', 'song-settings', 'contact'];
 
-	app.get('/commands/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
+	for (const page in pages) {
+		if (Object.prototype.hasOwnProperty.call(pages, page)) {
+			app.get('/' + pages[page], [expressFunctions.checkUserLoginStatus]);
+		}
+	}
 
-	app.get('/songs/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
+	const pagesThatTakeChannels = ['commands', 'songs', 'blacklist', 'chatlog', 'songcache', 'player'];
 
-	app.get('/blacklist/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
-
-	app.get('/chatlog/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
-
-	app.get('/songcache/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
-
-	app.get('/player/:channel*?', [expressFunctions.renderPageWithChannel, expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
-
-	app.get('/mobile', [expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
-
-	app.get('/song-settings', [expressFunctions.checkUserLoginStatus], async (req, res, next) => {
-		next();
-	}, (req, res) => {
-		res.redirect('/logout');
-	});
+	for (const page in pagesThatTakeChannels) {
+		if (Object.prototype.hasOwnProperty.call(pagesThatTakeChannels, page)) {
+			app.get('/' + pagesThatTakeChannels[page] + '/:channel*?', [expressFunctions.checkUserLoginStatus]);
+		}
+	}
 
 	app.get('/moderation/:channel*?', async (req, res) => {
 		const results = await expressFunctions.checkModStatus(req);
 		if (results) {
-			res.render('moderation.html');
+			const includes = await getIncludes(req);
+			res.render('moderation.html', {nav: includes[0], leftbar: includes[1]});
 		} else {
 			res.redirect('/dashboard');
 		}
@@ -134,44 +107,8 @@ async function setupRoutes() {
 		res.redirect('/logout');
 	});
 
-	app.get('/contact', async (req, res) => {
-		res.render('contact.html', {title: 'Contact'});
-	});
-
 	app.get('/currentsonginfo/:channel*?', (req, res) => {
 		res.render('currentsonginfo.html', {showText: req.query.showText, layout: false});
-	});
-
-	app.get('/nav', async (req, res) => {
-		res.render('nav.html', {layout: false});
-	});
-
-	app.get('/leftbar', async (req, res) => {
-		res.render('leftbar.html', {layout: false});
-	});
-
-	app.get('/loggedinnav', async (req, res) => {
-		let details;
-		if (req.cookies.userDetails) {
-			const userDetails = req.cookies.userDetails.split(',');
-			if (userDetails[1] === 'null') {
-				details = {
-					layout: false,
-					channelLogo: '/img/default-user-logo.png',
-					channelToPass: userDetails[2].substring(1)
-				};
-			} else {
-				details = {
-					layout: false,
-					channelLogo: userDetails[1],
-					channelToPass: userDetails[2].substring(1)
-				};
-			}
-		} else {
-			// Cookie not found, not logged in?
-			res.redirect('/logout');
-		}
-		res.render('loggedinnav.html', details);
 	});
 
 	app.post('/getsonglist', async (req, res) => {
@@ -485,7 +422,7 @@ async function setupRoutes() {
 	app.post('/handlelogin', async (req, res) => {
 		// This whole post request is for handling initial logins
 		const token = req.body.token;
-		res.cookie('token', token, {maxAge: 2629746000}); // Set the token as a cookie
+		req.session.token = token;
 		const getUserDetails = await request('https://api.twitch.tv/kraken/user/?oauth_token=' + token);
 		const body = JSON.parse(getUserDetails.body);
 		const props = {
@@ -497,7 +434,7 @@ async function setupRoutes() {
 		};
 		const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
 		// Set the userDetails as a cookie
-		res.cookie('userDetails', userDetails, {maxAge: 2629746000});
+		req.session.userDetails = userDetails;
 		const returnVal = await expressFunctions.handleLogin(props);
 		res.send(returnVal);
 	});
@@ -533,42 +470,75 @@ async function setupRoutes() {
 		}
 	});
 
-	app.use((req, res) => {
+	app.use(async (req, res) => {
 		const err = new Error('Not Found');
 		err.status = 404;
 		res.status(err.status || 500);
 		log.error(err.status + ' ' + err + ' ' + req.originalUrl);
+		const includes = await getIncludes(req);
 		res.render('error.html', {
 			message: err.message,
 			status: err.status,
-			error: {}
+			error: {},
+			nav: includes[0],
+			leftbar: includes[1]
 		});
 	});
 
 	// Documentation routes
 	router.get('/', async (req, res) => {
-		res.render('getting-started.html');
+		const includes = await getIncludes(req);
+		res.render('getting-started.html', {leftbar: includes[2]});
 	});
 
 	router.get('/default-commands', async (req, res) => {
-		res.render('default-commands.html');
-	});
-
-	router.get('/commands/8ball', async (req, res) => {
-		res.render('commands/8ball.html');
-	});
-
-	router.get('/commands/bf4stats', async (req, res) => {
-		res.render('commands/bf4stats.html');
+		const includes = await getIncludes(req);
+		res.render('default-commands.html', {leftbar: includes[2]});
 	});
 
 	router.get('/privacy-policy', async (req, res) => {
-		res.render('privacy.html');
+		const includes = await getIncludes(req);
+		res.render('privacy.html', {leftbar: includes[2]});
 	});
 
-	router.get('/docnav', async (req, res) => {
-		res.render('docnav.html', {layout: false});
+	router.get('/commands/8ball', async (req, res) => {
+		const includes = await getIncludes(req);
+		res.render('commands/8ball.html', {leftbar: includes[2]});
 	});
+
+	router.get('/commands/bf4stats', async (req, res) => {
+		const includes = await getIncludes(req);
+		res.render('commands/bf4stats.html', {leftbar: includes[2]});
+	});
+}
+
+async function getIncludes(req) {
+	let userDetails = null;
+	let passedChannel = null;
+	let nav;
+	let leftbar;
+	let docnav;
+	if (req.session) {
+		if (req.session.userDetails) {
+			// User is logged in, but got an error page
+			userDetails = req.session.userDetails.split(',');
+		}
+	}
+	if (req.params.channel) {
+		passedChannel = req.params.channel;
+	} else if (userDetails) {
+		passedChannel = userDetails[2].slice(1);
+	}
+	if (userDetails) {
+		nav = await expressFunctions.includeFile('./views/loggedinnav.html', userDetails, passedChannel);
+		leftbar = await expressFunctions.includeFile('./views/leftbar.html', userDetails, passedChannel);
+		docnav = await expressFunctions.includeFile('./views/docnav.html', userDetails, passedChannel);
+	} else {
+		nav = await expressFunctions.includeFile('./views/nav.html', null, null);
+		leftbar = '';
+		docnav = await expressFunctions.includeFile('./views/docnav.html', null, null);
+	}
+	return [nav, leftbar, docnav];
 }
 
 module.exports.server = server;

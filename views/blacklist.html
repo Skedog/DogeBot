@@ -18,7 +18,9 @@
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
+	const channelName = $('.urlChannel').text();
 	async function startSonglist() {
+		const channelData = await init(channelName);
 		showLoader($('.nosongs'));
 		let blacklist = await loadFormattedSongBlacklist(channelData,'blacklist');
 		if (blacklist) {

@@ -13,7 +13,10 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="https://unpkg.com/twitch-emoji@^0.2.0/dist/twitchemoji.min.js"></script>
 <script>
+	let channelData;
+	const channelName = $('.urlChannel').text();
 	async function startChatlog() {
+		channelData = await init(channelName);
 		showLoader($('.chatlog-box'));
 		let chatlogs = await loadChatlogs(channelData, 'chatlog', (new Date));
 		$('.chatlog-box').html(chatlogs);

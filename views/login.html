@@ -9,6 +9,7 @@
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
+const channelData = init('');
 Twitch.init({clientId: '{{=it.apiKey}}'}, function(error, statusInit) {
 	var accesstoken = getUrlVars()["access_token"];
 	if (accesstoken != undefined) {

@@ -20,6 +20,7 @@
 <script>
 	async function startSonglist() {
 		showLoader($('.nosongs'));
+		const channelData = await init($('.urlChannel').text());
 		let songlist = await loadFormattedSonglist(channelData,'');
 		if (songlist) {
 			hideLoader($('.nosongs'));

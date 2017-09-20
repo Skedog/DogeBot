@@ -10,6 +10,7 @@
 </div>
 <script>
 	async function startDashboard() {
+		const channelData = await init($('.urlChannel').text());
 		showLoader($('.dashboard-stats'));
 		let dashboardStats = await loadDashboard(channelData);
 		hideLoader($('.dashboard-stats'));

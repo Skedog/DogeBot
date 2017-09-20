@@ -20,6 +20,8 @@
 <script src="/js/datatables.js"></script>
 <script>
 	async function startCommands() {
+		const channelName = $('.urlChannel').text();
+		channelData = await init(channelName);
 		showLoader($('.commandssection'));
 		const commandsData = await getCommands(channelName);
 		if (commandsData) {

@@ -53,7 +53,7 @@ it('test parseQuery()', function() {
 // - - - - - - DATABASE FUNCTIONS - - - - - - - -//
 
 it('test database.getDbConstants()', function() {
-	assert(Object.keys(dbConstants).length == 5);
+	assert(Object.keys(dbConstants).length == 6);
 });
 
 

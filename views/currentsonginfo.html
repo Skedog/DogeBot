@@ -20,6 +20,7 @@
 $.ajaxSetup({ cache: false });
 
 async function getNewSongInfo() {
+	channelData = await init(URLSplit[2]);
 	const firstSongInQueue = await getFirstSongInQueue(channelData);
 	if (firstSongInQueue) {
 		if ('{{=it.showText}}' == 'true') {
