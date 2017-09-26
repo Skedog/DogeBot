@@ -4,6 +4,8 @@ const permissions = require('./permissions.js');
 const functions = require('./functions.js');
 const socket = require('./socket.js');
 
+const permissionLevels = ['everyone', 'regulars', 'subscribers', 'moderators', 'owner'];
+
 class Commands {
 
 	async call(props) {
@@ -133,61 +135,73 @@ class Commands {
 	}
 
 	async permission(props) {
-		props.ignoreMessageParamsForUserString = true;
-		let propsForSelect = {
-			table: 'commands',
-			query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()}
+		try {
+			props.ignoreMessageParamsForUserString = true;
+			if (!permissionLevels.includes(props.messageParams[3])) {
+				throw new Error('incorrect permission level');
+			}
+			const propsForSelect = {
+				table: 'commands',
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()}
+			};
+			const results = await database.select(propsForSelect);
+			if (results) {
+				props.results = results;
+				return this.setPermissionForUserAddedCommand(props);
+			}
+			return this.setPermissionsForDefaultCommand(props);
+		} catch (err) {
+			return functions.buildUserString(props) + 'Error setting permissions for ' + props.messageParams[2] + ' - the options are ' + permissionLevels.join(', ') + '!';
+		}
+	}
+
+	async setPermissionForUserAddedCommand(props) {
+		const permissionLevelToSet = permissionLevels.indexOf(props.messageParams[3]);
+		const commandPermissionLevelNeeded = props.results[0].permissionsLevel;
+		const userPermissionLevel = await permissions.getUserPermissionLevel(props);
+		if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionLevelNeeded) {
+			const dataToUse = {};
+			dataToUse.permissionsLevel = permissionLevelToSet;
+			const propsForUpdate = {
+				table: 'commands',
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
+				dataToUse
+			};
+			await database.update(propsForUpdate);
+			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
+		}
+	}
+
+	async setPermissionsForDefaultCommand(props) {
+		// Select from default commands
+		const propsForSelect = {
+			table: 'defaultCommands',
+			query: {trigger: props.messageParams[2].toLowerCase()}
 		};
-		let results = await database.select(propsForSelect);
-		if (results) {
-			const permissionLevelToSet = props.messageParams[3];
-			const commandPermissionlevelNeeded = results[0].permissionsLevel;
+		props.results = await database.select(propsForSelect);
+		if (props.results) {
+			const aliasResults = await this.getAliasedDefaultCommand(props, props.results);
+			const permissionLevelToSet = permissionLevels.indexOf(props.messageParams[3]);
+			const arrayOfPermissions = aliasResults[0].permissionsPerChannel;
 			const userPermissionLevel = await permissions.getUserPermissionLevel(props);
-			if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionlevelNeeded) {
-				if (functions.isNumber(permissionLevelToSet)) {
-					const dataToUse = {};
-					dataToUse.permissionsLevel = permissionLevelToSet;
-					const propsForUpdate = {
-						table: 'commands',
-						query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
-						dataToUse
-					};
-					await database.update(propsForUpdate);
-					socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
-					return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
+			let commandPermissionLevelNeeded;
+			for (let x = 0; x < arrayOfPermissions.length; x++) {
+				if (aliasResults[0].permissionsPerChannel[x].channel === props.channel) {
+					commandPermissionLevelNeeded = arrayOfPermissions[x].permissionLevel;
+					break;
 				}
 			}
-		} else {
-			// Select from default commands
-			propsForSelect = {
-				table: 'defaultCommands',
-				query: {trigger: props.messageParams[2].toLowerCase()}
-			};
-			results = await database.select(propsForSelect);
-			if (results) {
-				const aliasResults = await this.getAliasedDefaultCommand(props, results);
-				const permissionLevelToSet = props.messageParams[3];
-				const arrayOfPermissions = aliasResults[0].permissionsPerChannel;
-				const userPermissionLevel = await permissions.getUserPermissionLevel(props);
-				let commandPermissionlevelNeeded;
-				for (let x = 0; x < arrayOfPermissions.length; x++) {
-					if (aliasResults[0].permissionsPerChannel[x].channel === props.channel) {
-						commandPermissionlevelNeeded = arrayOfPermissions[x].permissionLevel;
-						break;
-					}
-				}
-				if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionlevelNeeded) {
-					const propsForUpdate = {
-						table: 'defaultCommands',
-						query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
-						dataToUse: {'permissionsPerChannel.$.permissionLevel': permissionLevelToSet}
-					};
-					results = await database.update(propsForUpdate);
-					return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
-				}
+			if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionLevelNeeded) {
+				const propsForUpdate = {
+					table: 'defaultCommands',
+					query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
+					dataToUse: {'permissionsPerChannel.$.permissionLevel': permissionLevelToSet}
+				};
+				props.results = await database.update(propsForUpdate);
+				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
 			}
 		}
-		return functions.buildUserString(props) + 'Error setting permissions for ' + props.messageParams[2] + '!';
 	}
 
 	async getAliasedDefaultCommand(props, results) {
