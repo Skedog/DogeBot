@@ -1,0 +1,102 @@
+<div class="inner-content-wrapper">
+	<section class="content">
+		<h1><i class="fa fa-magic"></i> !commands</h1>
+		<div class="link-container">
+			<p>The !commands command returns a link to the user added commands for the channel and allows you and your moderators to add, edit, and remove commands.</p>
+			<hr>
+			<h2 id="adding">Adding Commands</h2>
+			<h3>Usage:</h3>
+			<blockquote>
+				<p>!commands add <code>!command</code> <code>text</code></p>
+			</blockquote>
+			<p><em><code>!command</code> is the name of the command you wish to add.</em></p>
+			<p><em><code>text</code> is the message you want the bot to reply with when the command is called.</em></p>
+			<h3>Example:</h3>
+			<blockquote>
+				<p>!commands add !testcommand This is a test!</p>
+			</blockquote>
+			<h3>Would return:</h3>
+			<blockquote>
+				<p>@YgTSkedog -> The command !testcommand has been added!</p>
+			</blockquote>
+			<hr>
+			<h2 id="adding-alias">Adding Alias Commands</h2>
+			<h3>Usage:</h3>
+			<blockquote>
+				<p>!commands addalias <code>!newcommand</code> <code>!commandtoalias</code></p>
+			</blockquote>
+			<p><em><code>!newcommand</code> is the name of the command you wish to add as an alias.</em></p>
+			<p><em><code>!commandtoalias</code> is the name of the command you are making an alias for.</em></p>
+			<h3>Example:</h3>
+			<blockquote>
+				<p>!commands addalias !testalias !testcommand</p>
+			</blockquote>
+			<h3>Would return:</h3>
+			<blockquote>
+				<p>@YgTSkedog -> The alias command !testalias has been added!</p>
+			</blockquote>
+			<hr>
+			<h2 id="editing">Editing Commands</h2>
+			<h3>Usage:</h3>
+			<blockquote>
+				<p>!commands edit <code>!command</code> <code>text</code></p>
+			</blockquote>
+			<p><em><code>!command</code> is the name of the command you wish to edit.</em></p>
+			<p><em><code>text</code> is the message you want the bot to reply with when the command is called.</em></p>
+			<h3>Example:</h3>
+			<blockquote>
+				<p>!commands edit !testcommand This is the edited command!</p>
+			</blockquote>
+			<h3>Would return:</h3>
+			<blockquote>
+				<p>@YgTSkedog -> The command !testcommand has been added!</p>
+			</blockquote>
+			<hr>
+			<h2 id="permissions">Setting Command Permissions</h2>
+			<h3>Usage:</h3>
+			<blockquote>
+				<p>!commands permissions <code>!command</code> <code>0 - 4</code></p>
+				<p>!commands permission <code>!command</code> <code>0 - 4</code></p>
+				<p>!commands perms <code>!command</code> <code>0 - 4</code></p>
+			</blockquote>
+			<p><em><code>!command</code> is the name of the command you wish to set permissions for.</em></p>
+			<p><em><code>0 - 4</code> is the permission level you want to set.</em></p>
+			<ul>
+				<li>0 - everyone</li>
+				<li>1 - regulars</li>
+				<li>2 - subscribers</li>
+				<li>3 - moderators</li>
+				<li>4 - channel owner</li>
+			</ul>
+			<h3>Example:</h3>
+			<blockquote>
+				<p>!commands permissions !testcommand 3</p>
+			</blockquote>
+			<h3>Would return:</h3>
+			<blockquote>
+				<p>@YgTSkedog -> The command !testcommand permissions have been updated!</p>
+			</blockquote>
+			<hr>
+			<h2 id="remove">Deleting Commands</h2>
+			<h3>Usage:</h3>
+			<blockquote>
+				<p>!commands delete <code>!command</code></p>
+			</blockquote>
+			<p><em><code>!command</code> is the name of the command you wish to delete.</em></p>
+			<h3>Example:</h3>
+			<blockquote>
+				<p>!commands delete !testcommand</p>
+				<p>!commands remove !testcommand</p>
+			</blockquote>
+			<h3>Would return:</h3>
+			<blockquote>
+				<p>@YgTSkedog -> The command !testcommand has been deleted!</p>
+			</blockquote>
+			<hr>
+			<p><strong>Note:</strong> The default permission level for <code>!commands</code> is set to everyone. However the permission level for the ability to add, edit, or delete commands is set to mods and above</p>
+			<hr>
+			<p><a href="/default-commands">&larr; Back to Default Commands</a></p>
+		</div>
+	</section>
+</div>
+<script>init();</script>

@@ -36,6 +36,7 @@ function setNavShowingSection(page, channelName) {
 	// If one was not found, change the icon for the first nav section
 	if (!changedOne) {
 		changeNavIconState($('.left-bar .main-nav ul:first-of-type'));
+		changeNavIconState($('.left-bar .doc-nav ul:first-of-type'));
 	}
 }
 
@@ -89,9 +90,6 @@ async function init(channelName) {
 		}
 	});
 
-	// Show only the "active" nav section
-	setNavShowingSection(page, channelName);
-
 	// Handle setup for doc section
 	if (window.location.href.includes('docs.')) {
 		$('.doc-nav h4 a i').each(function(index, el) {
@@ -101,10 +99,15 @@ async function init(channelName) {
 		});
 		if (page == '') {
 			setNavShowingSection('getting-started', channelName);
+		} else if (page === 'commands') {
+			setNavShowingSection('default-commands', channelName);
 		} else {
 			setNavShowingSection(page, channelName);
 		}
 		$('body').addClass('documentation');
+	} else {
+		// Show only the "active" nav section
+		setNavShowingSection(page, channelName);
 	};
 
 	// Setup notification panel

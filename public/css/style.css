@@ -781,6 +781,10 @@ table.datatable thead th {
 	width:60%;
 }
 
+hr {
+	border:3px solid #3F83BB;
+}
+
 .documentation-wrapper {
 	color: #fff;
 	float: none;
@@ -805,6 +809,7 @@ section.content h1 {
 }
 .link-container li {
 	margin-top: 15px;
+	text-align: left;
 }
 
 .link-container code {
@@ -875,6 +880,11 @@ body.documentation .left-bar .doc-nav ul li a.current-page i {
 
 body.documentation blockquote {
 	font-size:14px;
+	border-left:5px solid #3F83BB;
+}
+
+body.documentation h2, body.documentation h3 {
+	margin:40px 0 15px;
 }
 
 /* =============================================================================

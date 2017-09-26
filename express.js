@@ -489,27 +489,37 @@ async function setupRoutes() {
 	// Documentation routes
 	router.get('/', async (req, res) => {
 		const includes = await getIncludes(req);
-		res.render('getting-started.html', {leftbar: includes[2]});
+		res.render('getting-started.html', {leftbar: includes[2], nav: ''});
 	});
 
 	router.get('/default-commands', async (req, res) => {
 		const includes = await getIncludes(req);
-		res.render('default-commands.html', {leftbar: includes[2]});
+		res.render('default-commands.html', {leftbar: includes[2], nav: ''});
 	});
 
 	router.get('/privacy-policy', async (req, res) => {
 		const includes = await getIncludes(req);
-		res.render('privacy.html', {leftbar: includes[2]});
+		res.render('privacy.html', {leftbar: includes[2], nav: ''});
 	});
 
-	router.get('/commands/8ball', async (req, res) => {
+	router.get('/default-commands/8ball', async (req, res) => {
 		const includes = await getIncludes(req);
-		res.render('commands/8ball.html', {leftbar: includes[2]});
+		res.render('default-commands/8ball.html', {leftbar: includes[2], nav: ''});
 	});
 
-	router.get('/commands/bf4stats', async (req, res) => {
+	router.get('/default-commands/bf4stats', async (req, res) => {
 		const includes = await getIncludes(req);
-		res.render('commands/bf4stats.html', {leftbar: includes[2]});
+		res.render('default-commands/bf4stats.html', {leftbar: includes[2], nav: ''});
+	});
+
+	router.get('/default-commands/blacklist', async (req, res) => {
+		const includes = await getIncludes(req);
+		res.render('default-commands/blacklist.html', {leftbar: includes[2], nav: ''});
+	});
+
+	router.get('/default-commands/commands', async (req, res) => {
+		const includes = await getIncludes(req);
+		res.render('default-commands/commands.html', {leftbar: includes[2], nav: ''});
 	});
 }
 
