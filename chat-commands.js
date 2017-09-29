@@ -141,8 +141,9 @@ class Chat {
 					results: props.resultsToPass,
 					userstate: props.userstate
 				};
-				if (currentUserPermissionLevel >= addCommandPermissionLevel) {
-					switch (props.messageParams[1]) {
+				const modifier = props.messageParams[1];
+				if ((modifier === 'add' || modifier === 'edit' || modifier === 'delete' || modifier === 'remove') && currentUserPermissionLevel >= addCommandPermissionLevel) {
+					switch (modifier) {
 						case 'add':
 							return await lists.add(propsForListCommands);
 						case 'edit':
@@ -151,10 +152,11 @@ class Chat {
 						case 'remove':
 							return await lists.remove(propsForListCommands);
 						default:
-							return await lists.getListCommandItem(propsForListCommands);
+							throw new Error('Failed permission check for list commands');
 					}
 				} else {
-					throw new Error('Failed permission check for list commands');
+					// Not trying to add, edit, or delete a list item, fallback to showing a list item
+					return await lists.getListCommandItem(propsForListCommands);
 				}
 			} else {
 				let messageToSend = commandMessage.replace('&apos;', '\'');
