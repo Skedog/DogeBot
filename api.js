@@ -160,9 +160,9 @@ class API {
 		const plat = props.messageParams[2] ? props.messageParams[2] : 'pc';
 		const userToCheck = props.messageParams[1] ? props.messageParams[1] : props.userstate.username;
 		const url = 'https://api.bf4stats.com/api/playerInfo?plat=' + plat + '&name=' + userToCheck + '&output=json&opt=urls,stats';
-		const twitchAPIRequest = await request(url);
-		if (twitchAPIRequest.body) {
-			const json = JSON.parse(twitchAPIRequest.body);
+		const httpRequest = await request(url);
+		if (httpRequest.body) {
+			const json = JSON.parse(httpRequest.body);
 			if (!json.error) {
 				const playerName = json.player.name;
 				const kills = json.stats.kills;
@@ -175,6 +175,26 @@ class API {
 				return functions.buildUserString(props) + msgToSend;
 			}
 			return functions.buildUserString(props) + 'User not found, the syntax is "!bf4stats username platform"!';
+		}
+	}
+
+	async bfServer(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandMessage = props.resultsToPass[0].chatmessage;
+		// Check if the command was set-up correctly - which is $(bfserver:username)
+		if (!commandMessage.includes(':')) {
+			return functions.buildUserString(props) + ' this command isn\'t set up correctly - the syntax is "$(bfserver:username)"!';
+		}
+		const commandSplit = commandMessage.split(':');
+		const userToCheck = commandSplit[1].replace(')', '').trim();
+		const url = 'https://dinubish.com/nb/battlelog.php?username=' + userToCheck;
+		const httpRequest = await request(url);
+		if (httpRequest.body) {
+			const body = httpRequest.body;
+			if (!body.includes('Error:')) {
+				return functions.buildUserString(props) + httpRequest.body;
+			}
+			return functions.buildUserString(props) + userToCheck + ' isn\'t currently in any server!';
 		}
 	}
 

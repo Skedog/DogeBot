@@ -158,6 +158,8 @@ class Chat {
 					// Not trying to add, edit, or delete a list item, fallback to showing a list item
 					return await lists.getListCommandItem(propsForListCommands);
 				}
+			} else if (commandMessage.includes('$(bfserver')) {
+				return api.bfServer(props);
 			} else {
 				let messageToSend = commandMessage.replace('&apos;', '\'');
 				messageToSend = props.messageParams[1] ?
