@@ -12,6 +12,7 @@ const functions = require('./functions.js');
 const socket = require('./socket.js');
 
 let twitchClient;
+let dbConstants;
 
 async function getListOfJoinedChannels() {
 	const props = {
@@ -34,7 +35,7 @@ async function getListOfJoinedChannels() {
 }
 
 async function connectToTwitch() {
-	const dbConstants = await database.constants();
+	dbConstants = await database.constants();
 	const channelsToJoin = await getListOfJoinedChannels();
 	chat.setDelayTimerForMultipleChannels(channelsToJoin);
 	const twitchClientOptions = {
@@ -308,7 +309,6 @@ async function startTimedMessages(channel) {
 }
 
 async function checkIfChannelIsLive(channel) {
-	const dbConstants = await database.constants();
 	let URLtoUse;
 	if (constants.testMode) {
 		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchTestClientID;

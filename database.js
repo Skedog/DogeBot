@@ -112,7 +112,7 @@ class Database {
 	async constants() {
 		const props = {table: 'globalConstants'};
 		const constants = await this.select(props);
-		const dbArray = {
+		return {
 			twitchOauthPass: constants[0].twitchOauthPass,
 			twitchClientID: constants[0].twitchClientID,
 			twitchTestClientID: constants[0].twitchTestClientID,
@@ -120,7 +120,6 @@ class Database {
 			discordAPIKey: constants[0].discordAPIKey,
 			sessionKey: constants[0].sessionKey
 		};
-		return dbArray;
 	}
 }
 
