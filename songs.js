@@ -427,6 +427,7 @@ class Songs {
 			props.messageParams = ['!sr', finalList];
 			return await _this.requestSongs(props);
 		} catch (err) {
+			props.ignoreMessageParamsForUserString = true;
 			if (err === 'failed limit') {
 				return functions.buildUserString(props) + 'Song request limit reached, please try again later!';
 			} else if (err === 'invalid playlist ID') {
@@ -819,6 +820,68 @@ class Songs {
 		return 0;
 	}
 
+	async getResultsFromCache(props) {
+		const propsForCacheSelect = {
+			table: 'songcache',
+			query: {songID: props.songToAdd, channel: props.channel}
+		};
+		const resultsFromCache = await database.select(propsForCacheSelect);
+		if (resultsFromCache) {
+			// Only pull cache results if they are less than a month old
+			const currentDateMinus30 = new Date(new Date().getTime() + (-30 * 24 * 60 * 60 * 1000));
+			if (resultsFromCache[0].lastYoutubeDate > currentDateMinus30) {
+				const propsForReturn = [{
+					songID: props.songToAdd,
+					songTitle: resultsFromCache[0].songTitle,
+					songLength: resultsFromCache[0].songLength,
+					isEmbeddable: true,
+					allowedRegions: [],
+					blockedRegions: []
+				}];
+				if (resultsFromCache[0].allowedRegions) {
+					propsForReturn.allowedRegions = resultsFromCache[0].allowedRegions;
+				}
+				if (resultsFromCache[0].blockedRegions) {
+					propsForReturn.blockedRegions = resultsFromCache[0].blockedRegions;
+				}
+				return propsForReturn;
+			}
+		}
+	}
+
+	async getResultsFromYouTube(props, youTube) {
+		// Song not in cache, get info from YouTube instead
+		const getById = await promisify(youTube.getById);
+		const result = await getById(props.songToAdd);
+		if (result) {
+			if (result.items[0] && (result.pageInfo.totalResults !== 0)) {
+				const videoTitle = result.items[0].snippet.title;
+				const isEmbeddable = result.items[0].status.embeddable;
+				const videoLength = result.items[0].contentDetails.duration;
+				let allowedRegions = [];
+				let blockedRegions = [];
+				const contentDetails = result.items[0].contentDetails;
+				if (Object.prototype.hasOwnProperty.call(contentDetails, 'regionRestriction')) {
+					if (Object.prototype.hasOwnProperty.call(contentDetails.regionRestriction, 'allowed')) {
+						allowedRegions = contentDetails.regionRestriction.allowed;
+					}
+					if (Object.prototype.hasOwnProperty.call(contentDetails.regionRestriction, 'blocked')) {
+						blockedRegions = contentDetails.regionRestriction.blocked;
+					}
+				}
+				return [{
+					songID: props.songToAdd,
+					songTitle: videoTitle,
+					songLength: videoLength,
+					isEmbeddable,
+					allowedRegions,
+					blockedRegions,
+					fromYoutube: true
+				}];
+			}
+		}
+	}
+
 	async getYouTubeSongData(props) {
 		const dbConstants = await database.constants();
 		const youTube = new YouTube();
@@ -826,61 +889,13 @@ class Songs {
 		if (props.songToAdd.length === 11 && !props.songToAdd.includes(' ')) {
 			// Try pulling data from songcache first, instead of always kicking out to YouTube
 			// This would mean that the title may not match if it gets updated
-			const propsForCacheSelect = {
-				table: 'songcache',
-				query: {songID: props.songToAdd, channel: props.channel}
-			};
-			const resultsFromCache = await database.select(propsForCacheSelect);
+			const resultsFromCache = await this.getResultsFromCache(props);
 			if (resultsFromCache) {
-				// Only pull cache results if they are less than a month old
-				const currentDateMinus30 = new Date(new Date().getTime() + (-30 * 24 * 60 * 60 * 1000));
-				if (resultsFromCache[0].lastYoutubeDate > currentDateMinus30) {
-					const propsForReturn = [{
-						songID: props.songToAdd,
-						songTitle: resultsFromCache[0].songTitle,
-						songLength: resultsFromCache[0].songLength,
-						isEmbeddable: true,
-						allowedRegions: [],
-						blockedRegions: []
-					}];
-					if (resultsFromCache[0].allowedRegions) {
-						propsForReturn.allowedRegions = resultsFromCache[0].allowedRegions;
-					}
-					if (resultsFromCache[0].blockedRegions) {
-						propsForReturn.blockedRegions = resultsFromCache[0].blockedRegions;
-					}
-					return propsForReturn;
-				}
+				return resultsFromCache;
 			}
-			// Song not in cache, get info from YouTube instead
-			const getById = await promisify(youTube.getById);
-			const result = await getById(props.songToAdd);
-			if (result) {
-				if (result.items[0] && (result.pageInfo.totalResults !== 0)) {
-					const videoTitle = result.items[0].snippet.title;
-					const isEmbeddable = result.items[0].status.embeddable;
-					const videoLength = result.items[0].contentDetails.duration;
-					let allowedRegions = [];
-					let blockedRegions = [];
-					const contentDetails = result.items[0].contentDetails;
-					if (Object.prototype.hasOwnProperty.call(contentDetails, 'regionRestriction')) {
-						if (Object.prototype.hasOwnProperty.call(contentDetails.regionRestriction, 'allowed')) {
-							allowedRegions = contentDetails.regionRestriction.allowed;
-						}
-						if (Object.prototype.hasOwnProperty.call(contentDetails.regionRestriction, 'blocked')) {
-							blockedRegions = contentDetails.regionRestriction.blocked;
-						}
-					}
-					return [{
-						songID: props.songToAdd,
-						songTitle: videoTitle,
-						songLength: videoLength,
-						isEmbeddable,
-						allowedRegions,
-						blockedRegions,
-						fromYoutube: true
-					}];
-				}
+			const resultsFromYouTube = await this.getResultsFromYouTube(props, youTube);
+			if (resultsFromYouTube) {
+				return resultsFromYouTube;
 			}
 		}
 		throw 'failed getYouTubeSongData';
@@ -894,7 +909,9 @@ class Songs {
 			const tempSplit = passedInfo.split('?');
 			const query = functions.parseQuery(tempSplit[1]);
 			const playlistID = query.list;
-			return playlistID;
+			if (playlistID.length === 34 || playlistID.length === 24 || playlistID.length === 13) {
+				return playlistID;
+			}
 		} else if (passedInfo.indexOf('list=') > -1) {
 			const query = functions.parseQuery(passedInfo);
 			const playlistID = query.list;

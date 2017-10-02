@@ -89,12 +89,14 @@ async function renderLoggedInPage(req, res, userDetails) {
 }
 
 async function renderRegularPage(req, res, next) {
-	// User is NOT logged in
+	// User is NOT logged in, so we can only render a few pages, and they ALL must have a channel
 	const pageToRender = req.originalUrl.slice(1).split('?');
 	if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
+		// If user goes to /dashboard/ instead of /dashboard, return a redirect to the correct URL
 		return res.redirect(req.originalUrl.slice(0, -1));
 	}
 	if (pageToRender[0] && req.params.channel) {
+		// A page and a channel were passed
 		const passedChannel = req.params.channel;
 		const tempPage = pageToRender[0].split('/');
 		const pageToShow = tempPage[0].replace('/', '');
@@ -102,8 +104,8 @@ async function renderRegularPage(req, res, next) {
 		res.render(pageToShow + '.html', {nav, leftbar: ''});
 	} else {
 		if (pageToRender[0]) {
-			// Not logged in, and page is invalid, redirect to homepage
-			res.redirect('/logout');
+			// Not logged in, and page is invalid, return a redirect - this is because headers are already set
+			return res.redirect('/logout');
 		}
 		// On the homepage, render that code
 		next();

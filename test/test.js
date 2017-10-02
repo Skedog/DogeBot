@@ -78,15 +78,15 @@ it('test !commands add, edit, permissions and delete', async function() {
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The command !testcommand has been updated!');
 
-	props.messageParams = ['!commands', 'perms', '!testcommand','3'];
+	props.messageParams = ['!commands', 'perms', '!testcommand','subscribers'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The command !testcommand permissions have been updated!');
 
-	props.messageParams = ['!commands', 'perms', '!cs','3'];
+	props.messageParams = ['!commands', 'perms', '!cs','subscribers'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The command !cs permissions have been updated!');
 
-	props.messageParams = ['!commands', 'perms', '!cs','0'];
+	props.messageParams = ['!commands', 'perms', '!cs','everyone'];
 	res = await chat.callCommand(props);
 	expect(res).to.equal('@skedogbot -> The command !cs permissions have been updated!');
 

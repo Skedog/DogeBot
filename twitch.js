@@ -7,9 +7,7 @@ const permissions = require('./permissions.js');
 const stats = require('./stats.js');
 const chat = require('./chat-commands.js');
 const messages = require('./chat-messages.js');
-const maintenance = require('./maintenance.js');
 const functions = require('./functions.js');
-const socket = require('./socket.js');
 
 let twitchClient;
 let dbConstants;
@@ -144,7 +142,7 @@ function monitorWhispers() {
 				userstate,
 				twitchClient
 			};
-			callCommandFromWhisper(props);
+			chat.callWhisperCommand(props);
 		}
 	});
 }
@@ -162,100 +160,6 @@ async function callCommandFromChat(props) {
 		}
 	} catch (err) {
 		log.error('Command was called and produced an error: ' + err);
-	}
-}
-
-async function callCommandFromWhisper(props) {
-	switch (props.messageParams[0]) {
-		case '!clearsongcache':
-			if (props.messageParams[1]) {
-				const propsForSongCache = {
-					channel: '#' + props.messageParams[1]
-				};
-				try {
-					await maintenance.clearSongCache(propsForSongCache);
-					log.info('Song cache cleared for ' + props.messageParams[1] + ' via whisper');
-					props.twitchClient.whisper(props.from, 'Song cache cleared for ' + props.messageParams[1]);
-				} catch (err) {
-					log.error(err);
-					props.twitchClient.whisper(props.from, 'Error clearing song cache for ' + props.messageParams[1]);
-				}
-			}
-			break;
-		case '!deletechannel':
-			if (props.messageParams[1]) {
-				const propsFordeleteChannel = {
-					channel: '#' + props.messageParams[1]
-				};
-				try {
-					await maintenance.deleteChannel(propsFordeleteChannel);
-					log.info('Deleted channel: ' + props.messageParams[1]);
-					props.twitchClient.whisper(props.from, 'Deleted channel: ' + props.messageParams[1]);
-				} catch (err) {
-					log.error(err);
-					props.twitchClient.whisper(props.from, 'Error deleting channel ' + props.messageParams[1] + ': ' + err);
-				}
-			}
-			break;
-		case 'getids': {
-			const propsForIDupdate = {
-				twitchClient: props.twitchClient
-			};
-			try {
-				await maintenance.getAndUpdateTwitchUserIDsForAllUsers(propsForIDupdate);
-				log.info('Got and reset all channel twitchIDs');
-				props.twitchClient.whisper(props.from, 'Got and reset all channel twitchIDs');
-			} catch (err) {
-				log.error(err);
-				props.twitchClient.whisper(props.from, 'Error getting channel twitchIDs: ' + err);
-			}
-			break;
-		}
-		case '!mute':
-			if (props.messageParams[1]) {
-				const propsForMute = {
-					channel: '#' + props.messageParams[1],
-					twitchClient: props.twitchClient,
-					userstate: props.userstate
-				};
-				propsForMute.messageToSend = await messages.mute(propsForMute);
-				messages.send(propsForMute);
-			}
-			break;
-		case '!unmute':
-			if (props.messageParams[1]) {
-				const propsForUnmute = {
-					channel: '#' + props.messageParams[1],
-					twitchClient: props.twitchClient,
-					userstate: props.userstate
-				};
-				propsForUnmute.messageToSend = await messages.unmute(propsForUnmute);
-				messages.send(propsForUnmute);
-			}
-			break;
-		case '!notify':
-			if (props.messageParams[1]) {
-				const dataToUse = {};
-				dataToUse.message = props.messageParams.slice(1, props.messageParams.length).join(' ');
-				dataToUse.exclusionList = [];
-				dataToUse.dateSent = new Date();
-				const propsForAdd = {
-					table: 'notifications',
-					dataToUse
-				};
-				const propsForSelect = {
-					table: 'notifications',
-					query: {message: dataToUse.message}
-				};
-				await database.add(propsForAdd);
-				const results = await database.select(propsForSelect);
-				socket.emit('notification', [dataToUse.message, results[0]._id]);
-				props.twitchClient.whisper(props.from, 'Notification sent!');
-			}
-			break;
-		default:
-			log.error('Whisper command not found!');
-			props.twitchClient.whisper(props.from, 'Whisper command not found!');
 	}
 }
 
@@ -299,12 +203,8 @@ async function startTimedMessages(channel) {
 			if (results) {
 				// Channel is live, send a message
 				sendTimedMessage(channel, listOfMessages);
-			} else {
-				// Channel isn't live, stop timer for messages and start live check timer
-				// Console.log(channel + ' is not live');
 			}
 		}, 1200000);
-		// }, 3000);
 	}
 }
 
