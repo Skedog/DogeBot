@@ -1,0 +1,13 @@
+{{#if showText}}
+	<div class="commandssection">Current Song: <span class="songtitle">{{{firstSongInSonglist.songTitle}}}</span></div>
+{{else}}
+	<div class="commandssection"><span class="songtitle">{{{firstSongInSonglist.songTitle}}}</span></div>
+{{/if}}
+<div class="urlChannel" style="display:none;">{{userData.urlChannel}}</div>
+<script>
+$(document).ready(function() {
+	if ($('.commandssection').text() === '' || $('.commandssection').text() === 'Current Song: ') {
+		$('.commandssection').text('No song currently requested!');
+	}
+});
+</script>

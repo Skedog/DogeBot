@@ -1,0 +1,17 @@
+<li class="notifications-link"><a href="#"><i class="fa fa-bell-o"></i><div class="notification-counter">{{userData.notificationCounter}}</div></a></li>
+{{#if userData.isBotInChannel}}
+	<li><a href="#" class="botStatusBtn blue-styled-button mini">Leave Channel</a></li>
+{{else}}
+	<li><a href="#" class="botStatusBtn blue-styled-button mini">Join Channel</a></li>
+{{/if}}
+<li class="dropdown"><a href="#" class="no-mobile"><img src="{{userData.channelLogo}}" alt="" class="channel-logo" /><span class="loggedInChannelName">{{userData.loggedInChannel}}</span><span class="urlChannel">{{userData.urlChannel}}</span></a>
+	<ul class="dropdown-content">
+		<li><a href="/moderation/{{userData.loggedInChannel}}">Moderation</a></li>
+		<li><a href="/currentsonginfo/{{userData.loggedInChannel}}?showText=true" target="_blank">Now Playing Page</a></li>
+		<li><a href="/logout">Logout</a></li>
+	</ul>
+</li>
+<div class="notifications-div">
+	<h3><i class="fa fa-bell"></i> Notifications</h3>
+	<ul class="notifications">{{{userData.notifications}}}</ul>
+</div>

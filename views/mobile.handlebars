@@ -1,0 +1,22 @@
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-mobile"></i> Mobile Controller</h1>
+			<p>This page is specifically designed for you the streamer to control your music from a mobile device!</p>
+			<div class="mobile-buttons clearfix">
+				{{> player-buttons}}
+			</div>
+			<div class="currentsong">{{{formattedFirstSongInSonglist}}}</div>
+			<div class="currentvolume"><strong>Current Volume: </strong>{{currentVolume}}</div>
+		</div>
+	</div>
+</div>
+<script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+$(document).ready(function() {
+	handleVolumeClick($('.volBtn'), '{{userData.urlChannel}}');
+	handlePlayPauseClick($('.togglePlay'), '{{userData.urlChannel}}');
+	handleSkipClick($('.skipBtn'), '{{userData.urlChannel}}');
+});
+</script>

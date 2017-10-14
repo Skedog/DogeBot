@@ -1,0 +1,30 @@
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-terminal"></i> Commands <small>{{{userData.urlChannel}}}</small></h1>
+			<p>Below is a list of your channel's commands. You can use variables such as $(touser), $(counter), and $(list) to make the bot's responses dynamic.</p>
+			<div class="commandssection"></div>
+			<table class="datatable commands">
+				<thead>
+					<th>Command</th>
+					<th class="datatable-half">Response</th>
+					<th>Counter</th>
+					<th>Permissions Level</th>
+				</thead>
+				<tbody>{{{formattedCommands}}}</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script src="/js/datatables.js"></script>
+<script>
+	$(document).ready(function() {
+		if (readCookie(page)) {
+			dataTableStartSize = readCookie(page);
+		} else {
+			dataTableStartSize = '25';
+		}
+		buildDataTable('.datatable', dataTableStartSize);
+	});
+</script>

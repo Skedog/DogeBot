@@ -1,5 +1,4 @@
 async function startSocket(socketURL, page, channelData, channelName) {
-
 	const socket = io.connect(socketURL);
 
 	socket.on('connect', function(socket2) {
@@ -7,25 +6,25 @@ async function startSocket(socketURL, page, channelData, channelName) {
 	});
 
 	socket.on('songs', async function(data) {
-		if (data[0] == 'skipped') {
+		if (data[0] === 'skipped') {
 			handleSkippedSocket(data, page, channelData);
-		} else if (data[0] == 'volumeupdated') {
+		} else if (data[0] === 'volumeupdated') {
 			handleVolumeUpdatedSocket(data, page, channelData);
-		} else if (data[0] == 'statuschange') {
+		} else if (data[0] === 'statuschange') {
 			handleStatusChangeSocket(data, page, channelData);
-		} else if (data[0] == 'added' || data[0] == 'removed' || data[0] == 'promoted' || data[0] == 'shuffled') {
+		} else if (data[0] === 'added' || data[0] === 'removed' || data[0] === 'promoted' || data[0] === 'shuffled') {
 			handleSonglistChangeSocket(data, page, channelData);
 		}
 	});
 
 	socket.on('blacklist', async function(data) {
-		if (data[0] == 'added' || data[0] == 'removed') {
+		if (data[0] === 'added' || data[0] === 'removed') {
 			handleBlacklistChangeSocket(data, page, channelData);
 		}
 	});
 
 	socket.on('commands', async function(data) {
-		if (data[0] == 'added' || data[0] == 'updated' || data[0] == 'deleted') {
+		if (data[0] === 'added' || data[0] === 'updated' || data[0] === 'deleted') {
 			handleCommandChangeSocket(data, page, channelData);
 		}
 	});
@@ -39,40 +38,40 @@ async function startSocket(socketURL, page, channelData, channelName) {
 };
 
 async function handleSkippedSocket(data, page, channelData) {
-	if (page == 'currentsonginfo') {
-		getNewSongInfo(); //currentsonginfo page
+	if (page === 'currentsonginfo') {
+		const firstSongInQueue = await loadSocketData(channelData, page, 'firstsonginsonglist');
+		$('.songtitle').text(firstSongInQueue.songTitle);
 	}
-	if (page == 'songs' || page == 'player' || page == 'moderation' || page == 'mobile') {
-		const songlist = await loadFormattedSonglist(channelData,page);
+	if (page === 'songs' || page === 'player' || page === 'moderation' || page === 'mobile') {
+		const songlist = await loadSocketData(channelData, page, 'formattedsonglist');
 		if (songlist) {
 			if (readCookie(page)) {
 				dataTableStartSize = readCookie(page);
 			} else {
 				dataTableStartSize = '25';
 			}
-			buildDataTable(songlist,'.datatable',dataTableStartSize);
+			buildDataTable('.datatable', dataTableStartSize, songlist);
 			$('.nosongs').hide();
-			const currentVolume = await getVolume(channelData);
-			updateOnScreenVolume(currentVolume);
+			const userData = await loadUserData(channelData);
+			updateOnScreenVolume(userData.channelInfo[0].volume);
 		} else {
-			$('.dataTables_wrapper').hide();
-			$('.nosongs').show();
 			$('.currentsong').html('');
 			$('.currentvolume').html('');
-			$('.nosongs').html("Currently no songs in the queue!");
+			$('.datatable tbody').html('<tr class="odd"><td colspan="4" class="tac">No songs in songlist!</td></tr>');
 		};
+		const formattedfirstsong = await loadSocketData(channelData, page, 'formattedfirstsong');
+		$('.currentsong').html(formattedfirstsong);
 	}
-	if (page == 'player' || page == 'moderation') {
-		applyMusicStatus(channelData);
-		if (typeof player != 'undefined') {
+	if (page === 'player' || page === 'moderation') {
+		if (typeof player !== 'undefined') {
 			player.loadVideoById(data[1]);
 		}
 	}
 }
 
 async function handleVolumeUpdatedSocket(data, page, channelData) {
-	if (page == 'player') {
-		if (typeof player != 'undefined') {
+	if (page === 'player') {
+		if (typeof player !== 'undefined') {
 			player.setVolume(data[1]);
 		}
 	}
@@ -80,15 +79,15 @@ async function handleVolumeUpdatedSocket(data, page, channelData) {
 }
 
 async function handleStatusChangeSocket(data, page, channelData) {
-	if (data[1] == 'pause') {
-		if (page == 'player') {
-			if (typeof player != 'undefined') {
+	if (data[1] === 'pause') {
+		if (page === 'player') {
+			if (typeof player !== 'undefined') {
 				player.pauseVideo();
 			}
 		}
 		$('.togglePlay').html('<i class="fa fa-play" title="Play"></i>');
-	} else if (data[1] == 'play') {
-		if (page == 'player') {
+	} else if (data[1] === 'play') {
+		if (page === 'player') {
 			if (typeof player != 'undefined') {
 				player.playVideo();
 			}
@@ -98,44 +97,43 @@ async function handleStatusChangeSocket(data, page, channelData) {
 }
 
 async function handleSonglistChangeSocket(data, page, channelData) {
-	if (page == 'songs' || page == 'player' || page == 'moderation' || page == 'mobile') {
-		const songlist = await loadFormattedSonglist(channelData,page);
+	if (page === 'songs' || page === 'player' || page === 'moderation' || page === 'mobile') {
+		const songlist = await loadSocketData(channelData, page, 'formattedsonglist');
 		if (songlist) {
 			if (readCookie(page)) {
 				dataTableStartSize = readCookie(page);
 			} else {
 				dataTableStartSize = '25';
 			}
-			if ($('.datatable').length) {
-				buildDataTable(songlist,'.datatable',dataTableStartSize);
-			};
+			buildDataTable('.datatable', dataTableStartSize, songlist);
 			$('.nosongs').hide();
-			const currentVolume = await getVolume(channelData);
-			updateOnScreenVolume(currentVolume);
+			const userData = await loadUserData(channelData);
+			updateOnScreenVolume(userData.channelInfo[0].volume);
 		} else {
-			$('.dataTables_wrapper').hide();
-			$('.nosongs').show();
 			$('.currentsong').html('');
 			$('.currentvolume').html('');
-			$('.nosongs').html("Currently no songs in the queue!");
+			$('.datatable tbody').html('<tr class="odd"><td colspan="4" class="tac">No songs in songlist!</td></tr>');
 		};
-		const songToPlay = await getFirstSongInQueue(channelData);
-		if (typeof player != 'undefined') {
-			if (player.getVideoData()['video_id'] != songToPlay['songID']) {
-				player.loadVideoById(songToPlay['songID']);
+		const songToPlay = await loadSocketData(channelData, page, 'firstsonginsonglist');
+		if (typeof player !== 'undefined') {
+			if (player.getVideoData().video_id !== songToPlay.songID) {
+				player.loadVideoById(songToPlay.songID);
 			}
-		} else if (page == 'player') {
+		} else if (page === 'player') {
 			loadPlayer();
 		}
+		const formattedfirstsong = await loadSocketData(channelData, page, 'formattedfirstsong');
+		$('.currentsong').html(formattedfirstsong);
 	}
-	if (page == 'currentsonginfo') {
-		getNewSongInfo(); //currentsonginfo page
+	if (page === 'currentsonginfo') {
+		const firstSongInQueue = await loadSocketData(channelData, page, 'firstsonginsonglist');
+		$('.songtitle').text(firstSongInQueue.songTitle);
 	}
 }
 
 async function handleBlacklistChangeSocket(data, page, channelData) {
 	if (page == 'blacklist') {
-		const blacklist = await loadFormattedSongBlacklist(channelData,page);
+		const blacklist = await loadSocketData(channelData, page, 'blacklist');
 		if (blacklist) {
 			if (readCookie(page)) {
 				dataTableStartSize = readCookie(page);
@@ -143,30 +141,27 @@ async function handleBlacklistChangeSocket(data, page, channelData) {
 				dataTableStartSize = '25';
 			}
 			if ($('.datatable').length) {
-				buildDataTable(blacklist,'.datatable',dataTableStartSize);
+				buildDataTable('.datatable', dataTableStartSize, blacklist);
 			};
 			$('.nosongs').hide();
 		} else {
-			$('.dataTables_wrapper').hide();
-			$('.nosongs').show();
-			$('.nosongs').html("Currently no songs in the blacklist!");
+			$('.datatable tbody').html('<tr class="odd"><td colspan="4" class="tac">No songs in blacklist!</td></tr>');
 		};
 	}
 }
 
 async function handleCommandChangeSocket(data, page, channelData) {
-	if (page == 'commands') {
-		let commandsData = await getCommands(channelName);
+	if (page === 'commands') {
+		const commandsData = await loadSocketData(channelData, page, 'commands');
 		if (commandsData) {
 			if (readCookie(page)) {
 				dataTableStartSize = readCookie(page);
 			} else {
 				dataTableStartSize = '25';
 			}
-			buildDataTable(commandsData,'.datatable',dataTableStartSize);
+			buildDataTable('.datatable', dataTableStartSize, commandsData);
 		} else {
-			$('.datatable tbody').hide();
-			$('.commandssection').html("You haven't added any commands yet!");
+			$('.datatable tbody').html('<tr class="odd"><td colspan="4" class="tac">No commands added!</td></tr>');
 		};
 	};
 }

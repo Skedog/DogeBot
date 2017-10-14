@@ -19,12 +19,11 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/js/socket.js"></script>
 		<script src="/js/song-functions.js"></script>
-		<script src="/js/command-functions.js"></script>
 		<script src="/js/functions.js"></script>
 		<script src="/js/scripts.js"></script>
 		<script src="/js/pace.js"></script>
 	</head>
-	<body>
+	<body class="home">
 		<div class="navbar navbar-inverse navbar-top" role="navigation">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -39,13 +38,12 @@
 			</div>
 			<div class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
-					{{=it.nav}}
+					{{> nav}}
 				</ul>
 			</div>
 			<!--/.nav-collapse -->
 		</div>
-		<div class="left-bar-container">{{=it.leftbar}}</div>
-		{{=it.body}}
+		{{{body}}}
 		<script type="text/javascript">
 			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 				(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

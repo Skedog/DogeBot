@@ -1,0 +1,78 @@
+<div class="inner-content-wrapper">
+	<div class="main-content">
+		<div class="container wrapper">
+			<h1><i class="fa fa-music"></i> Player</h1>
+			<p>Below is how you listen to your song queue! Request some songs, and then click play; the bot will handle the rest!</p>
+			<div class="player-page">
+				<div id="player"></div>
+				<div class="buttons">
+					{{> player-buttons}}
+				</div>
+				<div class="currentsong">{{{formattedFirstSongInSonglist}}}</div>
+				<div class="currentvolume"><strong>Current Volume: </strong>{{currentVolume}}</div>
+			</div>
+			<div class="player-songlist songlist">
+				<table class="datatable">
+					<thead>
+						<th>#</th>
+						<th class="datatable-half">Title</th>
+						<th>Requested</th>
+					</thead>
+					<tbody>{{{formattedSonglist}}}</tbody>
+				</table>
+				<div class="nosongs"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="/js/datatables.js"></script>
+<script>
+let player;
+let channelData;
+
+$(document).ready(function() {
+	if (readCookie(page)) {
+		dataTableStartSize = readCookie(page);
+	} else {
+		dataTableStartSize = '25';
+	}
+	buildDataTable('.datatable', dataTableStartSize);
+});
+
+async function loadPlayer() {
+	let songlist;
+	player = new YT.Player('player', {
+		videoId: '{{{firstSongInSonglist.songID}}}',
+		events: {
+			'onReady': onPlayerReady,
+			'onStateChange': onPlayerStateChange
+		}
+	});
+}
+
+async function onPlayerReady(event) {
+	player.setVolume('{{{currentVolume}}}');
+	updateOnScreenVolume('{{{currentVolume}}}');
+	applyMusicStatus('{{{userData.channelInfo.0.musicStatus}}}');
+};
+
+async function onPlayerStateChange(event) {
+	if (event.data === 0) {
+		loadNextSong('{{userData.urlChannel}}');
+		const currentStatus = await getMusicStatus('{{userData.urlChannel}}');
+		applyMusicStatus(currentStatus);
+	} else if (event.data === 1 || event.data === 2) {
+		const currentStatus = await getMusicStatus('{{userData.urlChannel}}');
+		applyMusicStatus(currentStatus);
+	};
+}
+
+async function onYouTubeIframeAPIReady() {
+	await loadPlayer();
+	handleVolumeClick($('.volBtn'), '{{userData.urlChannel}}');
+	handlePlayPauseClick($('.togglePlay'), '{{userData.urlChannel}}');
+	handleSkipClick($('.skipBtn'), '{{userData.urlChannel}}');
+};
+</script>

@@ -9,19 +9,22 @@
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
-const channelData = init('');
-Twitch.init({clientId: '{{=it.apiKey}}'}, function(error, statusInit) {
+Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 	var accesstoken = getUrlVars()["access_token"];
 	if (accesstoken != undefined) {
 		var token = Twitch.getToken();
 		var data = 'token=' + token;
 		$.ajax({
-			url: '{{=it.postURL}}/handlelogin',
+			url: '{{postURL}}/handlelogin',
 			data: data,
 			type: 'POST',
 			success: function(data) {
 				if (data == 'useradded' || data == 'userupdated') {
-					window.location.assign("/dashboard");
+					if ('{{{redirectTo}}}' !== '') {
+						window.location.assign('{{{redirectTo}}}');
+					} else {
+						window.location.assign("/dashboard");
+					}
 				};
 			}
 		});

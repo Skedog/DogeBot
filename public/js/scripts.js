@@ -3,15 +3,6 @@ const page = URLSplit[1];
 const getUrl = window.location;
 const urlUser = URLSplit[2];
 
-async function getChannelStatus(channelName) {
-	let inChannel = await checkIfInChannel(channelName);
-	if (inChannel) {
-		$('.botStatusBtn').text('Leave Channel');
-	} else {
-		$('.botStatusBtn').text('Join Channel');
-	};
-}
-
 function setNavShowingSection(page, channelName) {
 	let changedOne = false;
 	// Loop through all the nav items, and determine the "active" one
@@ -50,72 +41,6 @@ function changeNavIconState(itemToChange) {
 		currentIcon.removeClass('fa-plus');
 		currentIcon.addClass('fa-minus');
 	}
-}
-
-async function init(channelName) {
-	let socketURL;
-	const channelData = 'channel=#' + channelName;
-
-	// Get status of bot in channel and update button
-	await getChannelStatus(channelName);
-
-	// Build URL for socket and connect
-	socketURL = getUrl.protocol + "//" + getUrl.host + "/";
-	startSocket(socketURL,page,channelData,channelName);
-
-	// Add home class to pages that don't need the left bar
-	if (!page || page == 'login' || page == 'logout' || getUrl.host.includes('docs.')) {
-		$('body').addClass('home');
-	};
-
-	// If no leftbar content is loaded, set the content width to be fullscreen
-	if ($('.left-bar-container').is(':empty')) {
-		$('.inner-content-wrapper').width('100%');
-	};
-
-	// Setup all the click handlers
-	setupClickHandlers(channelName);
-
-	// On resize check if leftbar should be removed
-	$(window).on('resize', debounce(function() {
-		if ($(window).width() > 1138) {
-			$('.left-bar').removeAttr('style');
-		}
-	}, 200));
-
-	// Hide all the showing nav dropdowns
-	$('.main-nav h4 a i').each(function(index, el) {
-		if ($(this).hasClass('fa-plus')) {
-			$(this).parent().parent().next().hide();
-		}
-	});
-
-	// Handle setup for doc section
-	if (window.location.href.includes('docs.')) {
-		$('.doc-nav h4 a i').each(function(index, el) {
-			if ($(this).hasClass('fa-plus')) {
-				$(this).parent().parent().next().hide();
-			}
-		});
-		if (page == '') {
-			setNavShowingSection('getting-started', channelName);
-		} else if (page === 'commands') {
-			setNavShowingSection('default-commands', channelName);
-		} else {
-			setNavShowingSection(page, channelName);
-		}
-		$('body').addClass('documentation');
-	} else {
-		// Show only the "active" nav section
-		setNavShowingSection(page, channelName);
-	};
-
-	// Setup notification panel
-	setupNotificationPanel(channelName);
-
-	// Return channelData so individual pages can use that data to load content
-	return channelData;
-
 }
 
 function flashNotificationBell() {
@@ -178,6 +103,7 @@ async function setupClickHandlers(channelName) {
 	// Handle notification panel toggling
 	$('.notifications-link a').click(function(e) {
 		e.stopPropagation();
+		e.preventDefault();
 		$('.notifications-div').toggle();
 	});
 	$('body').on('click', '.notifications a', async function(e) {
@@ -201,7 +127,7 @@ async function setupClickHandlers(channelName) {
 		e.stopPropagation();
 		const idToRemove = $(this).attr('id');
 		e.preventDefault();
-		const notificationRemoved = await removeNotification(channel, idToRemove);
+		const notificationRemoved = await removeNotification(channelName, idToRemove);
 		if (notificationRemoved === 'removed') {
 			$(this).parent().parent().remove();
 			$('.notifications-link .notification-counter').html($('.notifications li').length);
@@ -212,23 +138,55 @@ async function setupClickHandlers(channelName) {
 	});
 }
 
-async function setupNotificationPanel(channel) {
-	// Load notifications from the database
-	const notifications = await getNotifications();
 
-	// Loop through all the notifications
-	for (const notification of notifications) {
-		// If channel hasn't dismissed this notification, show it
-		if (!notification.exclusionList.includes(channel)) {
-			$('ul.notifications').append('<li><a href="#"><span class="close" id="' + notification._id + '"><i class="fa fa-times"></i></span>' + notification.message + '</a></li>');
-		}
+$(document).ready(function() {
+	const URLChannel = $('.urlChannel').text();
+	const loggedInChannel = $('.loggedInChannelName').text();
+	const channelData = 'channel=#' + URLChannel;
+
+	// Build URL for socket and connect
+	const socketURL = getUrl.protocol + "//" + getUrl.host + "/";
+	startSocket(socketURL, page, channelData, URLChannel);
+
+	// If no leftbar content is loaded, set the content width to be fullscreen
+	if ($('.left-bar-container').is(':empty')) {
+		$('.inner-content-wrapper').width('100%');
 	};
 
-	// If no notifications, show default message
-	if ($('.notifications li').length === 0) {
-		$('.notifications').html('<p>Currently no notifications</p>');
-	}
+	// Setup all the click handlers
+	setupClickHandlers(URLChannel);
 
-	// Update number of notifications
-	$('.notifications-link .notification-counter').html($('.notifications li').length);
-}
+	// On resize check if leftbar should be removed
+	$(window).on('resize', debounce(function() {
+		if ($(window).width() > 1138) {
+			$('.left-bar').removeAttr('style');
+		}
+	}, 200));
+
+	// Hide all the showing nav dropdowns
+	$('.main-nav h4 a i').each(function(index, el) {
+		if ($(this).hasClass('fa-plus')) {
+			$(this).parent().parent().next().hide();
+		}
+	});
+
+	// Handle setup for doc section
+	if (window.location.href.includes('docs.')) {
+		$('.doc-nav h4 a i').each(function(index, el) {
+			if ($(this).hasClass('fa-plus')) {
+				$(this).parent().parent().next().hide();
+			}
+		});
+		if (page == '') {
+			setNavShowingSection('getting-started', URLChannel);
+		} else if (page === 'commands') {
+			setNavShowingSection('default-commands', URLChannel);
+		} else {
+			setNavShowingSection(page, URLChannel);
+		}
+		$('body').addClass('documentation');
+	} else {
+		// Show only the "active" nav section
+		setNavShowingSection(page, URLChannel);
+	};
+});

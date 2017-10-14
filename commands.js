@@ -3,6 +3,7 @@ const constants = require('./constants.js');
 const permissions = require('./permissions.js');
 const functions = require('./functions.js');
 const socket = require('./socket.js');
+const cache = require('./cache.js');
 
 const permissionLevels = ['everyone', 'regulars', 'subscribers', 'moderators', 'owner'];
 
@@ -46,6 +47,11 @@ class Commands {
 			const dataToUse = {};
 			dataToUse.trigger = props.messageParams[2].toLowerCase();
 			dataToUse.chatmessage = props.messageParams.slice(3, props.messageParams.length).join(' ').replace('\'', '&apos;');
+			// Commands cannot start with a period because Twitch
+			// Treats those as internal commands, just remove it
+			if (dataToUse.chatmessage.substring(0, 1) === '.') {
+				dataToUse.chatmessage = dataToUse.chatmessage.slice(1);
+			}
 			dataToUse.commandcounter = 0;
 			dataToUse.channel = props.channel;
 			dataToUse.permissionsLevel = 0;
@@ -60,6 +66,7 @@ class Commands {
 					dataToUse
 				};
 				await database.add(propsForAdd);
+				await cache.del(props.channel + 'commands');
 				socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
 				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been added!';
 			}
@@ -90,6 +97,7 @@ class Commands {
 						dataToUse
 					};
 					await database.add(propsForAdd);
+					await cache.del(props.channel + 'commands');
 					socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
 					return functions.buildUserString(props) + 'The alias command ' + props.messageParams[2] + ' has been added!';
 				}
@@ -107,12 +115,18 @@ class Commands {
 			const messageToAdd = props.messageParams.slice(3, tempLength).join(' ').replace('\'', '&apos;');
 			const dataToUse = {};
 			dataToUse.chatmessage = messageToAdd;
+			// Commands cannot start with a period because Twitch
+			// Treats those as internal commands, just remove it
+			if (dataToUse.chatmessage.substring(0, 1) === '.') {
+				dataToUse.chatmessage = dataToUse.chatmessage.slice(1);
+			}
 			const propsForUpdate = {
 				table: 'commands',
 				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
 				dataToUse
 			};
 			await database.update(propsForUpdate);
+			await cache.del(props.channel + 'commands');
 			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
 			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been updated!';
 		}
@@ -128,6 +142,7 @@ class Commands {
 				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()}
 			};
 			await database.delete(propsForDelete);
+			await cache.del(props.channel + 'commands');
 			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['deleted']);
 			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been deleted!';
 		}
@@ -168,6 +183,7 @@ class Commands {
 				dataToUse
 			};
 			await database.update(propsForUpdate);
+			await cache.del(props.channel + 'commands');
 			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
 			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
 		}

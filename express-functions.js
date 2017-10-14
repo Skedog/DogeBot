@@ -1,123 +1,90 @@
-const fs = require('fs-promise');
 const database = require('./database.js');
-const constants = require('./constants.js');
 const twitch = require('./twitch.js');
+const cache = require('./cache.js');
 
-function wwwRedirect(req, res, next) {
-	if (req.headers.host.slice(0, 4) === 'www.') {
-		const newHost = req.headers.host.slice(4);
-		return res.redirect(301, req.protocol + '://' + newHost + req.originalUrl);
-	}
-	next();
-}
-
-function escapeRegExp(str) {
-	return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
-}
-
-async function includeFile(fileToInclude, userDetails, passedChannel) {
-	const tempData = await fs.readFile(fileToInclude, 'utf8');
-	if (userDetails) {
-		return includeFileTemplate(tempData, {
-			channelLogo: userDetails[1] === 'null' ? '/img/default-user-logo.png' : userDetails[1],
-			channelToPass: userDetails[2].slice(1),
-			urlChannel: passedChannel
-		});
-	}
-	return includeFileTemplate(tempData, {urlChannel: passedChannel});
-}
-
-function includeFileTemplate(str, scope) {
-	for (const key in scope) {
-		if (Object.prototype.hasOwnProperty.call(scope, key)) {
-			str = str.replace(new RegExp(escapeRegExp(`{{=it.${key}}}`), 'g'), scope[key]);
-		}
-	}
-	return str;
-}
-
-async function checkUserLoginStatus(req, res, next) {
-	const token = req.session.token;
+// Middleware
+function checkIfUserIsLoggedIn(req, res, next) {
 	if (req.session && req.session.userDetails) {
-		// User has a valid session
-		const userDetails = req.session.userDetails.split(',');
-		let twitchUserID = userDetails[3];
-		if (token) {
-			twitchUserID = parseInt(twitchUserID, 10);
-			const propsForSelect = {
-				table: 'sessions',
-				query: {token, twitchUserID}
-			};
-			const results = await database.select(propsForSelect);
-			if (results) {
-				await renderLoggedInPage(req, res, userDetails);
-			} else {
-				await renderRegularPage(req, res, userDetails);
-			}
-		} else {
-			await renderRegularPage(req, res, userDetails);
+		if (req.originalUrl === '/login') {
+			// User is already logged in and has a valid session
+			// No need to run login code again
+			return res.redirect('/dashboard');
 		}
+		next();
 	} else {
-		// User is not logged in
-		await renderRegularPage(req, res, next);
-	}
-}
-
-async function renderLoggedInPage(req, res, userDetails) {
-	const pageToRender = req.originalUrl.slice(1).split('?');
-	if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
-		return res.redirect(req.originalUrl.slice(0, -1));
-	}
-	if (pageToRender[0]) {
-		let passedChannel;
-		let pageToShow;
-		if (req.params.channel) {
-			passedChannel = req.params.channel;
-			const tempPage = pageToRender[0].split('/');
-			pageToShow = tempPage[0].replace('/', '');
-		} else {
-			passedChannel = userDetails[2].slice(1);
-			pageToShow = pageToRender[0];
+		if (req.originalUrl !== '/login') {
+			// Invalid session, but trying to view some other page
+			// Redirect to logout page and force login
+			setRedirectTo(req);
+			return res.redirect('/login');
 		}
-		const nav = await includeFile('./views/loggedinnav.html', userDetails, passedChannel);
-		const leftbar = await includeFile('./views/leftbar.html', userDetails, passedChannel);
-		res.render(pageToShow + '.html', {nav, leftbar});
-	} else {
-		// On homepage, but logged in, redirect to dashboard
-		res.redirect('/dashboard');
-	}
-}
-
-async function renderRegularPage(req, res, next) {
-	// User is NOT logged in, so we can only render a few pages, and they ALL must have a channel
-	const pageToRender = req.originalUrl.slice(1).split('?');
-	if (req.originalUrl.substr(req.originalUrl.length - 1) === '/' && req.originalUrl !== '/') {
-		// If user goes to /dashboard/ instead of /dashboard, return a redirect to the correct URL
-		return res.redirect(req.originalUrl.slice(0, -1));
-	}
-	if (pageToRender[0] && req.params.channel) {
-		// A page and a channel were passed
-		const passedChannel = req.params.channel;
-		const tempPage = pageToRender[0].split('/');
-		const pageToShow = tempPage[0].replace('/', '');
-		const nav = await includeFile('./views/nav.html', null, passedChannel);
-		res.render(pageToShow + '.html', {nav, leftbar: ''});
-	} else {
-		if (pageToRender[0]) {
-			// Not logged in, and page is invalid, return a redirect - this is because headers are already set
-			return res.redirect('/logout');
-		}
-		// On the homepage, render that code
+		// Invalid session, but trying to login
 		next();
 	}
 }
 
-async function getChannelInfo(req) {
-	const propsForSelect = {
-		table: 'channels',
-		query: {ChannelName: req.body.channel}
-	};
-	return database.select(propsForSelect);
+function setRedirectTo(req) {
+	console.log('setting redirectTo to ' + req.originalUrl);
+	req.session.redirectTo = req.originalUrl;
+}
+
+async function checkModStatus(req, res, next) {
+	const userDetails = req.session.userDetails.split(',');
+	let channelToCheckMods;
+	if (req.params.channel !== undefined) {
+		channelToCheckMods = req.params.channel;
+	} else if (userDetails[2].includes('#')) {
+		channelToCheckMods = userDetails[2].substring(1); // Has #, needs to be removed
+	} else {
+		channelToCheckMods = userDetails[2];
+	}
+	const twitchUserID = userDetails[3];
+	if (twitchUserID) {
+		// Select channelName from database
+		const propsForSelect = {
+			table: 'channels',
+			query: {twitchUserID: parseInt(twitchUserID, 10)}
+		};
+		const results = await database.select(propsForSelect);
+		const loggedInChannel = results[0].ChannelName.substring(1); // Remove #
+		const modRes = await twitch.twitchClient.mods(channelToCheckMods);
+		const temp = modRes.indexOf(loggedInChannel);
+		if (temp > -1 || channelToCheckMods === loggedInChannel) {
+			// User is a mod or the channel owner
+			next();
+		} else {
+			// User is not a mod
+			return res.redirect('/login');
+		}
+	}
+}
+
+async function checkPassedChannel(req, res, next) {
+	if (!req.params.channel) {
+		// No channel was passed, we need to check the session now
+		if (req.session && req.session.userDetails) {
+			// Session is valid, move on with loading the page
+			return next();
+		}
+		// Invalid session and no page
+		setRedirectTo(req);
+		return res.redirect('/login');
+	}
+	const channelResults = await getChannelInfo(req.params.channel);
+	if (channelResults) {
+		return next();
+	}
+	// Invalid channel passed, render 500 page
+	res.render('error.handlebars', {
+		status: 500,
+		error: {},
+		layout: 'notLoggedIn'
+	});
+}
+
+// Helpers
+function getUnixTime(currentDate) {
+	return currentDate.getTime() / 1000 | 0;
 }
 
 async function handleLogin(props) {
@@ -269,66 +236,463 @@ async function handleLogin(props) {
 	return 'userupdated';
 }
 
-async function checkModStatus(req) {
-	if (req.session.userDetails) {
-		const userDetails = req.session.userDetails.split(',');
-		let channelToCheckMods;
-		if (req.params.channel !== undefined) {
-			channelToCheckMods = req.params.channel; // From URL, never has #
-		} else if (req.body.channel !== undefined) {
-			if (req.body.channel.includes('#')) {
-				channelToCheckMods = req.body.channel.substring(1); // Has #, needs to be removed
-			} else {
-				channelToCheckMods = req.body.channel;
-			}
-		} else if (userDetails[2].includes('#')) {
-			channelToCheckMods = userDetails[2].substring(1); // Has #, needs to be removed
-		} else {
-			channelToCheckMods = userDetails[2];
-		}
-		const twitchUserID = userDetails[3];
-		if (twitchUserID) {
-			const propsForSelect = {
-				table: 'channels',
-				query: {twitchUserID: parseInt(twitchUserID, 10)}
-			};
-			const results = await database.select(propsForSelect);
-			const loggedInChannel = results[0].ChannelName.substring(1);
-			const modRes = await twitch.twitchClient.mods(channelToCheckMods);
-			const a = modRes.indexOf(loggedInChannel);
-			if (a > -1) {
-				// User is a mod
-				return true;
-			}
-			if (channelToCheckMods === loggedInChannel) {
-				// User is the channel owner
-				return true;
-			}
-			// Username isn't in the mod list, they are not a mod
-			return false;
-		}
+// Data pulls
+async function getChannelInfo(channel) {
+	channel = addHashToChannel(channel);
+	const propsForSelect = {
+		table: 'channels',
+		query: {ChannelName: channel}
+	};
+	return database.select(propsForSelect);
+}
+
+function getURLChannel(req, userDetails) {
+	// If a channel is in the URL, use that, otherwise use the logged in channel
+	let passedChannel;
+	if (req.params.channel) {
+		passedChannel = req.params.channel;
 	} else {
-		return false;
+		passedChannel = userDetails[2].slice(1);
+	}
+	return passedChannel;
+}
+
+async function getNotifications(channel) {
+	channel = addHashToChannel(channel);
+	const cachedNotifications = await cache.get(channel + 'notifications');
+	if (cachedNotifications) {
+		return buildNotificationsLayout(cachedNotifications, channel);
+	}
+	const propsForSelect = {
+		table: 'notifications'
+	};
+	const results = await database.select(propsForSelect);
+	if (results) {
+		await cache.set(channel + 'notifications', results, 300);
+		return buildNotificationsLayout(results, channel);
+	}
+	return buildNotificationsLayout([], channel);
+}
+
+async function getTopChatters(channel) {
+	channel = addHashToChannel(channel);
+	const cachedChatters = await cache.get(channel + 'chatters');
+	if (cachedChatters) {
+		return buildTopChattersLayout(cachedChatters);
+	}
+	const propsForSelect = {
+		table: 'chatusers',
+		query: {channel, userName: {$ne: 'skedogbot'}},
+		sortBy: {numberOfChatMessages: -1},
+		limit: 5
+	};
+	const topChatters = await database.select(propsForSelect);
+	await cache.set(channel + 'chatters', topChatters, 300);
+	return buildTopChattersLayout(topChatters);
+}
+
+function buildTopChattersLayout(topChatters) {
+	let temp = '';
+	if (topChatters.length === 5) {
+		temp = '<div class="topchatters">';
+		temp += '<h3>Top Chatters</h3>';
+		temp += '<p>1) ' + topChatters[0].userName + ' - ' + topChatters[0].numberOfChatMessages + ' messages</p>';
+		temp += '<p>2) ' + topChatters[1].userName + ' - ' + topChatters[1].numberOfChatMessages + ' messages</p>';
+		temp += '<p>3) ' + topChatters[2].userName + ' - ' + topChatters[2].numberOfChatMessages + ' messages</p>';
+		temp += '<p>4) ' + topChatters[3].userName + ' - ' + topChatters[3].numberOfChatMessages + ' messages</p>';
+		temp += '<p>5) ' + topChatters[4].userName + ' - ' + topChatters[4].numberOfChatMessages + ' messages</p>';
+		temp += '</div>';
+	}
+	return temp;
+}
+
+async function getDashboardStats(channel) {
+	channel = addHashToChannel(channel);
+	const cachedStats = await cache.get(channel + 'stats');
+	if (cachedStats) {
+		return buildDashboardStatsLayout(cachedStats);
+	}
+	try {
+		let propsForCount;
+		propsForCount = {
+			table: 'songs',
+			query: {channel}
+		};
+		const numberOfSongs = await database.count(propsForCount);
+
+		const propsForSelect = {
+			table: 'chatmessages',
+			query: {channel}
+		};
+		const numberOfChatMessages = await database.select(propsForSelect);
+
+		propsForCount = {
+			table: 'commands',
+			query: {channel}
+		};
+		const numberOfCommands = await database.count(propsForCount);
+
+		propsForCount = {
+			table: 'chatusers',
+			query: {channel}
+		};
+		const numberOfChatUsers = await database.count(propsForCount);
+		await cache.set(channel + 'stats', [numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers], 300);
+		return buildDashboardStatsLayout([numberOfSongs, numberOfChatMessages[0].counter, numberOfCommands, numberOfChatUsers]);
+	} catch (err) {
+		return '';
 	}
 }
 
-function allowCrossDomain(req, res, next) {
-	if (constants.testMode) {
-		res.header('Access-Control-Allow-Origin', constants.testPostURL);
-	} else {
-		res.header('Access-Control-Allow-Origin', constants.postURL);
+function buildDashboardStatsLayout(data) {
+	let temp = '';
+	if (data) {
+		temp = '<div class="statbox-container">';
+		temp += '<div class="statbox">';
+		temp += '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+		temp += '<p># of <a href="/songs">Songs in Queue</a></p>';
+		temp += '</div>';
+		temp += '<div class="statbox">';
+		temp += '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+		temp += '<p># of <a href="/commands">Commands</a></p>';
+		temp += '</div>';
+		temp += '<div class="statbox">';
+		temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+		temp += '<p># of Users Seen</p>';
+		temp += '</div>';
+		temp += '<div class="statbox">';
+		temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+		temp += '<p># of <a href="/chatlog">Chat Messages</a> Seen</p>';
+		temp += '</div>';
+		temp += '</div>';
 	}
-	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-	res.header('Access-Control-Allow-Headers', 'Content-Type');
-	next();
+	return temp;
+}
+
+function buildNotificationsLayout(notifications, channel) {
+	// If no notifications, show default message
+	let temp = '';
+	let numberOfShownNotifications = 0;
+	for (const notification of notifications) {
+		// If channel hasn't dismissed this notification, show it
+		if (!notification.exclusionList.includes(channel)) {
+			numberOfShownNotifications++;
+			temp += '<li><a href="#"><span class="close" id="' + notification._id + '"><i class="fa fa-times"></i></span>' + notification.message + '</a></li>';
+		}
+	}
+	// If there are notifications to show, return them
+	if (temp !== '') {
+		return [temp, numberOfShownNotifications];
+	}
+	// There are no notifications to show, show the default message
+	return ['<p>Currently no notifications</p>', 0];
+}
+
+async function getSonglist(channel) {
+	channel = addHashToChannel(channel);
+	const cachedSonglist = await cache.get(channel + 'songlist');
+	if (cachedSonglist) {
+		return cachedSonglist;
+	}
+	const propsForSelect = {
+		table: 'songs',
+		query: {channel}
+	};
+	const results = await database.select(propsForSelect);
+	await cache.set(channel + 'songlist', results);
+	return results;
+}
+
+async function getFormattedSonglist(channel, page) {
+	channel = addHashToChannel(channel);
+	const songlist = await getSonglist(channel);
+	let builtSonglist = '';
+	for (const song in songlist) {
+		if (Object.prototype.hasOwnProperty.call(songlist, song)) {
+			const songCounter = parseInt(song, 10) + 1;
+			const songID = songlist[song].songID;
+			const songTitle = songlist[song].songTitle;
+			const whoRequested = songlist[song].whoRequested;
+			if (page === 'moderation') {
+				if (parseInt(song, 10) === 0 || parseInt(song, 10) === 1) {
+					builtSonglist += '<tr><td>' + songCounter + '</td><td><a href="https://youtu.be/' + songID + '" target="_blank">' + songTitle + '</a></td><td>' + whoRequested + '</td><td><div class="moderationBtns"><input type="button" value="X" id="' + songCounter + '" class="removeButton blue-styled-button mini" /></div></td></tr>';
+				} else {
+					builtSonglist += '<tr><td>' + songCounter + '</td><td><a href="https://youtu.be/' + songID + '" target="_blank">' + songTitle + '</a></td><td>' + whoRequested + '</td><td><div class="moderationBtns"><input type="button" value="&uarr;" id="' + songID + '" class="promoteButton blue-styled-button mini" /><input type="button" value="X" id="' + songCounter + '" class="removeButton blue-styled-button mini" /></div></td></tr>';
+				}
+			} else if (page === 'player') {
+				builtSonglist += '<tr><td>' + songCounter + '</td><td><a href="https://youtu.be/' + songID + '" target="_blank">' + songTitle + '</a></td><td>' + whoRequested + '</td></tr>';
+			} else {
+				builtSonglist += '<tr><td>' + songCounter + '</td><td>' + songTitle + '</td><td><a href="https://youtu.be/' + songID + '" target="_blank">' + songID + '</a></td><td>' + whoRequested + '</td></tr>';
+			}
+		}
+	}
+	return builtSonglist;
+}
+
+async function getFirstSongFromSonglist(channel) {
+	channel = addHashToChannel(channel);
+	const songlist = await getSonglist(channel);
+	if (songlist) {
+		return songlist[0];
+	}
+}
+
+async function getFormattedFirstSongFromSonglist(channel) {
+	channel = addHashToChannel(channel);
+	const songlist = await getSonglist(channel);
+	if (songlist) {
+		return '<strong>Song Title:</strong> ' + songlist[0].songTitle + '<br><strong>Requested:</strong> ' + songlist[0].whoRequested;
+	}
+	return 'Currently no songs in the queue!';
+}
+
+async function getBlacklist(channel) {
+	channel = addHashToChannel(channel);
+	const cachedBlacklist = await cache.get(channel + 'blacklist');
+	if (cachedBlacklist) {
+		return cachedBlacklist;
+	}
+	const propsForSelect = {
+		table: 'songblacklist',
+		query: {channel}
+	};
+	const results = await database.select(propsForSelect);
+	await cache.set(channel + 'blacklist', results);
+	return results;
+}
+
+async function getFormattedBlacklist(channel) {
+	channel = addHashToChannel(channel);
+	const blacklist = await getBlacklist(channel);
+	let builtBlacklist = '';
+	for (const song in blacklist) {
+		if (Object.prototype.hasOwnProperty.call(blacklist, song)) {
+			const songCounter = parseInt(song, 10) + 1;
+			builtBlacklist += '<tr><td>' + songCounter + '</td><td>' + blacklist[song].songTitle + '</td><td><a href="https://youtu.be/' + blacklist[song].songID + '" target="_blank">' + blacklist[song].songID + '</a></td><td>' + blacklist[song].whoRequested + '</td></tr>';
+		}
+	}
+	return builtBlacklist;
+}
+
+async function getSongCache(channel) {
+	channel = addHashToChannel(channel);
+	const cachedSongCache = await cache.get(channel + 'songcache');
+	if (cachedSongCache) {
+		return cachedSongCache;
+	}
+	const propsForSelect = {
+		table: 'songcache',
+		query: {channel}
+	};
+	const results = await database.select(propsForSelect);
+	await cache.set(channel + 'songcache', results);
+	return results;
+}
+
+async function getFormattedSongCache(channel) {
+	channel = addHashToChannel(channel);
+	const songcache = await getSongCache(channel);
+	let builtSongCache = '';
+	for (const song in songcache) {
+		if (Object.prototype.hasOwnProperty.call(songcache, song)) {
+			const songCounter = parseInt(song, 10) + 1;
+			builtSongCache += '<tr><td>' + songCounter + '</td><td>' + songcache[song].songTitle + '</td><td><a href="https://youtu.be/' + songcache[song].songID + '" target="_blank">' + songcache[song].songID + '</a></td></tr>';
+		}
+	}
+	return builtSongCache;
+}
+
+async function getCommands(channel) {
+	channel = addHashToChannel(channel);
+	const cachedCommandList = await cache.get(channel + 'commands');
+	if (cachedCommandList) {
+		return cachedCommandList;
+	}
+	const propsForSelect = {
+		table: 'commands',
+		query: {channel}
+	};
+	const results = await database.select(propsForSelect);
+	await cache.set(channel + 'commands', results);
+	return results;
+}
+
+async function getFormattedCommandlist(channel) {
+	channel = addHashToChannel(channel);
+	const commands = await getCommands(channel);
+	let builtCommandList = '';
+	for (const command in commands) {
+		if (Object.prototype.hasOwnProperty.call(commands, command)) {
+			builtCommandList += '<tr><td>' + commands[command].trigger + '</td><td>' + commands[command].chatmessage + '</td><td>' + commands[command].commandcounter + '</td><td>' + commands[command].permissionsLevel + '</td></tr>';
+		}
+	}
+	return builtCommandList;
+}
+
+function getChannelName(req, userDetails) {
+	let channel;
+	if (req.params.channel) {
+		// Channel was in URL, this always takes priority
+		channel = req.params.channel;
+	} else if (userDetails) {
+		channel = userDetails[2].slice(1);
+	}
+	return channel;
+}
+
+async function getUserData(req) {
+	let userDetails = 'null';
+	let layout = 'notLoggedIn';
+	if (req.session.userDetails) {
+		userDetails = req.session.userDetails.split(',');
+		layout = 'main';
+	}
+	const channel = getChannelName(req, userDetails);
+	const channelInfo = await getChannelInfo(channel);
+	const isBotInChannel = channelInfo[0].inChannel;
+	const notifications = await getNotifications(channel);
+	return {
+		channel,
+		urlChannel: getURLChannel(req, userDetails),
+		loggedInChannel: userDetails === 'null' ? userDetails : userDetails[2].slice(1),
+		channelInfo,
+		isBotInChannel,
+		notifications: notifications[0],
+		notificationCounter: notifications[1],
+		userDetails,
+		channelLogo: userDetails[1] === 'null' ? '/img/default-user-logo.png' : userDetails[1],
+		layout
+	};
+}
+
+function getMusicStatus(userData) {
+	const musicStatus = userData.channelInfo[0].musicStatus;
+	let isMusicPlaying = false;
+	if (musicStatus === 'play') {
+		isMusicPlaying = true;
+	}
+	return isMusicPlaying;
+}
+
+async function getChatlog(channel, startTime, endTime) {
+	channel = addHashToChannel(channel);
+
+	const currentDate = new Date();
+	if (typeof startTime === 'undefined') {
+		currentDate.setHours(0, 0, 0, 0);
+		startTime = getUnixTime(currentDate);
+	}
+	if (typeof endTime === 'undefined') {
+		currentDate.setHours(23, 59, 59, 999);
+		endTime = getUnixTime(currentDate);
+	}
+
+	const cachedChatlog = await cache.get(channel + 'chatlog' + startTime + endTime);
+	if (cachedChatlog) {
+		return cachedChatlog;
+	}
+	const propsForSelect = {
+		table: 'chatlog',
+		query: {
+			channel,
+			timestamp: {
+				$gte: (startTime * 1000),
+				$lte: (endTime * 1000)
+			}
+		}
+	};
+	const results = await database.select(propsForSelect);
+	await cache.set(channel + 'chatlog' + startTime + endTime, results);
+	return results;
+}
+
+function parseBadgesFromMessage(message) {
+	let parsedBadges = '';
+	if (message) {
+		if (message.broadcaster) {
+			parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1" alt="Broadcaster" title="Broadcaster" />';
+		}
+		if (message.moderator) {
+			parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1" alt="Moderator" title="Moderator" />';
+		}
+		if (message.subscriber === '0') {
+			parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1" alt="Subscriber" title="Subscriber" />';
+		}
+	}
+	return parsedBadges;
+}
+
+async function getFormattedChatlog(channel, startTime, endTime) {
+	channel = addHashToChannel(channel);
+	const chatlog = await getChatlog(channel, startTime, endTime);
+	if (chatlog) {
+		let builtChatlog = '<div class="chatlogs">';
+		for (const log in chatlog) {
+			if (Object.prototype.hasOwnProperty.call(chatlog, log)) {
+				const d = chatlog[log].timestamp;
+				const localTestDate = new Date(d).toLocaleString();
+				const displayName = chatlog[log].userstate['display-name'];
+				const username = chatlog[log].userstate.username;
+				let color = chatlog[log].userstate.color;
+				const parsedBadges = parseBadgesFromMessage(chatlog[log].userstate.badges);
+				if (!color) {
+					color = '#428bca';
+				}
+				const message = chatlog[log].message;
+				builtChatlog += '<div class="chat-message">';
+				builtChatlog += '<span class="date">' + localTestDate + '</span>';
+				if (displayName) {
+					builtChatlog += '<span class="displayName">';
+					builtChatlog += '<span class="badges">' + parsedBadges + '</span>';
+					builtChatlog += '<a href="https://twitch.tv/' + displayName + '" style="color:' + color + '" target="_blank">' + displayName + ':</a>';
+					builtChatlog += '</span>';
+				} else {
+					builtChatlog += '<span class="displayName">';
+					builtChatlog += '<span class="badges">' + parsedBadges + '</span>';
+					builtChatlog += '<a href="https://twitch.tv/' + username + '" style="color:' + color + '" target="_blank">' + username + ':</a>';
+					builtChatlog += '</span>';
+				}
+				builtChatlog += '<span class="message">' + message + '</span>';
+				builtChatlog += '</div>';
+			}
+		}
+		builtChatlog += '</div>';
+		return builtChatlog;
+	}
+	return '<div class="chatlogs">Sorry, there are no logs for the selected day!</div>';
+}
+
+function addHashToChannel(channel) {
+	if (!channel.includes('#')) {
+		channel = '#' + channel;
+	}
+	return channel;
 }
 
 module.exports = {
-	wwwRedirect,
-	checkUserLoginStatus,
 	getChannelInfo,
 	handleLogin,
 	checkModStatus,
-	allowCrossDomain,
-	includeFile
+	getURLChannel,
+	getTopChatters,
+	getDashboardStats,
+	getNotifications,
+	checkIfUserIsLoggedIn,
+	getSonglist,
+	getFormattedSonglist,
+	getFirstSongFromSonglist,
+	getFormattedFirstSongFromSonglist,
+	getChannelName,
+	getUserData,
+	getMusicStatus,
+	getCommands,
+	getFormattedCommandlist,
+	getBlacklist,
+	getFormattedBlacklist,
+	getSongCache,
+	getFormattedSongCache,
+	getChatlog,
+	getFormattedChatlog,
+	checkPassedChannel,
+	addHashToChannel
 };

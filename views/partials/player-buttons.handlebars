@@ -1,0 +1,18 @@
+<button type="button" class="blue-styled-button volBtn" id="down">
+	<i class="fa fa-volume-down" title="Volume -10"></i>
+</button>
+<button type="button" class="blue-styled-button volBtn" id="up">
+	<i class="fa fa-volume-up" title="Volume +10"></i>
+</button>
+{{#if isMusicPlaying}}
+	<button type="button" class="blue-styled-button togglePlay">
+		<i class="fa fa-pause" title="Pause"></i>
+	</button>
+{{else}}
+	<button type="button" class="blue-styled-button togglePlay">
+		<i class="fa fa-play" title="Play"></i>
+	</button>
+{{/if}}
+<button type="button" class="blue-styled-button skipBtn">
+	<i class="fa fa-fast-forward" title="Skip Song"></i>
+</button>
