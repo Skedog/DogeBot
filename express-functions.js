@@ -24,8 +24,9 @@ function checkIfUserIsLoggedIn(req, res, next) {
 }
 
 function setRedirectTo(req) {
-	console.log('setting redirectTo to ' + req.originalUrl);
-	req.session.redirectTo = req.originalUrl;
+	if (req.originalUrl !== '/getsocketdata') {
+		req.session.redirectTo = req.originalUrl;
+	}
 }
 
 async function checkModStatus(req, res, next) {
@@ -293,15 +294,17 @@ async function getTopChatters(channel) {
 
 function buildTopChattersLayout(topChatters) {
 	let temp = '';
-	if (topChatters.length === 5) {
-		temp = '<div class="topchatters">';
-		temp += '<h3>Top Chatters</h3>';
-		temp += '<p>1) ' + topChatters[0].userName + ' - ' + topChatters[0].numberOfChatMessages + ' messages</p>';
-		temp += '<p>2) ' + topChatters[1].userName + ' - ' + topChatters[1].numberOfChatMessages + ' messages</p>';
-		temp += '<p>3) ' + topChatters[2].userName + ' - ' + topChatters[2].numberOfChatMessages + ' messages</p>';
-		temp += '<p>4) ' + topChatters[3].userName + ' - ' + topChatters[3].numberOfChatMessages + ' messages</p>';
-		temp += '<p>5) ' + topChatters[4].userName + ' - ' + topChatters[4].numberOfChatMessages + ' messages</p>';
-		temp += '</div>';
+	if (topChatters) {
+		if (topChatters.length === 5) {
+			temp = '<div class="topchatters">';
+			temp += '<h3>Top Chatters</h3>';
+			temp += '<p>1) ' + topChatters[0].userName + ' - ' + topChatters[0].numberOfChatMessages + ' messages</p>';
+			temp += '<p>2) ' + topChatters[1].userName + ' - ' + topChatters[1].numberOfChatMessages + ' messages</p>';
+			temp += '<p>3) ' + topChatters[2].userName + ' - ' + topChatters[2].numberOfChatMessages + ' messages</p>';
+			temp += '<p>4) ' + topChatters[3].userName + ' - ' + topChatters[3].numberOfChatMessages + ' messages</p>';
+			temp += '<p>5) ' + topChatters[4].userName + ' - ' + topChatters[4].numberOfChatMessages + ' messages</p>';
+			temp += '</div>';
+		}
 	}
 	return temp;
 }

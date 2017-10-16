@@ -65,7 +65,7 @@
 
 	function loadTwitchChatIframe(channelName) {
 		if (channelName.includes('#')) {channelName = channelName.slice(1);};
-		const chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="http://www.twitch.tv/' + channelName + '/chat"></iframe>';
+		const chatPanel = '<iframe frameborder="0" scrolling="no" id="chat_embed" src="https://www.twitch.tv/' + channelName + '/chat"></iframe>';
 		$('.chatbox').html(chatPanel);
 	};
 

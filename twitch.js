@@ -224,12 +224,12 @@ async function checkIfChannelIsLive(channel) {
 
 function getCurrentChatUsers(channel) {
 	twitchClient.api({
-		url: 'http://tmi.twitch.tv/group/user/' + channel + '/chatters'
+		url: 'https://tmi.twitch.tv/group/user/' + channel + '/chatters'
 	}, (err, res, body) => {
 		if (err) {
 			return;
 		}
-		console.log('http://tmi.twitch.tv/group/user/' + channel + '/chatters');
+		console.log('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
 		console.log('Viewer stats for ' + channel);
 		console.log('Viewer Count: ' + body.chatter_count);
 		console.log('Mods: ' + body.chatters.moderators);

@@ -57,6 +57,19 @@ function setupApp() {
 		duration: 15 * 24 * 60 * 60 * 1000,
 		activeDuration: 1 * 24 * 60 * 60 * 1000
 	}));
+
+	if (!constants.testMode) {
+		app.enable('trust proxy');
+		app.use((req, res, next) => {
+			if (req.secure) {
+				// Request was via https, so do no special handling
+				next();
+			} else {
+				// Request was via http, so redirect to https
+				res.redirect('https://' + req.headers.host + req.url);
+			}
+		});
+	}
 }
 
 async function setupRoutes() {

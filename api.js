@@ -127,7 +127,7 @@ class API {
 	}
 
 	async viewers(props) {
-		const URLtoUse = 'http://tmi.twitch.tv/group/user/' + props.channel.slice(1) + '/chatters';
+		const URLtoUse = 'https://tmi.twitch.tv/group/user/' + props.channel.slice(1) + '/chatters';
 		const twitchAPIRequest = await request(URLtoUse);
 		const currentViewerCount = JSON.parse(twitchAPIRequest.body).chatter_count;
 		if (currentViewerCount >= 0) {
