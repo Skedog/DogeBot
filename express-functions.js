@@ -25,7 +25,9 @@ function checkIfUserIsLoggedIn(req, res, next) {
 
 function setRedirectTo(req) {
 	if (req.originalUrl !== '/getsocketdata') {
-		req.session.redirectTo = req.originalUrl;
+		if (req.session) {
+			req.session.redirectTo = req.originalUrl;
+		}
 	}
 }
 
@@ -305,6 +307,41 @@ function buildTopChattersLayout(topChatters) {
 			temp += '<p>5) ' + topChatters[4].userName + ' - ' + topChatters[4].numberOfChatMessages + ' messages</p>';
 			temp += '</div>';
 		}
+	}
+	return temp;
+}
+
+async function getTopChattersForStatsPage(channel) {
+	if (!channel) {
+		return '<p>Enter a channel in the box above to view the top chatters!</p>';
+	}
+	channel = addHashToChannel(channel);
+	const cachedChatters = await cache.get(channel + 'topchatters');
+	if (cachedChatters) {
+		return buildStatsPageTopChatters(cachedChatters);
+	}
+	const propsForSelect = {
+		table: 'chatusers',
+		query: {channel, userName: {$ne: 'skedogbot'}},
+		sortBy: {numberOfChatMessages: -1},
+		limit: 50
+	};
+	const topChatters = await database.select(propsForSelect);
+	await cache.set(channel + 'topchatters', topChatters, 300);
+	return buildStatsPageTopChatters(topChatters);
+}
+
+function buildStatsPageTopChatters(topChatters) {
+	let temp = '';
+	if (topChatters) {
+		temp = '<div class="topchatters statspage">';
+		for (const chatter in topChatters) {
+			const chatterCounter = parseInt(chatter, 10) + 1;
+			temp += '<p>' + chatterCounter + ') ' + topChatters[chatter].userName + ' - ' + topChatters[chatter].numberOfChatMessages + ' messages</p>';
+		}
+		temp += '</div>';
+	} else {
+		temp += '<div class="topchatters statspage"><p>No chatters seen yet!</p></div>'
 	}
 	return temp;
 }
@@ -672,6 +709,106 @@ function addHashToChannel(channel) {
 	return channel;
 }
 
+async function getStatsForStatsPage(channel) {
+	if (channel) {
+		channel = addHashToChannel(channel);
+	}
+	const cachedStats = await cache.get('statspage' + channel);
+	if (cachedStats) {
+		return buildStatsLayout(cachedStats);
+	}
+	try {
+		let propsForCount = {};
+		if (channel) {
+			propsForCount.query = {channel}
+		}
+		propsForCount.table = 'songs';
+		const numberOfSongs = await database.count(propsForCount);
+
+		propsForCount.table = 'chatlog';
+		const numberOfChatMessages = await database.count(propsForCount);
+
+		propsForCount.table = 'commands';
+		const numberOfCommands = await database.count(propsForCount);
+
+		propsForCount.table = 'chatusers';
+		const numberOfChatUsers = await database.count(propsForCount);
+
+		propsForCount.table = 'songcache';
+		const numberOfCachedSongs = await database.count(propsForCount);
+
+		propsForCount = {
+			table: 'channels',
+			query: {}
+		};
+		const numberOfChannels = await database.count(propsForCount);
+
+		await cache.set('statspage' + channel, [numberOfSongs, numberOfChatMessages, numberOfCommands, numberOfChatUsers, numberOfChannels, numberOfCachedSongs, channel], 300);
+		return buildStatsLayout([numberOfSongs, numberOfChatMessages, numberOfCommands, numberOfChatUsers, numberOfChannels, numberOfCachedSongs, channel]);
+	} catch (err) {
+		return '';
+	}
+}
+
+function buildStatsLayout(data) {
+	let temp = '';
+	if (data) {
+		const channelName = data[6];
+		if (!channelName) {
+			temp = '<div class="statbox-container statspage">';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Songs in All Queues</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[5].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Songs Ever Seen</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Commands in All Channels</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Users Seen in All Channels</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Chat Messages Seen in All Channels</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[4].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Channels Registered</p>';
+			temp += '</div>';
+			temp += '</div>';
+		} else {
+			temp = '<div class="statbox-container statspage">';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Songs in Queue</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[5].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Songs Seen in Channel</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Commands in Channel</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Users Seen in Channel</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Chat Messages Seen in Channel</p>';
+			temp += '</div>';
+			temp += '</div>';
+		}
+	}
+	return temp;
+}
+
 module.exports = {
 	getChannelInfo,
 	handleLogin,
@@ -697,5 +834,7 @@ module.exports = {
 	getChatlog,
 	getFormattedChatlog,
 	checkPassedChannel,
-	addHashToChannel
+	addHashToChannel,
+	getStatsForStatsPage,
+	getTopChattersForStatsPage
 };

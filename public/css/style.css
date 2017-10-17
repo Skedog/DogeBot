@@ -5,7 +5,9 @@
 /* =============================================================================
 	resets
    ========================================================================== */
-
+.collapse.navbar-collapse {
+	display: block!important;
+}
 html, body {
 	height: 100%;
 	width: 100%;
@@ -185,7 +187,7 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 	/*overflow: hidden;*/
 }
 
-.container.wrapper h1:first-of-type small {
+.container.wrapper h1:first-of-type small, .inner-content-wrapper h1:first-of-type small {
 	font-size:0.7em;
 	color:#428bca;
 	font-style: italic;
@@ -514,6 +516,53 @@ body.home .navbar-inverse .navbar-brand {
 	margin:10px;
 }
 
+/* =============================================================================
+	statspage
+   ========================================================================== */
+
+.statspage.statbox-container {
+	float:left;
+	width:100%;
+}
+
+.statspage .statbox {
+	float:left;
+	width:29%;
+	padding:30px 60px;
+	border:3px solid rgba(14, 45, 60, 0.7);
+	margin:10px;
+}
+.statspage .statbox:nth-child(2n+1) {
+	clear:none;
+}
+.statspage .statbox:nth-child(3n+1) {
+	clear:both;
+}
+
+.channel-form-container {
+	width:90%;
+}
+.channel-form-container #channel-form {
+	float:right;
+}
+.channel-form-submit {
+	float:right!important;
+	margin-left: 10px!important;
+}
+
+.statspage.topchatters {
+	float:left;
+	width:90%;
+	padding:55px 60px;
+	background:rgba(12, 33, 51, 0.8);
+	border:3px solid rgba(14, 45, 60, 0.7);
+	margin:10px;
+}
+
+.statspage.topchatters p {
+	width:33%;
+	float:left;
+}
 
 /* =============================================================================
 	player
@@ -964,6 +1013,16 @@ table.dataTable {
 		width:55%;
 		padding:10px 30px;
 	}
+
+	.statspage .statbox {
+		width:45%;
+	}
+	.statspage .statbox:nth-child(2n+1) {
+		clear:both;
+	}
+	.statspage .statbox:nth-child(3n+1) {
+		clear:none;
+	}
 }
 
 @media screen and (max-width:1520px) {
@@ -978,6 +1037,10 @@ table.dataTable {
 	}
 	.inner-content-wrapper {
 		width:76%;
+	}
+
+	.statspage.topchatters p {
+		width:50%;
 	}
 }
 
@@ -1083,6 +1146,29 @@ table.dataTable {
 	}
 	.topchatters,.statbox-container {
 		width:95%;
+	}
+
+	.statspage.topchatters p {
+		width:100%;
+	}
+	.statspage.topchatters {
+		padding:10px;
+	}
+	#channel-form {
+		margin:20px 0;
+	}
+	#channel-form, .channel-form-submit {
+		float:none!important;
+	}
+
+	.statspage .statbox {
+		width:90%;
+	}
+	.statspage .statbox:nth-child(1n+1) {
+		clear:both;
+	}
+	.statspage .statbox:nth-child(3n+1), .statspage .statbox:nth-child(2n+1) {
+		clear:none;
 	}
 }
 @media screen and (max-width:767px) {
@@ -1254,6 +1340,10 @@ table.dataTable {
 	.moderationBtns {
 		float: none;
 		width:auto;
+	}
+
+	.notifications-link {
+		display: none!important;
 	}
 }
 @media screen and (max-width:650px) {

@@ -171,7 +171,7 @@ $(document).ready(function() {
 	});
 
 	// Handle setup for doc section
-	if (window.location.href.includes('docs.')) {
+	if (window.location.href.includes('docs.') || window.location.href.includes('stats.')) {
 		$('.doc-nav h4 a i').each(function(index, el) {
 			if ($(this).hasClass('fa-plus')) {
 				$(this).parent().parent().next().hide();
@@ -181,6 +181,8 @@ $(document).ready(function() {
 			setNavShowingSection('getting-started', URLChannel);
 		} else if (page === 'commands') {
 			setNavShowingSection('default-commands', URLChannel);
+		} else if (page === 'channel') {
+			setNavShowingSection('', URLChannel);
 		} else {
 			setNavShowingSection(page, URLChannel);
 		}

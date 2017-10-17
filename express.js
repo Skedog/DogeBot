@@ -18,6 +18,7 @@ const twitch = require('./twitch.js');
 
 const app = express();
 const router = new express.Router();
+const statsPage = new express.Router();
 const server = http.createServer(app);
 const port = process.env.PORT ? process.env.PORT : 3000;
 let dbConstants;
@@ -42,6 +43,7 @@ function setupApp() {
 	app.engine('handlebars', hbs.engine);
 	app.set('view engine', 'handlebars');
 	app.use(subdomain('docs', router));
+	app.use(subdomain('stats', statsPage));
 	app.disable('x-powered-by');
 	app.use('/css', express.static(path.join(__dirname, '/public/css')));
 	app.use('/img', express.static(path.join(__dirname, '/public/img')));
@@ -370,18 +372,6 @@ async function setupRoutes() {
 		}
 	});
 
-	app.use(async (req, res) => {
-		const err = new Error('Not Found');
-		err.status = 404;
-		res.status(err.status || 500);
-		res.render('error.handlebars', {
-			message: err.message,
-			status: err.status,
-			error: {},
-			layout: 'notLoggedIn'
-		});
-	});
-
 	// Documentation routes
 	router.get('/', async (req, res) => {
 		res.render('getting-started.handlebars', {
@@ -432,6 +422,60 @@ async function setupRoutes() {
 		} else {
 			res.redirect(constants.postURL + '/login');
 		}
+	});
+
+	// Stats route
+	statsPage.get('/', async (req, res) => {
+		const stats = await expressFunctions.getStatsForStatsPage();
+		res.render('stats.handlebars', {
+			stats,
+			layout: 'stats'
+		});
+	});
+
+	statsPage.get('/channel/:channel*?', [expressFunctions.checkPassedChannel], async (req, res) => {
+		const stats = await expressFunctions.getStatsForStatsPage(req.params.channel);
+		res.render('stats.handlebars', {
+			stats,
+			layout: 'stats'
+		});
+	});
+
+	statsPage.get('/top-chatters', async (req, res) => {
+		const stats = await expressFunctions.getTopChattersForStatsPage();
+		res.render('top-chatters.handlebars', {
+			stats,
+			layout: 'stats'
+		});
+	});
+
+	statsPage.get('/top-chatters/:channel*?', [expressFunctions.checkPassedChannel], async (req, res) => {
+		const stats = await expressFunctions.getTopChattersForStatsPage(req.params.channel);
+		res.render('top-chatters.handlebars', {
+			stats,
+			layout: 'stats'
+		});
+	});
+
+	statsPage.get('/login', async (req, res) => {
+		// This route handles trying to login from the stats site
+		if (constants.testMode) {
+			res.redirect(constants.testPostURL + '/login');
+		} else {
+			res.redirect(constants.postURL + '/login');
+		}
+	});
+
+	app.use(async (req, res) => {
+		const err = new Error('Not Found');
+		err.status = 404;
+		res.status(err.status || 500);
+		res.render('error.handlebars', {
+			message: err.message,
+			status: err.status,
+			error: {},
+			layout: 'notLoggedIn'
+		});
 	});
 }
 

@@ -1,0 +1,33 @@
+<div class="inner-content-wrapper">
+	<section class="content">
+		<div class="channel-form-container">
+			<form action="#" id="channel-form" name="channel-form">
+				<input type="text" value="" name="channel-name" id="channel-name" class="channel-name darkinput" placeholder="channel name" />
+				<input type="submit" name="submit" class="submit blue-styled-button mini channel-form-submit" value="Submit" />
+			</form>
+		</div>
+		<h1><i class="fa fa-file-text"></i> Bot Stats <small>ALL</small></h1>
+		{{{stats}}}
+	</section>
+</div>
+<script>
+	$('#channel-form').submit(function(e) {
+		e.preventDefault();
+		if ($('.channel-name').val()) {
+			window.location.assign("/channel/" + $('.channel-name').val());
+		}
+	});
+	$(document).ready(function() {
+		if (urlUser) {
+			$('.channel-name').val(urlUser);
+			$('h1 small').text(urlUser);
+			$('.doc-nav ul li').each(function(index, el) {
+				if ($(this).children('a').attr('href') !== '/') {
+					$(this).children('a').attr('href', $(this).children('a').attr('href') + '/' + urlUser);
+				} else {
+					$(this).children('a').attr('href', '/channel/' + urlUser);
+				}
+			});
+		}
+	});
+</script>
