@@ -315,6 +315,7 @@ async function getTopChattersForStatsPage(channel) {
 	if (!channel) {
 		return '<p>Enter a channel in the box above to view the top chatters!</p>';
 	}
+	const origChannel = channel;
 	channel = addHashToChannel(channel);
 	const cachedChatters = await cache.get(channel + 'topchatters');
 	if (cachedChatters) {
@@ -322,7 +323,7 @@ async function getTopChattersForStatsPage(channel) {
 	}
 	const propsForSelect = {
 		table: 'chatusers',
-		query: {channel, userName: {$ne: 'skedogbot'}},
+		query: {channel, userName: {$ne: 'skedogbot', $ne: origChannel}},
 		sortBy: {numberOfChatMessages: -1},
 		limit: 50
 	};
@@ -725,14 +726,18 @@ async function getStatsForStatsPage(channel) {
 		propsForCount.table = 'songs';
 		const numberOfSongs = await database.count(propsForCount);
 
-		propsForCount.table = 'chatlog';
-		const numberOfChatMessages = await database.count(propsForCount);
+		propsForCount.table = 'chatmessages';
+		const chatMessages = await database.select(propsForCount);
+		let numberOfChatMessages = 0;
+		if (chatMessages) {
+			for (const channel in chatMessages) {
+				numberOfChatMessages += chatMessages[channel].counter;
+			}
+		}
 
 		propsForCount.table = 'commands';
 		const numberOfCommands = await database.count(propsForCount);
 
-		propsForCount.table = 'chatusers';
-		const numberOfChatUsers = await database.count(propsForCount);
 
 		propsForCount.table = 'songcache';
 		const numberOfCachedSongs = await database.count(propsForCount);
@@ -743,8 +748,8 @@ async function getStatsForStatsPage(channel) {
 		};
 		const numberOfChannels = await database.count(propsForCount);
 
-		await cache.set('statspage' + channel, [numberOfSongs, numberOfChatMessages, numberOfCommands, numberOfChatUsers, numberOfChannels, numberOfCachedSongs, channel], 300);
-		return buildStatsLayout([numberOfSongs, numberOfChatMessages, numberOfCommands, numberOfChatUsers, numberOfChannels, numberOfCachedSongs, channel]);
+		await cache.set('statspage' + channel, [numberOfSongs, numberOfChatMessages, numberOfCommands, numberOfChannels, numberOfCachedSongs, channel], 300);
+		return buildStatsLayout([numberOfSongs, numberOfChatMessages, numberOfCommands, numberOfChannels, numberOfCachedSongs, channel]);
 	} catch (err) {
 		return '';
 	}
@@ -761,7 +766,7 @@ function buildStatsLayout(data) {
 			temp += '<p># of Songs in All Queues</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
-			temp += '<h3>' + data[5].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<h3>' + data[4].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
 			temp += '<p># of Songs Ever Seen</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
@@ -769,15 +774,11 @@ function buildStatsLayout(data) {
 			temp += '<p># of Commands in All Channels</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
-			temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
-			temp += '<p># of Users Seen in All Channels</p>';
-			temp += '</div>';
-			temp += '<div class="statbox">';
 			temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
 			temp += '<p># of Chat Messages Seen in All Channels</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
-			temp += '<h3>' + data[4].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
 			temp += '<p># of Channels Registered</p>';
 			temp += '</div>';
 			temp += '</div>';
@@ -788,16 +789,12 @@ function buildStatsLayout(data) {
 			temp += '<p># of Songs in Queue</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
-			temp += '<h3>' + data[5].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<h3>' + data[4].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
 			temp += '<p># of Songs Seen in Channel</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
 			temp += '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
 			temp += '<p># of Commands in Channel</p>';
-			temp += '</div>';
-			temp += '<div class="statbox">';
-			temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
-			temp += '<p># of Users Seen in Channel</p>';
 			temp += '</div>';
 			temp += '<div class="statbox">';
 			temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';

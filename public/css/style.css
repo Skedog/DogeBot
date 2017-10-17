@@ -559,9 +559,10 @@ body.home .navbar-inverse .navbar-brand {
 	margin:10px;
 }
 
-.statspage.topchatters p {
-	width:33%;
-	float:left;
+.statspage.topchatters {
+	-webkit-column-count: 3;
+    -moz-column-count: 3;
+    column-count: 3;
 }
 
 /* =============================================================================
@@ -1039,8 +1040,10 @@ table.dataTable {
 		width:76%;
 	}
 
-	.statspage.topchatters p {
-		width:50%;
+	.statspage.topchatters {
+		-webkit-column-count: 2;
+		-moz-column-count: 2;
+		column-count: 2;
 	}
 }
 
@@ -1147,12 +1150,11 @@ table.dataTable {
 	.topchatters,.statbox-container {
 		width:95%;
 	}
-
-	.statspage.topchatters p {
-		width:100%;
-	}
 	.statspage.topchatters {
 		padding:10px;
+		-webkit-column-count: 1;
+		-moz-column-count: 1;
+		column-count: 1;
 	}
 	#channel-form {
 		margin:20px 0;

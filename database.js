@@ -34,9 +34,39 @@ class Database {
 		}
 	}
 
+	async selectDistinct(props) {
+		try {
+			if (props.sortBy === undefined) {
+				props.sortBy = {sortOrder: 1, _id: 1};
+			}
+			if (props.limit === undefined) {
+				props.limit = 0;
+			}
+			if (props.distinct === undefined) {
+				props.distinct = '';
+			}
+			const result = await module.exports.db.collection(props.table).distinct(props.distinct, props.query).sort(props.sortBy).limit(props.limit).toArray();
+			if (result.length > 0) {
+				return result;
+			}
+			return;
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
 	async count(props) {
 		try {
 			const result = await module.exports.db.collection(props.table).count(props.query);
+			return result;
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
+	async countDistinct(props) {
+		try {
+			const result = await module.exports.db.collection(props.table).distinct(props.distinct, props.query);
 			return result;
 		} catch (err) {
 			throw new Error(err);

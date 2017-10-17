@@ -5,7 +5,6 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const subdomain = require('express-subdomain');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const request = require('async-request');
 const log = require('npmlog');
 const session = require('client-sessions');
@@ -49,7 +48,6 @@ function setupApp() {
 	app.use('/img', express.static(path.join(__dirname, '/public/img')));
 	app.use('/js', express.static(path.join(__dirname, '/public/js')));
 	app.use('/favicon.ico', express.static('public/img/favicon.ico'));
-	app.use(cookieParser());
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: true}));
 	// Session is valid for 15 days, and will add 1 day to that length if expiresIn < 1 day
@@ -71,6 +69,27 @@ function setupApp() {
 				res.redirect('https://' + req.headers.host + req.url);
 			}
 		});
+
+		router.use((req, res, next) => {
+			if (req.secure) {
+				// Request was via https, so do no special handling
+				next();
+			} else {
+				// Request was via http, so redirect to https
+				res.redirect('https://' + req.headers.host + req.url);
+			}
+		});
+
+		statsPage.use((req, res, next) => {
+			if (req.secure) {
+				// Request was via https, so do no special handling
+				next();
+			} else {
+				// Request was via http, so redirect to https
+				res.redirect('https://' + req.headers.host + req.url);
+			}
+		});
+
 	}
 }
 
