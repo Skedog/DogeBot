@@ -187,14 +187,10 @@ class API {
 		}
 		const commandSplit = commandMessage.split(':');
 		const userToCheck = commandSplit[1].replace(')', '').trim();
-		const url = 'https://dinubish.com/nb/battlelog.php?username=' + userToCheck;
+		const url = 'https://api.dinu.tv/battlelogText/?op=server&username=' + userToCheck;
 		const httpRequest = await request(url);
 		if (httpRequest.body) {
-			const body = httpRequest.body;
-			if (!body.includes('Error:')) {
-				return functions.buildUserString(props) + httpRequest.body;
-			}
-			return functions.buildUserString(props) + userToCheck + ' isn\'t currently in any server!';
+			return functions.buildUserString(props) + httpRequest.body;
 		}
 	}
 
