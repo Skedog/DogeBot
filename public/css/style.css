@@ -759,6 +759,33 @@ table.datatable thead th {
 }
 
 /* =============================================================================
+	commands
+   ========================================================================== */
+
+.hidden-array {
+	display: none;
+}
+
+.white-popup-block {
+    background: #0c2133;
+    padding: 20px 80px;
+    text-align: left;
+    max-width: 60%;
+    margin: 20px auto;
+    position: relative;
+    color:#fff;
+}
+
+.white-popup-block ol {
+  max-width:80%;
+  margin:0 auto;
+}
+
+.white-popup-block li {
+  margin:10px 0;
+}
+
+/* =============================================================================
 	notifications
    ========================================================================== */
 
@@ -1127,6 +1154,13 @@ table.dataTable {
 	.policy-container {
 		width:100%;
 	}
+
+	.white-popup-block ol {
+	  max-width:100%;
+	}
+	.white-popup-block {
+	    max-width: 100%;
+	}
 }
 @media screen and (max-width:885px) {
 	.moderation-songlist {
@@ -1171,6 +1205,10 @@ table.dataTable {
 	}
 	.statspage .statbox:nth-child(3n+1), .statspage .statbox:nth-child(2n+1) {
 		clear:none;
+	}
+
+	.white-popup-block {
+	    padding: 20px 10px;
 	}
 }
 @media screen and (max-width:767px) {

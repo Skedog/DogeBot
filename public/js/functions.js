@@ -172,3 +172,16 @@ async function loadFormattedChatlogs(channel, date) {
 	});
 	return dataToReturn;
 }
+
+async function loadListCommandItems(channel, passedCommand) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/getlistcommanditems',
+		data: 'channel=' + channel + '&command=' + passedCommand,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}

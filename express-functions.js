@@ -85,6 +85,27 @@ async function checkPassedChannel(req, res, next) {
 	});
 }
 
+async function checkPassedCommand(req, res, next) {
+	if (!req.params.command) {
+		// No command was passed, redirect to commands page
+		return res.redirect('/commands');
+	}
+	const propsForSelect = {
+		table: 'commands',
+		query: {trigger: req.params.command}
+	};
+	const results = await database.select(propsForSelect);
+	if (results) {
+		return next();
+	}
+	// Invalid command passed, render 500 page
+	res.render('error.handlebars', {
+		status: 500,
+		error: {},
+		layout: 'notLoggedIn'
+	});
+}
+
 // Helpers
 function getUnixTime(currentDate) {
 	return currentDate.getTime() / 1000 | 0;
@@ -323,7 +344,7 @@ async function getTopChattersForStatsPage(channel) {
 	}
 	const propsForSelect = {
 		table: 'chatusers',
-		query: {channel, userName: {$ne: 'skedogbot', $ne: origChannel}},
+		query: {channel, userName: {$nin: ['skedogbot', origChannel]}},
 		sortBy: {numberOfChatMessages: -1},
 		limit: 50
 	};
@@ -337,12 +358,14 @@ function buildStatsPageTopChatters(topChatters) {
 	if (topChatters) {
 		temp = '<div class="topchatters statspage">';
 		for (const chatter in topChatters) {
-			const chatterCounter = parseInt(chatter, 10) + 1;
-			temp += '<p>' + chatterCounter + ') ' + topChatters[chatter].userName + ' - ' + topChatters[chatter].numberOfChatMessages + ' messages</p>';
+			if (Object.prototype.hasOwnProperty.call(topChatters, chatter)) {
+				const chatterCounter = parseInt(chatter, 10) + 1;
+				temp += '<p>' + chatterCounter + ') ' + topChatters[chatter].userName + ' - ' + topChatters[chatter].numberOfChatMessages + ' messages</p>';
+			}
 		}
 		temp += '</div>';
 	} else {
-		temp += '<div class="topchatters statspage"><p>No chatters seen yet!</p></div>'
+		temp += '<div class="topchatters statspage"><p>No chatters seen yet!</p></div>';
 	}
 	return temp;
 }
@@ -564,10 +587,41 @@ async function getFormattedCommandlist(channel) {
 	let builtCommandList = '';
 	for (const command in commands) {
 		if (Object.prototype.hasOwnProperty.call(commands, command)) {
-			builtCommandList += '<tr><td>' + commands[command].trigger + '</td><td>' + commands[command].chatmessage + '</td><td>' + commands[command].commandcounter + '</td><td>' + commands[command].permissionsLevel + '</td></tr>';
+			if (commands[command].chatmessage === '$(list)') {
+				builtCommandList += '<tr id="' + commands[command].trigger + '"><td>' + commands[command].trigger + '</td><td><a href="#" class="view-list">View List</a></td><td>' + commands[command].commandcounter + '</td><td>' + commands[command].permissionsLevel + '</td></tr>';
+			} else {
+				builtCommandList += '<tr id="' + commands[command].trigger + '"><td>' + commands[command].trigger + '</td><td>' + commands[command].chatmessage + '</td><td>' + commands[command].commandcounter + '</td><td>' + commands[command].permissionsLevel + '</td></tr>';
+			}
 		}
 	}
 	return builtCommandList;
+}
+
+async function formatListItems(listItems) {
+	if (listItems.length !== 0) {
+		let formattedListItems = '<ol>';
+		for (const listItem in listItems) {
+			if (Object.prototype.hasOwnProperty.call(listItems, listItem)) {
+				formattedListItems += '<li>' + listItems[listItem] + '</li>';
+			}
+		}
+		formattedListItems += '</ol>';
+		return formattedListItems;
+	}
+	return '<p>There are currently no items in this list</p>';
+}
+
+async function getListCommandItems(channel, passedCommand) {
+	channel = addHashToChannel(channel);
+	const commands = await getCommands(channel);
+	for (const command in commands) {
+		if (Object.prototype.hasOwnProperty.call(commands, command)) {
+			if (commands[command].trigger === passedCommand) {
+				return formatListItems(commands[command].listArray);
+			}
+		}
+	}
+	return '';
 }
 
 function getChannelName(req, userDetails) {
@@ -721,7 +775,7 @@ async function getStatsForStatsPage(channel) {
 	try {
 		let propsForCount = {};
 		if (channel) {
-			propsForCount.query = {channel}
+			propsForCount.query = {channel};
 		}
 		propsForCount.table = 'songs';
 		const numberOfSongs = await database.count(propsForCount);
@@ -731,13 +785,14 @@ async function getStatsForStatsPage(channel) {
 		let numberOfChatMessages = 0;
 		if (chatMessages) {
 			for (const channel in chatMessages) {
-				numberOfChatMessages += chatMessages[channel].counter;
+				if (Object.prototype.hasOwnProperty.call(chatMessages, channel)) {
+					numberOfChatMessages += chatMessages[channel].counter;
+				}
 			}
 		}
 
 		propsForCount.table = 'commands';
 		const numberOfCommands = await database.count(propsForCount);
-
 
 		propsForCount.table = 'songcache';
 		const numberOfCachedSongs = await database.count(propsForCount);
@@ -759,7 +814,26 @@ function buildStatsLayout(data) {
 	let temp = '';
 	if (data) {
 		const channelName = data[6];
-		if (!channelName) {
+		if (channelName) {
+			temp = '<div class="statbox-container statspage">';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Songs in Queue</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[4].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Songs Seen in Channel</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Commands in Channel</p>';
+			temp += '</div>';
+			temp += '<div class="statbox">';
+			temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
+			temp += '<p># of Chat Messages Seen in Channel</p>';
+			temp += '</div>';
+			temp += '</div>';
+		} else {
 			temp = '<div class="statbox-container statspage">';
 			temp += '<div class="statbox">';
 			temp += '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
@@ -780,25 +854,6 @@ function buildStatsLayout(data) {
 			temp += '<div class="statbox">';
 			temp += '<h3>' + data[3].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
 			temp += '<p># of Channels Registered</p>';
-			temp += '</div>';
-			temp += '</div>';
-		} else {
-			temp = '<div class="statbox-container statspage">';
-			temp += '<div class="statbox">';
-			temp += '<h3>' + data[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
-			temp += '<p># of Songs in Queue</p>';
-			temp += '</div>';
-			temp += '<div class="statbox">';
-			temp += '<h3>' + data[4].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
-			temp += '<p># of Songs Seen in Channel</p>';
-			temp += '</div>';
-			temp += '<div class="statbox">';
-			temp += '<h3>' + data[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
-			temp += '<p># of Commands in Channel</p>';
-			temp += '</div>';
-			temp += '<div class="statbox">';
-			temp += '<h3>' + data[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</h3>';
-			temp += '<p># of Chat Messages Seen in Channel</p>';
 			temp += '</div>';
 			temp += '</div>';
 		}
@@ -824,6 +879,7 @@ module.exports = {
 	getMusicStatus,
 	getCommands,
 	getFormattedCommandlist,
+	getListCommandItems,
 	getBlacklist,
 	getFormattedBlacklist,
 	getSongCache,
@@ -831,6 +887,7 @@ module.exports = {
 	getChatlog,
 	getFormattedChatlog,
 	checkPassedChannel,
+	checkPassedCommand,
 	addHashToChannel,
 	getStatsForStatsPage,
 	getTopChattersForStatsPage

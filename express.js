@@ -89,7 +89,6 @@ function setupApp() {
 				res.redirect('https://' + req.headers.host + req.url);
 			}
 		});
-
 	}
 }
 
@@ -330,6 +329,11 @@ async function setupRoutes() {
 	app.post('/getchatlogs', async (req, res) => {
 		const formattedChatlog = await expressFunctions.getFormattedChatlog(req.body.channel, req.body.timestampStart, req.body.timestampEnd);
 		res.send(formattedChatlog);
+	});
+
+	app.post('/getlistcommanditems', async (req, res) => {
+		const listCommandItems = await expressFunctions.getListCommandItems(req.body.channel, req.body.command);
+		res.send(listCommandItems);
 	});
 
 	app.post('/joinchannel', async (req, res) => {
