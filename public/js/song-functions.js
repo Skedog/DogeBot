@@ -153,6 +153,21 @@ async function loadNextSong(channel) {
 	};
 }
 
+async function shuffleSongs(channel) {
+	if (!channel.includes('#')) {
+		channel = '#' + channel;
+	}
+	let dataToUse;
+	await $.ajax({
+		url: '/shufflesongs',
+		data: 'channel=' + channel,
+		type: 'POST',
+		success: function(data) {
+			dataToUse = data;
+		}
+	});
+}
+
 function handlePlayPauseClick(item, channel) {
 	item.click(async function(e) {
 		e.preventDefault();
@@ -192,3 +207,9 @@ function handleSkipClick(item, channel) {
 	});
 }
 
+function handleShuffleClick(item, channel) {
+	item.click(async function(e) {
+		e.preventDefault();
+		await shuffleSongs(channel);
+	});
+}

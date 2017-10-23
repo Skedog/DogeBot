@@ -321,6 +321,18 @@ async function setupRoutes() {
 		}
 	});
 
+	app.post('/shufflesongs', [expressFunctions.checkIfUserIsLoggedIn, expressFunctions.checkModStatus], async (req, res) => {
+		const fakeUserstate = [];
+		fakeUserstate['display-name'] = 'skippedfromweb';
+		const propsForShuffle = {
+			channel: req.body.channel,
+			userstate: fakeUserstate,
+			messageParams: ['!shuffle']
+		};
+		await songs.shuffle(propsForShuffle);
+		res.send('shuffled');
+	});
+
 	app.post('/getUserData', [expressFunctions.checkIfUserIsLoggedIn], async (req, res) => {
 		const userData = await expressFunctions.getUserData(req);
 		res.send(userData);
