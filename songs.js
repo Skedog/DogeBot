@@ -398,7 +398,37 @@ class Songs {
 
 	async requestSongWithNoCache(props) {
 		props.ignoreCache = true;
-		return await this.requestSongs(props);
+		return this.requestSongs(props);
+	}
+
+	async requestSongAndPromote(props) {
+		if (props.messageParams.includes(',')) {
+			// We can't promote if there is more than one song requested, so return an error?
+			return functions.buildUserString(props) + 'You can\'t promote when you request more than one song, either use !sr or use !srp youtube URL, video ID, or the song name';
+		}
+		props.shouldPromote = true;
+		const returnedMessage = await this.requestSongs(props);
+		if (returnedMessage.includes('has been added to the queue')) {
+			// Song was added to the queue, now call promote on it maybe?
+			const queuePosition = returnedMessage.substring(returnedMessage.lastIndexOf('#') + 1, returnedMessage.lastIndexOf('!'));
+			const messageParams = ['!promote', queuePosition];
+			const fakeUserstate = [];
+			fakeUserstate['display-name'] = 'promotedfromweb';
+			const propsForPromote = {
+				channel: props.channel,
+				messageParams,
+				userstate: fakeUserstate
+			};
+			const promotedMessage = await this.promote(propsForPromote);
+			if (promotedMessage.includes('has been promoted')) {
+				const messageToReturn = returnedMessage.split('has been added to the queue');
+				return messageToReturn[0] + ' has been added to the queue and has been promoted!';
+			}
+			// Song failed to be promoted, return the promotion failed message
+			return promotedMessage;
+		}
+		// Song was not added, show the error as to why
+		return returnedMessage;
 	}
 
 	async requestPlaylist(props) {
