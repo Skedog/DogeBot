@@ -174,6 +174,7 @@ async function handleLogin(props) {
 					case '!blacklist':
 					case '!game':
 					case '!title':
+					case '!nocache':
 						newData = [{channel: userToAdd, permissionLevel: 3}];
 						break;
 					default:

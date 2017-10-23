@@ -396,6 +396,11 @@ class Songs {
 		return functions.buildUserString(props) + 'To request a song, type the following: !sr youtube URL, video ID, or the song name';
 	}
 
+	async requestSongWithNoCache(props) {
+		props.ignoreCache = true;
+		return await this.requestSongs(props);
+	}
+
 	async requestPlaylist(props) {
 		try {
 			props.messageParams.splice(0, 1);
@@ -466,6 +471,10 @@ class Songs {
 	}
 
 	async checkCacheTimeCheck(props) {
+		if (props.ignoreCache) {
+			// If ignore cache command was called, return good
+			return 'cache time is good';
+		}
 		let propsForSelect;
 		propsForSelect = {
 			table: 'channels',
