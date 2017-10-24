@@ -783,6 +783,53 @@ class Songs {
 		}
 	}
 
+	async requestRelatedSongs(props) {
+		props.messageParams.splice(0, 1);
+		const lastParam = props.messageParams[props.messageParams.length - 1];
+		let numberOfSongsToGet;
+		let searchTerm;
+		if (functions.isNumber(lastParam)) {
+			// Last part of message is a number, try requesting that number of songs
+			// Number has to be less than 50 or else that bones the YT API
+			if (lastParam < 50) {
+				numberOfSongsToGet = lastParam;
+			} else {
+				numberOfSongsToGet = 49;
+			}
+			// Remove the last item from the array, and join to get the correct search string
+			props.messageParams.splice(-1, 1);
+			searchTerm = props.messageParams.join(' ');
+		} else {
+			// No number of songs passed, pull max number of requestable songs for this channel
+			numberOfSongsToGet = await this.getChannelSongNumberLimit(props);
+			numberOfSongsToGet = parseInt(numberOfSongsToGet, 10) + 1;
+			searchTerm = props.messageParams.join(' ');
+		}
+		props.ignoreMessageParamsForUserString = true;
+		props.songStatusArray = [];
+		try {
+			const youTubeID = await this.getYouTubeVideoIDFromChatMessage(searchTerm);
+			const relatedSongs = await this.getRelatedSongs(youTubeID, numberOfSongsToGet);
+			if (relatedSongs.items.length > 0) {
+				let songsToRequest = '';
+				for (const song in relatedSongs.items) {
+					if (Object.prototype.hasOwnProperty.call(relatedSongs.items, song)) {
+						songsToRequest += relatedSongs.items[song].id.videoId + ',';
+					}
+				}
+				if (songsToRequest) {
+					// Remove extra , from list
+					songsToRequest = songsToRequest.substring(0, songsToRequest.length - 1);
+					props.songsToAdd = songsToRequest.replace(/ /g, '').split(',');
+					return this.requestCommaListOfSongs(props);
+				}
+			}
+			return await functions.buildUserString(props) + 'There were no related songs!';
+		} catch (err) {
+			return await functions.buildUserString(props) + 'There were no related songs, or that is an invalid URL, song title, songID!';
+		}
+	}
+
 	async requestCommaListOfSongs(props) {
 		props.ignoreMessageParamsForUserString = true;
 		props.songStatusArray = [];
@@ -790,11 +837,13 @@ class Songs {
 			try {
 				const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songsToAdd[x]);
 				props.songToAdd = youTubeID;
-				await this.addSongWrapper(props);
-			} catch (err) {
-				if (err === 'failed limit') {
+				const returnedVal = await this.addSongWrapper(props);
+				if (returnedVal === 'failed limit') {
 					break;
 				}
+			} catch (err) {
+				console.log(err);
+				break;
 			}
 		}
 		await cache.del(props.channel + 'songlist');
@@ -938,6 +987,14 @@ class Songs {
 			}
 		}
 		throw 'failed getYouTubeSongData';
+	}
+
+	async getRelatedSongs(songID, numberToGet) {
+		const dbConstants = await database.constants();
+		const youTube = new YouTube();
+		youTube.setKey(dbConstants.YouTubeAPIKey);
+		const related = await promisify(youTube.related);
+		return related(songID, numberToGet);
 	}
 
 	getYouTubePlaylistIDFromChatMessage(props) {

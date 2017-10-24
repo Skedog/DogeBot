@@ -202,6 +202,8 @@ class Chat {
 					return await songs.requestSongs(props);
 				case '!srp':
 					return await songs.requestSongAndPromote(props);
+				case '!srr':
+					return await songs.requestRelatedSongs(props);
 				case '!nocache':
 				case '!skipcache':
 					return await songs.requestSongWithNoCache(props);
