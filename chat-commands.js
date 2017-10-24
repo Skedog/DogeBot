@@ -195,6 +195,8 @@ class Chat {
 					return await songs.promote(props);
 				case '!shuffle':
 					return await songs.shuffle(props);
+				case '!shoutout':
+					return await api.shoutout(props);
 				case '!songrequest':
 				case '!sr':
 					return await songs.requestSongs(props);

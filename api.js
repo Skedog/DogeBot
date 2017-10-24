@@ -94,6 +94,18 @@ class API {
 		}
 	}
 
+	async getLastPlayedGame(channel) {
+		if (channel) {
+			const dbConstants = await database.constants();
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + channel + '?client_id=' + dbConstants.twitchClientID;
+			const twitchAPIRequest = await request(URLtoUse);
+			const currentGame = JSON.parse(twitchAPIRequest.body).game;
+			if (currentGame) {
+				return currentGame;
+			}
+		}
+	}
+
 	async title(props) {
 		const dbConstants = await database.constants();
 		if (props.messageParams[1]) {
@@ -199,6 +211,18 @@ class API {
 		const outcomes = ['Signs point to yes.', 'Yes.', 'Reply hazy, try again.', 'My sources say no.', 'You may rely on it.', 'Concentrate and ask again.', 'Outlook not so good.', 'It is decidedly so.', 'Better not tell you now.', 'Very doubtful.', 'Yes - definitely.', 'It is certain.', 'Cannot predict now.', 'Most likely.', 'Ask again later.', 'My reply is no.', 'Outlook good.', 'Don\'t count on it.'];
 		const randomOutcome = await functions.getRandomItemFromArray(outcomes);
 		return functions.buildUserString(props) + randomOutcome[1];
+	}
+
+	async shoutout(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const streamerToShoutout = props.messageParams[1];
+		const lastPlayedGame = await this.getLastPlayedGame(streamerToShoutout);
+		if (streamerToShoutout) {
+			if (lastPlayedGame) {
+				return 'Make sure to give ' + streamerToShoutout + ' a follow! ' + streamerToShoutout + ' was last seen playing ' + lastPlayedGame + '. You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
+			}
+			return 'Make sure to give ' + streamerToShoutout + ' a follow! You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
+		}
 	}
 }
 
