@@ -785,6 +785,9 @@ class Songs {
 
 	async requestRelatedSongs(props) {
 		props.messageParams.splice(0, 1);
+		if (props.messageParams.length === 0) {
+			return await functions.buildUserString(props) + 'To request related songs, use !srr URL, Song Title, or songID';
+		}
 		const lastParam = props.messageParams[props.messageParams.length - 1];
 		let numberOfSongsToGet;
 		let searchTerm;
