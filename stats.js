@@ -66,6 +66,54 @@ class Stats {
 		}
 	}
 
+	async markUserAsActive(props) {
+		let username;
+		if (props.userstate === undefined) {
+			username = props.username;
+		} else {
+			username = props.userstate.username;
+		}
+		const propsForSelect = {
+			table: 'chatusers',
+			query: {channel: props.channel, userName: username}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			const dataToUse = {};
+			dataToUse.isActive = true;
+			const propsForUpdate = {
+				table: 'chatusers',
+				query: {channel: props.channel, userName: username},
+				dataToUse
+			};
+			await database.update(propsForUpdate);
+		}
+	}
+
+	async markUserAsInActive(props) {
+		let username;
+		if (props.userstate === undefined) {
+			username = props.username;
+		} else {
+			username = props.userstate.username;
+		}
+		const propsForSelect = {
+			table: 'chatusers',
+			query: {channel: props.channel, userName: username}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			const dataToUse = {};
+			dataToUse.isActive = false;
+			const propsForUpdate = {
+				table: 'chatusers',
+				query: {channel: props.channel, userName: username},
+				dataToUse
+			};
+			await database.update(propsForUpdate);
+		}
+	}
+
 	async updateUserCounter(props) {
 		const username = props.userstate.username;
 		const propsForSelect = {

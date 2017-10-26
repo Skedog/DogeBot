@@ -19,6 +19,7 @@ async function getListOfJoinedChannels() {
 	};
 	if (constants.testMode) {
 		startTimedMessages('ygtskedogtest');
+		startChatUserTracking('ygtskedogtest');
 		return ['#ygtskedogtest'];
 	}
 	const channels = await database.select(props);
@@ -26,6 +27,7 @@ async function getListOfJoinedChannels() {
 	for (const channel of channels) {
 		if (channel.ChannelName !== '#ygtskedogtest') {
 			startTimedMessages(channel.ChannelName.substr(1));
+			startChatUserTracking(channel.ChannelName.substr(1));
 			channelArray.push(channel.ChannelName);
 		}
 	}
@@ -165,11 +167,21 @@ async function callCommandFromChat(props) {
 
 function monitorUsersInChat() {
 	twitchClient.on('join', (channel, username) => {
-		const propsForAddTrackedUser = {
+		console.log(username + ' joined ' + channel);
+		const propsForUser = {
 			channel,
 			username
 		};
-		stats.addTrackedUser(propsForAddTrackedUser);
+		stats.addTrackedUser(propsForUser);
+		stats.markUserAsActive(propsForUser);
+	});
+	twitchClient.on('part', (channel, username) => {
+		console.log(username + ' left ' + channel);
+		const propsForUser = {
+			channel,
+			username
+		};
+		stats.markUserAsInActive(propsForUser);
 	});
 }
 
@@ -204,7 +216,47 @@ async function startTimedMessages(channel) {
 				// Channel is live, send a message
 				sendTimedMessage(channel, listOfMessages);
 			}
-		}, 1200000);
+		}, 1200000); // 20 minutes
+	}
+}
+
+async function startChatUserTracking(channel) {
+	this[channel + '_interval_chatusers'] = setInterval(async () => {
+		const results = await checkIfChannelIsLive(channel);
+		if (results) {
+			// Channel is live, get currently active users, increase points, etc
+			handleLoyalty(channel);
+		}
+	}, 600000); // 10 minutes
+}
+
+async function handleLoyalty(channel) {
+	const currentUsers = await getCurrentChatUsers(channel);
+	let dataToUse = {};
+	let propsForUpdate = {};
+	if (currentUsers.length > 0) {
+		const arrayOfUsers = currentUsers.split(',');
+		// Mark all users in the chatters list as "active" and increase loyalty points by 1
+		dataToUse = {
+			isActive: true
+		};
+		propsForUpdate = {
+			table: 'chatusers',
+			query: {channel: '#' + channel, userName: {$in: arrayOfUsers}},
+			dataToUse,
+			inc: {loyaltyPoints: 1, minutesInChat: 10}
+		};
+		await database.updateall(propsForUpdate);
+		// Mark all users NOT in the chatters list as "inactive"
+		dataToUse = {
+			isActive: false
+		};
+		propsForUpdate = {
+			table: 'chatusers',
+			query: {channel: '#' + channel, userName: {$nin: arrayOfUsers}},
+			dataToUse
+		};
+		await database.updateall(propsForUpdate);
 	}
 }
 
@@ -222,22 +274,11 @@ async function checkIfChannelIsLive(channel) {
 	return true;
 }
 
-function getCurrentChatUsers(channel) {
-	twitchClient.api({
-		url: 'https://tmi.twitch.tv/group/user/' + channel + '/chatters'
-	}, (err, res, body) => {
-		if (err) {
-			return;
-		}
-		console.log('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
-		console.log('Viewer stats for ' + channel);
-		console.log('Viewer Count: ' + body.chatter_count);
-		console.log('Mods: ' + body.chatters.moderators);
-		console.log('Staff: ' + body.chatters.staff);
-		console.log('Admins: ' + body.chatters.admins);
-		console.log('Global Mods: ' + body.chatters.global_mods);
-		console.log('Viewers: ' + body.chatters.viewers);
-	});
+async function getCurrentChatUsers(channel) {
+	const twitchAPIRequest = await request('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
+	const body = JSON.parse(twitchAPIRequest.body);
+	const listOfUsers = body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
+	return listOfUsers;
 }
 
 async function start() {

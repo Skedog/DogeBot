@@ -96,7 +96,11 @@ class Database {
 
 	async update(props) {
 		try {
-			await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse});
+			if (props.inc === undefined) {
+				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse});
+			} else {
+				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse, $inc: props.inc});
+			}
 			return 'updated';
 		} catch (err) {
 			throw new Error(err);
@@ -105,7 +109,11 @@ class Database {
 
 	async updateall(props) {
 		try {
-			await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse}, {multi: true});
+			if (props.inc === undefined) {
+				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse}, {multi: true});
+			} else {
+				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse, $inc: props.inc}, {multi: true});
+			}
 			return 'updated';
 		} catch (err) {
 			throw new Error(err);
