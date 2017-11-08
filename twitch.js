@@ -227,7 +227,8 @@ async function startChatUserTracking(channel) {
 			// Channel is live, get currently active users, increase points, etc
 			handleLoyalty(channel);
 		}
-	}, 600000); // 10 minutes
+	}, 60000); // 1 minute
+	// }, 600000); // 10 minutes
 }
 
 async function handleLoyalty(channel) {
@@ -244,7 +245,7 @@ async function handleLoyalty(channel) {
 			table: 'chatusers',
 			query: {channel: '#' + channel, userName: {$in: arrayOfUsers}},
 			dataToUse,
-			inc: {loyaltyPoints: 1, minutesInChat: 10}
+			inc: {loyaltyPoints: 0.1, minutesInChat: 1}
 		};
 		await database.updateall(propsForUpdate);
 		// Mark all users NOT in the chatters list as "inactive"
