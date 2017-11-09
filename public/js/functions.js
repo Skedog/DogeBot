@@ -156,6 +156,7 @@ Date.prototype.toDateInputValue = (function() {
 
 async function loadFormattedChatlogs(channel, date) {
 	let dataToReturn;
+	const d = new Date();
 	await $.ajax({
 		url: '/getchatlogs',
 		data: 'channel=' + channel + '&passedDate=' + date,

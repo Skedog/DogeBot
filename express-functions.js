@@ -682,7 +682,7 @@ async function getChatlog(channel, passedDate) {
 		currentDate.setHours(23, 59, 59, 999);
 		endTime = getUnixTime(currentDate);
 	} else {
-		passedDate = new Date(passedDate);
+		passedDate = new Date(passedDate + 'T00:00:00');
 		passedDate.setHours(0, 0, 0, 0);
 		startTime = getUnixTime(passedDate);
 		passedDate.setHours(23, 59, 59, 999);
@@ -724,9 +724,9 @@ function parseBadgesFromMessage(message) {
 	return parsedBadges;
 }
 
-async function getFormattedChatlog(channel, startTime, endTime) {
+async function getFormattedChatlog(channel, passedDate) {
 	channel = addHashToChannel(channel);
-	const chatlog = await getChatlog(channel, startTime, endTime);
+	const chatlog = await getChatlog(channel, passedDate);
 	if (chatlog) {
 		let builtChatlog = '<div class="chatlogs">';
 		for (const log in chatlog) {
