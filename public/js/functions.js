@@ -154,17 +154,11 @@ Date.prototype.toDateInputValue = (function() {
     return local.toJSON().slice(0,10);
 });
 
-Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
-
 async function loadFormattedChatlogs(channel, date) {
-	date.setHours(0,0,0,0);
-	const dateStart = date.getUnixTime();
-	date.setHours(23,59,59,999);
-	const dateEnd = date.getUnixTime();
 	let dataToReturn;
 	await $.ajax({
 		url: '/getchatlogs',
-		data: 'channel=' + channel + '&timestampStart=' + dateStart + '&timestampEnd=' + dateEnd,
+		data: 'channel=' + channel + '&passedDate=' + date,
 		type: 'POST',
 		success: function(data) {
 			dataToReturn = data;

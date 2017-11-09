@@ -671,17 +671,22 @@ function getMusicStatus(userData) {
 	return isMusicPlaying;
 }
 
-async function getChatlog(channel, startTime, endTime) {
+async function getChatlog(channel, passedDate) {
 	channel = addHashToChannel(channel);
-
+	let startTime;
+	let endTime;
 	const currentDate = new Date();
-	if (typeof startTime === 'undefined') {
+	if (typeof passedDate === 'undefined') {
 		currentDate.setHours(0, 0, 0, 0);
 		startTime = getUnixTime(currentDate);
-	}
-	if (typeof endTime === 'undefined') {
 		currentDate.setHours(23, 59, 59, 999);
 		endTime = getUnixTime(currentDate);
+	} else {
+		passedDate = new Date(passedDate);
+		passedDate.setHours(0, 0, 0, 0);
+		startTime = getUnixTime(passedDate);
+		passedDate.setHours(23, 59, 59, 999);
+		endTime = getUnixTime(passedDate);
 	}
 
 	const cachedChatlog = await cache.get(channel + 'chatlog' + startTime + endTime);
@@ -727,7 +732,7 @@ async function getFormattedChatlog(channel, startTime, endTime) {
 		for (const log in chatlog) {
 			if (Object.prototype.hasOwnProperty.call(chatlog, log)) {
 				const d = chatlog[log].timestamp;
-				const localTestDate = new Date(d).toLocaleString();
+				const localTestDate = new Date(d).toLocaleString('en-US');
 				const displayName = chatlog[log].userstate['display-name'];
 				const username = chatlog[log].userstate.username;
 				let color = chatlog[log].userstate.color;

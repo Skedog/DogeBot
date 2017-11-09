@@ -339,7 +339,7 @@ async function setupRoutes() {
 	});
 
 	app.post('/getchatlogs', async (req, res) => {
-		const formattedChatlog = await expressFunctions.getFormattedChatlog(req.body.channel, req.body.timestampStart, req.body.timestampEnd);
+		const formattedChatlog = await expressFunctions.getFormattedChatlog(req.body.channel, req.body.passedDate);
 		res.send(formattedChatlog);
 	});
 
