@@ -676,6 +676,7 @@ async function getChatlog(channel, passedDate) {
 	let startTime;
 	let endTime;
 	const currentDate = new Date();
+	console.log('currentDate = ' + currentDate);
 	if (typeof passedDate === 'undefined') {
 		currentDate.setHours(0, 0, 0, 0);
 		startTime = getUnixTime(currentDate);
@@ -688,6 +689,8 @@ async function getChatlog(channel, passedDate) {
 		passedDate.setHours(23, 59, 59, 999);
 		endTime = getUnixTime(passedDate);
 	}
+	console.log('startTime = ' + startTime);
+	console.log('endTime = ' + endTime);
 
 	const cachedChatlog = await cache.get(channel + 'chatlog' + startTime + endTime);
 	if (cachedChatlog) {

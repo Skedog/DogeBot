@@ -14,18 +14,10 @@
 $(document).ready(function() {
 	let tempDate;
     $('#chat-date').val(new Date().toDateInputValue());
-    $('.chatlog-box .date').each(function(index, el) {
-		tempDate = new Date($(this).text());
-		$(this).text(tempDate.toLocaleString());
-	});
 });
 $('#chat-date').change(async function(e) {
 	showLoader($('.chatlog-box'));
 	let chatlogs = await loadFormattedChatlogs($('.urlChannel').text(), ($(this).val()));
 	$('.chatlog-box').html(chatlogs);
-	$('.chatlog-box .date').each(function(index, el) {
-		tempDate = new Date($(this).text());
-		$(this).text(tempDate.toLocaleString());
-	});
 });
 </script>
