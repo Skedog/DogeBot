@@ -284,8 +284,6 @@ async function getCurrentChatUsers(channel) {
 
 async function start() {
 	try {
-		const currentDate = new Date();
-		console.log('currentDate from twitch.js = ' + currentDate);
 		if (constants.testMode) {
 			log.info('*********************');
 			log.info('Starting in test mode');

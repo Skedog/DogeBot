@@ -107,10 +107,6 @@ async function checkPassedCommand(req, res, next) {
 }
 
 // Helpers
-function getUnixTime(currentDate) {
-	return currentDate.getTime() / 1000 | 0;
-}
-
 async function handleLogin(props) {
 	const sessionData = {};
 	sessionData.twitchUserID = props.twitchUserID;
@@ -676,22 +672,18 @@ async function getChatlog(channel, passedDate) {
 	let startTime;
 	let endTime;
 	const currentDate = new Date();
-	console.log('currentDate = ' + currentDate);
 	if (typeof passedDate === 'undefined') {
 		currentDate.setHours(0, 0, 0, 0);
-		startTime = getUnixTime(currentDate);
+		startTime = currentDate.getTime();
 		currentDate.setHours(23, 59, 59, 999);
-		endTime = getUnixTime(currentDate);
+		endTime = currentDate.getTime();
 	} else {
 		passedDate = new Date(passedDate + 'T00:00:00');
 		passedDate.setHours(0, 0, 0, 0);
-		startTime = getUnixTime(passedDate);
+		startTime = passedDate.getTime();
 		passedDate.setHours(23, 59, 59, 999);
-		endTime = getUnixTime(passedDate);
+		endTime = passedDate.getTime();
 	}
-	console.log('startTime = ' + startTime);
-	console.log('endTime = ' + endTime);
-
 	const cachedChatlog = await cache.get(channel + 'chatlog' + startTime + endTime);
 	if (cachedChatlog) {
 		return cachedChatlog;
@@ -701,8 +693,8 @@ async function getChatlog(channel, passedDate) {
 		query: {
 			channel,
 			timestamp: {
-				$gte: (startTime * 1000),
-				$lte: (endTime * 1000)
+				$gte: startTime,
+				$lte: endTime
 			}
 		}
 	};
