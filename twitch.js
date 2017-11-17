@@ -167,7 +167,6 @@ async function callCommandFromChat(props) {
 
 function monitorUsersInChat() {
 	twitchClient.on('join', (channel, username) => {
-		console.log(username + ' joined ' + channel);
 		const propsForUser = {
 			channel,
 			username
@@ -176,7 +175,6 @@ function monitorUsersInChat() {
 		stats.markUserAsActive(propsForUser);
 	});
 	twitchClient.on('part', (channel, username) => {
-		console.log(username + ' left ' + channel);
 		const propsForUser = {
 			channel,
 			username

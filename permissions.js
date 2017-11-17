@@ -23,17 +23,21 @@ class Permissions {
 				return this.commandPermissionLevel(propsForAlias);
 			}
 			const modifier = props.messageParams[1];
-			if (sentCommand === '!commands' && modifier !== 'add' && modifier !== 'edit' && modifier !== 'delete' && modifier !== 'remove' && modifier !== 'permissions' && modifier !== 'permission' && modifier !== 'perms') {
-				return 0;
+			// If adding/modifying a command
+			if (sentCommand === '!commands' && (modifier === 'add' || modifier === 'edit' || modifier === 'delete' || modifier === 'remove' || modifier === 'permissions' || modifier === 'permission' || modifier === 'perms')) {
+				return this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
 			}
-			if (sentCommand === '!volume' && !functions.isNumber(modifier)) {
-				return 0;
+			// If modifying volume
+			if (sentCommand === '!volume' && functions.isNumber(modifier)) {
+				return this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
 			}
-			if (sentCommand === '!game' && modifier === undefined) {
-				return 0;
+			// If modifying game
+			if (sentCommand === '!game' && modifier !== undefined) {
+				return this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
 			}
-			if (sentCommand === '!title' && modifier === undefined) {
-				return 0;
+			// If modifying title
+			if (sentCommand === '!title' && modifier !== undefined) {
+				return this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
 			}
 			for (const channelPermission of results[0].permissionsPerChannel) {
 				if (channelPermission.channel === props.channel) {
@@ -62,6 +66,14 @@ class Permissions {
 		}
 	}
 
+	async getModerationPermissionLevelForCommand(props, permsPerChannel) {
+		for (const channelPermission of permsPerChannel) {
+			if (channelPermission.channel === props.channel) {
+				return channelPermission.moderationPermissionLevel;
+			}
+		}
+	}
+
 	async canUserCallCommand(props) {
 		const propsForRegular = {
 			userstate: props.userstate,
@@ -71,22 +83,22 @@ class Permissions {
 		switch (props.permissionLevelNeeded.toString()) {
 			case '0':
 				return true;
-			case '1':
+			case '100':
 				if (isRegular || (props.userstate.mod || props.userstate.subscriber || '#' + props.userstate.username === props.channel)) {
 					return true;
 				}
 				break;
-			case '2':
+			case '200':
 				if (props.userstate.mod || props.userstate.subscriber || '#' + props.userstate.username === props.channel) {
 					return true;
 				}
 				break;
-			case '3':
+			case '300':
 				if (props.userstate.mod || '#' + props.userstate.username === props.channel) {
 					return true;
 				}
 				break;
-			case '4':
+			case '400':
 				if ('#' + props.userstate.username === props.channel) {
 					return true;
 				}
@@ -100,15 +112,15 @@ class Permissions {
 	async getUserPermissionLevel(props) {
 		try {
 			if ('#' + props.userstate.username === props.channel) {
-				return 4;
+				return 400;
 			} else if (props.userstate.mod) {
-				return 3;
+				return 300;
 			} else if (props.userstate.subscriber) {
-				return 2;
+				return 200;
 			}
 			const isRegular = await regulars.checkIfUserIsRegular(props);
 			if (isRegular) {
-				return 1;
+				return 100;
 			}
 			return 0;
 		} catch (err) {

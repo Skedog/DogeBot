@@ -171,7 +171,7 @@ class Commands {
 	}
 
 	async setPermissionForUserAddedCommand(props) {
-		const permissionLevelToSet = permissionLevels.indexOf(props.messageParams[3]);
+		const permissionLevelToSet = (permissionLevels.indexOf(props.messageParams[3]) * 100);
 		const commandPermissionLevelNeeded = props.results[0].permissionsLevel;
 		const userPermissionLevel = await permissions.getUserPermissionLevel(props);
 		if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionLevelNeeded) {
@@ -198,7 +198,7 @@ class Commands {
 		props.results = await database.select(propsForSelect);
 		if (props.results) {
 			const aliasResults = await this.getAliasedDefaultCommand(props, props.results);
-			const permissionLevelToSet = permissionLevels.indexOf(props.messageParams[3]);
+			const permissionLevelToSet = (permissionLevels.indexOf(props.messageParams[3]) * 100);
 			const arrayOfPermissions = aliasResults[0].permissionsPerChannel;
 			const userPermissionLevel = await permissions.getUserPermissionLevel(props);
 			let commandPermissionLevelNeeded;

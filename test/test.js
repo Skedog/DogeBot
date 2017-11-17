@@ -392,7 +392,7 @@ it('test !title testeroni', async function() {
 it('test permissions', async function() {
 	props.messageParams = ['!commands', 'add'];
 	props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
-	expect(props.permissionLevelNeeded).to.equal(3);
+	expect(props.permissionLevelNeeded).to.equal(300);
 	const canUserCall = await permissions.canUserCallCommand(props);
 	expect(canUserCall).to.equal(true);
 });
