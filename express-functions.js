@@ -160,6 +160,8 @@ async function handleLogin(props) {
 					case '!play':
 					case '!skipsong':
 					case '!regular':
+					case '!dj':
+					case '!supermod':
 					case '!commands':
 					case '!volume':
 					case '!shuffle':
@@ -172,10 +174,10 @@ async function handleLogin(props) {
 					case '!title':
 					case '!nocache':
 					case '!srp':
-						newData = [{channel: userToAdd, permissionLevel: 3}];
+						newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
 						break;
 					default:
-						newData = [{channel: userToAdd, permissionLevel: 0}];
+						newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
 						break;
 				}
 				const dataToUse = {};

@@ -1,6 +1,8 @@
 const database = require('./database.js');
 const functions = require('./functions.js');
 const regulars = require('./regulars.js');
+const superMods = require('./super-mods.js');
+const djs = require('./djs.js');
 
 class Permissions {
 
@@ -75,11 +77,13 @@ class Permissions {
 	}
 
 	async canUserCallCommand(props) {
-		const propsForRegular = {
+		const propsForUser = {
 			userstate: props.userstate,
 			channel: props.channel
 		};
-		const isRegular = await regulars.checkIfUserIsRegular(propsForRegular);
+		const isRegular = await regulars.checkIfUserIsRegular(propsForUser);
+		const isSuperMod = await superMods.checkIfUserIsSuperMod(propsForUser);
+		const isDJ = await djs.checkIfUserIsDJ(propsForUser);
 		switch (props.permissionLevelNeeded.toString()) {
 			case '0':
 				return true;
@@ -93,8 +97,18 @@ class Permissions {
 					return true;
 				}
 				break;
+			case '201':
+				if (props.userstate.mod || isDJ || '#' + props.userstate.username === props.channel) {
+					return true;
+				}
+				break;
 			case '300':
 				if (props.userstate.mod || '#' + props.userstate.username === props.channel) {
+					return true;
+				}
+				break;
+			case '301':
+				if (isSuperMod || '#' + props.userstate.username === props.channel) {
 					return true;
 				}
 				break;

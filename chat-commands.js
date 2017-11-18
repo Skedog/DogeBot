@@ -6,6 +6,8 @@ const messages = require('./chat-messages.js');
 const commands = require('./commands.js');
 const blacklist = require('./blacklist.js');
 const regulars = require('./regulars.js');
+const superMods = require('./super-mods.js');
+const djs = require('./djs.js');
 const api = require('./api.js');
 const users = require('./users.js');
 const songs = require('./songs.js');
@@ -144,6 +146,12 @@ class Chat {
 				case '!regular':
 				case '!regulars':
 					return await regulars.call(props);
+				case '!supermod':
+				case '!supermods':
+					return await superMods.call(props);
+				case '!dj':
+				case '!djs':
+					return await djs.call(props);
 				case '!uptime':
 					return await api.uptime(props);
 				case '!followage':

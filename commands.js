@@ -5,8 +5,6 @@ const functions = require('./functions.js');
 const socket = require('./socket.js');
 const cache = require('./cache.js');
 
-const permissionLevels = ['everyone', 'regulars', 'subscribers', 'moderators', 'owner'];
-
 class Commands {
 
 	async call(props) {
@@ -150,9 +148,16 @@ class Commands {
 	}
 
 	async permission(props) {
+		props.permissionLevels = await this.getPermissionLevels();
 		try {
 			props.ignoreMessageParamsForUserString = true;
-			if (!permissionLevels.includes(props.messageParams[3])) {
+			let validPermLevel = false;
+			for (const permissionLevel of props.permissionLevels) {
+				if (permissionLevel.includes(props.messageParams[3])) {
+					validPermLevel = true;
+				}
+			}
+			if (!validPermLevel) {
 				throw new Error('incorrect permission level');
 			}
 			const propsForSelect = {
@@ -166,12 +171,22 @@ class Commands {
 			}
 			return this.setPermissionsForDefaultCommand(props);
 		} catch (err) {
-			return functions.buildUserString(props) + 'Error setting permissions for ' + props.messageParams[2] + ' - the options are ' + permissionLevels.join(', ') + '!';
+			let listOfOptions = '';
+			for (const permissionLevel of props.permissionLevels) {
+				listOfOptions += permissionLevel[0] + ', ';
+			}
+			listOfOptions = listOfOptions.slice(0, -2);
+			return functions.buildUserString(props) + 'Error setting permissions for ' + props.messageParams[2] + ' - the options are ' + listOfOptions + '!';
 		}
 	}
 
 	async setPermissionForUserAddedCommand(props) {
-		const permissionLevelToSet = (permissionLevels.indexOf(props.messageParams[3]) * 100);
+		let permissionLevelToSet = '';
+		for (const permissionLevel of props.permissionLevels) {
+			if (permissionLevel.includes(props.messageParams[3])) {
+				permissionLevelToSet = permissionLevel[1];
+			}
+		}
 		const commandPermissionLevelNeeded = props.results[0].permissionsLevel;
 		const userPermissionLevel = await permissions.getUserPermissionLevel(props);
 		if (permissionLevelToSet <= userPermissionLevel && userPermissionLevel >= commandPermissionLevelNeeded) {
@@ -198,7 +213,12 @@ class Commands {
 		props.results = await database.select(propsForSelect);
 		if (props.results) {
 			const aliasResults = await this.getAliasedDefaultCommand(props, props.results);
-			const permissionLevelToSet = (permissionLevels.indexOf(props.messageParams[3]) * 100);
+			let permissionLevelToSet = '';
+			for (const permissionLevel of props.permissionLevels) {
+				if (permissionLevel.includes(props.messageParams[3])) {
+					permissionLevelToSet = permissionLevel[1];
+				}
+			}
 			const arrayOfPermissions = aliasResults[0].permissionsPerChannel;
 			const userPermissionLevel = await permissions.getUserPermissionLevel(props);
 			let commandPermissionLevelNeeded;
@@ -230,6 +250,21 @@ class Commands {
 			return this.getAliasedDefaultCommand(props, newResults);
 		}
 		return results;
+	}
+
+	async getPermissionLevels() {
+		const propsForSelect = {
+			table: 'permissions',
+			sortBy: {permissionLevel: 1}
+		};
+		const permissionLevels = await database.select(propsForSelect);
+		const permissionLevelsToReturn = [];
+		if (permissionLevels) {
+			for (const level of permissionLevels) {
+				permissionLevelsToReturn.push([level.permissionName, level.permissionLevel]);
+			}
+		}
+		return permissionLevelsToReturn;
 	}
 
 	async doesUserAddedCommandExist(props) {
