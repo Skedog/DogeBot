@@ -33,6 +33,7 @@ class Giveaways {
 		dataToUse.timeStarted = new Date();
 		dataToUse.isActive = true;
 		dataToUse.usersEntered = [];
+		dataToUse.winner = '';
 		const propsForAdd = {
 			table: 'giveaways',
 			dataToUse
@@ -113,6 +114,7 @@ class Giveaways {
 			const winner = functions.getRandomItemFromArray(allEntries)[1];
 			const dataToUse = {};
 			dataToUse.isActive = false;
+			dataToUse.winner = winner;
 			const propsForUpdate = {
 				table: 'giveaways',
 				query: {_id: results[0]._id},
