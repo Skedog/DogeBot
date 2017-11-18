@@ -8,6 +8,7 @@ const blacklist = require('./blacklist.js');
 const regulars = require('./regulars.js');
 const superMods = require('./super-mods.js');
 const djs = require('./djs.js');
+const giveaway = require('./giveaway.js');
 const api = require('./api.js');
 const users = require('./users.js');
 const songs = require('./songs.js');
@@ -222,6 +223,10 @@ class Chat {
 					return await messages.mute(props);
 				case '!unmute':
 					return await messages.unmute(props);
+				case '!giveaway':
+					return await giveaway.call(props);
+				case '!enter':
+					return await giveaway.call(props);
 				default:
 					throw new Error('missing a break; inside switch for callDefaultCommand!');
 			}

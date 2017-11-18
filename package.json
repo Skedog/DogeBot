@@ -1,6 +1,6 @@
 {
   "name": "SkedogBot",
-  "version": "4.2.5",
+  "version": "4.2.9",
   "description": "SkedogBot is a Twitch/Discord chat bot developed by Skedog!",
   "main": "app.js",
   "dependencies": {

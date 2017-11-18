@@ -176,6 +176,9 @@ async function handleLogin(props) {
 					case '!srp':
 						newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
 						break;
+					case '!giveaway':
+						newData = [{channel: userToAdd, permissionLevel: 301, isEnabled: true, moderationPermissionLevel: 301}];
+						break;
 					default:
 						newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
 						break;
