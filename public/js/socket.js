@@ -1,5 +1,10 @@
 async function startSocket(socketURL, page, channelData, channelName) {
-	const socket = io.connect(socketURL);
+	const socket = io.connect(socketURL, {
+		reconnection: true,
+		reconnectionDelay: 1000,
+		reconnectionDelayMax: 5000,
+		reconnectionAttempts: 99999
+	});
 
 	socket.on('connect', function(socket2) {
 		socket.emit('room', stripHash(channelName));

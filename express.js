@@ -386,7 +386,7 @@ async function setupRoutes() {
 		res.send('song promoted');
 	});
 
-	app.post('/getsocketdata', [expressFunctions.checkIfUserIsLoggedIn], async (req, res) => {
+	app.post('/getsocketdata', async (req, res) => {
 		const channel = expressFunctions.addHashToChannel(req.body.channel);
 		const dataToGet = req.body.dataToGet;
 		if (dataToGet === 'formattedsonglist') {
