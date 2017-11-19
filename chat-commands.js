@@ -307,7 +307,11 @@ class Chat {
 
 	checkAndSetCommandDelayTimer(props) {
 		const currentTime = new Date().getTime() / 1000;
-		if (!commandDelayTimerArray[props.channel][props.messageParams[0]] || currentTime - commandDelayTimerArray[props.channel][props.messageParams[0]] >= 2) {
+		// Setting this to 0 basically disables all of this code, but leaving it for now
+		// I am doing this to fix the !enter command for giveaways being delayed
+		// This can cause problems if multiple mods try to do some action, such as !skipsong
+		// multiple songs will be skipped
+		if (!commandDelayTimerArray[props.channel][props.messageParams[0]] || currentTime - commandDelayTimerArray[props.channel][props.messageParams[0]] >= 0) {
 			commandDelayTimerArray[props.channel][props.messageParams[0]] = currentTime;
 			return currentTime;
 		}
