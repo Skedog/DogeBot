@@ -61,44 +61,41 @@ function setupApp() {
 	if (!constants.testMode) {
 		app.enable('trust proxy');
 		app.use((req, res, next) => {
+			if (req.headers.host === 'skedogbot.com') {
+				res.redirect('https://thedogebot.com' + req.url);
+			}
 			if (req.secure) {
 				// Request was via https, so do no special handling
 				next();
 			} else {
 				// Request was via http, so redirect to https
-				if (req.headers.host === 'skedogbot.com') {
-					res.redirect('https://thedogebot.com' + req.url);
-				} else {
-					res.redirect('https://' + req.headers.host + req.url);
-				}
+				res.redirect('https://' + req.headers.host + req.url);
 			}
 		});
 
 		router.use((req, res, next) => {
+			if (req.headers.host === 'skedogbot.com') {
+				res.redirect('https://thedogebot.com' + req.url);
+			}
 			if (req.secure) {
 				// Request was via https, so do no special handling
 				next();
 			} else {
 				// Request was via http, so redirect to https
-				if (req.headers.host === 'skedogbot.com') {
-					res.redirect('https://thedogebot.com' + req.url);
-				} else {
-					res.redirect('https://' + req.headers.host + req.url);
-				}
+				res.redirect('https://' + req.headers.host + req.url);
 			}
 		});
 
 		statsPage.use((req, res, next) => {
+			if (req.headers.host === 'skedogbot.com') {
+				res.redirect('https://thedogebot.com' + req.url);
+			}
 			if (req.secure) {
 				// Request was via https, so do no special handling
 				next();
 			} else {
 				// Request was via http, so redirect to https
-				if (req.headers.host === 'skedogbot.com') {
-					res.redirect('https://thedogebot.com' + req.url);
-				} else {
-					res.redirect('https://' + req.headers.host + req.url);
-				}
+				res.redirect('https://' + req.headers.host + req.url);
 			}
 		});
 	}
