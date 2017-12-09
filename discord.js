@@ -26,12 +26,12 @@ function monitorDiscordChat() {
 async function handleChatMessage(message) {
 	const messageChannel = message.channel;
 	const messageContent = message.content;
-	if (message.author.username !== 'SkedogBot' && messageContent.startsWith('!')) {
+	if (message.author.username !== 'DogeBot' && messageContent.startsWith('!')) {
 		const messageSplit = messageContent.split(' ');
 		const sentCommand = messageSplit[0];
 		if (sentCommand === '!setstatus' && message.author.username === 'Skedog') {
 			const statusToSet = messageSplit.slice(1, messageSplit.length).join(' ').replace('\'', '&apos;');
-			discordClient.users.find('username', 'SkedogBot').setGame(statusToSet, null);
+			discordClient.users.find('username', 'DogeBot').setGame(statusToSet, null);
 			message.delete().then(msg => console.log(`Deleted message from ${msg.author}`)).catch(console.error);
 		} else {
 			const props = {
@@ -49,9 +49,9 @@ async function handleDiscordCommand(props) {
 	const arrayOfCommands = ['!ayylmao', '!dansgame', '!derpdoge', '!doge', '!letoucan', '!patrick', '!skedoge', '!skegasm', '!skeleton', '!dansgame', '!shrug'];
 	if (!arrayOfCommands.includes(props.sentCommand)) {
 		if (props.sentCommand === '!about') {
-			props.message.reply('Really? Come on, learn to Google you lazy fuck. Here: http://lmgtfy.com/?q=skedogbot');
+			props.message.reply('Really? Come on, learn to Google you lazy fuck. Here: http://lmgtfy.com/?q=DogeBot');
 		} else if (props.sentCommand === '!commands') {
-			props.message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://skedogbot.com/commands/ygtskedog');
+			props.message.reply('Ugh, really? Fine, I can insult you using !insult, !about or you can look at the damn commands page: http://thedogebot.com/commands/ygtskedog');
 		} else {
 			callCommandFromDiscord(props);
 		}

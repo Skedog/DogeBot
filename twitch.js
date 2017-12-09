@@ -47,7 +47,7 @@ async function connectToTwitch() {
 			reconnect: true
 		},
 		identity: {
-			username: 'SkedogBot',
+			username: 'DogeBot',
 			password: dbConstants.twitchOauthPass
 		},
 		channels: channelsToJoin

@@ -139,15 +139,20 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 .navbar-nav>li.dropdown:hover:after {
 	color: #fff;
 }
+.home .navbar-header img {
+	display: none;
+}
 .nav>li>a>img.channel-logo {
 	max-width: 23px;
 	padding: 0 5px 0 0;
 }
 
 .main-text {
-	padding: 17% 9%;
+	/*padding: 17% 9%;*/
+	padding: 12% 0;
 	text-align: left;
 	color: #fff;
+	text-align: center;
 }
 .main-text h1 {
 	font-size: 100px;
@@ -157,6 +162,9 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 .main-text h4 {
 	font-size: 35px;
 	margin: 20px 0;
+}
+.main-text img {
+	margin-top: 10px;
 }
 .inner-content-wrapper {
 	color: #fff;
@@ -195,6 +203,13 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 
 .urlChannel {
 	display: none;
+}
+
+.logged-in-logo {
+	height:60px;
+	z-index:100;
+	position: fixed;
+	margin-left:200px;
 }
 
 /* =============================================================================
@@ -1377,6 +1392,8 @@ table.dataTable {
 		float:left;
 	}
 
+
+
 	.moderationBtns {
 		float: none;
 		width:auto;
@@ -1436,6 +1453,14 @@ table.dataTable {
 	}
 	.home .container.wrapper {
 		margin-top: 80px;
+	}
+
+	.home .navbar-header img {
+		display: block;
+		margin:0 auto;
+	}
+	.home .main-content {
+		padding-top: 150px;
 	}
 
 

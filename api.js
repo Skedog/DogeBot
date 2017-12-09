@@ -150,7 +150,7 @@ class API {
 	async randomViewer(props) {
 		const url = 'https://2g.be/twitch/randomviewer.php?channel=' + props.channel.slice(1);
 		const twitchAPIRequest = await request(url);
-		if (twitchAPIRequest.body.includes('skedogbot') || twitchAPIRequest.body.includes(props.channel.slice(1))) {
+		if (twitchAPIRequest.body.includes('dogebot') || twitchAPIRequest.body.includes(props.channel.slice(1))) {
 			if (props.attempts === undefined) {
 				props.attempts = 1;
 			} else {

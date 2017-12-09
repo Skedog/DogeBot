@@ -1,5 +1,5 @@
 module.exports = {
-	postURL: 'https://skedogbot.com',
+	postURL: 'https://thedogebot.com',
 	testPostURL: 'http://localhost:3000',
 	testMode: false
 };

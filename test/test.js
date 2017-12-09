@@ -15,8 +15,8 @@ let twitchClient;
 let props;
 
 const userstate = [];
-userstate.username = 'skedogbot';
-userstate['display-name'] = 'skedogbot';
+userstate.username = 'dogebot';
+userstate['display-name'] = 'dogebot';
 userstate.mod = true;
 userstate.subscriber = false;
 
@@ -64,7 +64,7 @@ it('test !commands', async function() {
 	props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 	await permissions.canUserCallCommand(props);
 	const res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The commands for this channel are available here: http://localhost:3000/commands/ygtskedogtest');
+	expect(res).to.equal('@dogebot -> The commands for this channel are available here: http://localhost:3000/commands/ygtskedogtest');
 });
 
 it('test !commands add, edit, permissions and delete', async function() {
@@ -72,50 +72,50 @@ it('test !commands add, edit, permissions and delete', async function() {
 
 	props.messageParams = ['!commands', 'add', '!testcommand', 'this', 'is', 'a', 'test'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The command !testcommand has been added!');
+	expect(res).to.equal('@dogebot -> The command !testcommand has been added!');
 
 	props.messageParams = ['!commands', 'edit', '!testcommand','this', 'is', 'a', 'test', 'edit'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The command !testcommand has been updated!');
+	expect(res).to.equal('@dogebot -> The command !testcommand has been updated!');
 
 	props.messageParams = ['!commands', 'perms', '!testcommand','subscribers'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The command !testcommand permissions have been updated!');
+	expect(res).to.equal('@dogebot -> The command !testcommand permissions have been updated!');
 
 	props.messageParams = ['!commands', 'perms', '!cs','subscribers'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The command !cs permissions have been updated!');
+	expect(res).to.equal('@dogebot -> The command !cs permissions have been updated!');
 
 	props.messageParams = ['!commands', 'perms', '!cs','everyone'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The command !cs permissions have been updated!');
+	expect(res).to.equal('@dogebot -> The command !cs permissions have been updated!');
 
 	props.messageParams = ['!commands', 'delete', '!testcommand'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> The command !testcommand has been deleted!');
+	expect(res).to.equal('@dogebot -> The command !testcommand has been deleted!');
 });
 
 it('test !regulars add and remove', async function() {
-	props.messageParams = ['!regulars', 'add', 'skedogbot'];
+	props.messageParams = ['!regulars', 'add', 'dogebot'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> skedogbot has been added as a regular!');
+	expect(res).to.equal('@dogebot -> dogebot has been added as a regular!');
 
-	props.messageParams = ['!regulars', 'remove', 'skedogbot'];
+	props.messageParams = ['!regulars', 'remove', 'dogebot'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> skedogbot has been removed as a regular!');
+	expect(res).to.equal('@dogebot -> dogebot has been removed as a regular!');
 });
 
 it('test !uptime', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!uptime'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> ygtskedogtest is offline!');
+	expect(res).to.equal('@dogebot -> ygtskedogtest is offline!');
 });
 
 it('test !followage', async function() {
 	props.messageParams = ['!followage'];
 	res = await chat.callCommand(props);
-	expect(res).to.equal('@skedogbot -> skedogbot is not following! BibleThump');
+	expect(res).to.equal('@dogebot -> dogebot is not following! BibleThump');
 });
 
 it('test !game', async function() {
@@ -158,13 +158,13 @@ it('test !8ball', async function() {
 });
 
 it('test !lastseen', async function() {
-	props.messageParams = ['!lastseen', 'skedogbot'];
+	props.messageParams = ['!lastseen', 'dogebot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('was last seen');
 });
 
 it('test !firstseen', async function() {
-	props.messageParams = ['!firstseen', 'skedogbot'];
+	props.messageParams = ['!firstseen', 'dogebot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('was first seen');
 });
@@ -211,8 +211,8 @@ it('test !pause', async function() {
 	expect(res).to.have.string('Music has been paused!');
 });
 
-it('test !removesongs skedogbot', async function() {
-	props.messageParams = ['!removesongs', 'skedogbot'];
+it('test !removesongs dogebot', async function() {
+	props.messageParams = ['!removesongs', 'dogebot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Songs removed!');
 });
@@ -241,14 +241,14 @@ it('test !sr multi fails', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!sr', '8i-tonOhzSg,3pKGYqCK5yg,Jwux_c8cIQ8,z--CnoHrkds,KX8U8guRLSk,KX8U8guRlSk,kqUpnHEdjn0'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in your country, 1 song was not allowed to be embedded, and 1 ID was invalid!');
+	expect(res).to.have.string('@dogebot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in your country, 1 song was not allowed to be embedded, and 1 ID was invalid!');
 });
 
 it('test !sr multi all get added', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!sr', 'https://www.youtube.com/watch?v=EMfNB3fakB8&feature=youtu.be,https://www.youtube.com/watch?v=zO3J12uQIXI,https://www.youtube.com/watch?v=V5-AQTPFJSg,https://www.youtube.com/watch?v=OmnDEUD9NyI&feature=youtu.be,https://www.youtube.com/watch?v=3OC2aPCuzjo&feature=youtu.be'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> 5 songs added!');
+	expect(res).to.have.string('@dogebot -> 5 songs added!');
 });
 
 it('test !removesong 3', async function() {
@@ -267,7 +267,7 @@ it('test !pr over 50 songs', async function() {
 	this.timeout(50000);
 
 	// Remove all songs
-	props.messageParams = ['!removesongs', 'skedogbot'];
+	props.messageParams = ['!removesongs', 'dogebot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Songs removed!');
 
@@ -280,14 +280,14 @@ it('test !pr over 50 songs', async function() {
 	// Request Playlist
 	props.messageParams = ['!pr', 'PLS84tqhbWDgPUo7otgCVerT5jz54QypU4'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> 10 songs added!');
+	expect(res).to.have.string('@dogebot -> 10 songs added!');
 });
 
 it('test !pr under 50 songs', async function() {
 	this.timeout(50000);
 
 	// Remove all songs
-	props.messageParams = ['!removesongs', 'skedogbot'];
+	props.messageParams = ['!removesongs', 'dogebot'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Songs removed!');
 
@@ -300,21 +300,21 @@ it('test !pr under 50 songs', async function() {
 	// Request Playlist
 	props.messageParams = ['!pr', 'https://www.youtube.com/watch?v=8QpUGCXwOks&list=PLtzah_dj5hUXk--M73cM1oq8twaKW_Axe'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> 10 songs added!');
+	expect(res).to.have.string('@dogebot -> 10 songs added!');
 });
 
 it('test !shuffle', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!shuffle'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> Songs shuffled!');
+	expect(res).to.have.string('@dogebot -> Songs shuffled!');
 });
 
 it('test !promote 3', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!promote','3'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> Song #3 has been promoted!');
+	expect(res).to.have.string('@dogebot -> Song #3 has been promoted!');
 });
 
 it('test !skipsong', async function() {
@@ -328,28 +328,28 @@ it('test !sr QeBaxc4Cglo', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!sr', 'QeBaxc4Cglo'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> The song Alison Wonderland x Fishing x Leaderboy - Get Ready (Tasker\'s Illegitimate Rmx) [FREE DL] has been added to the queue');
+	expect(res).to.have.string('@dogebot -> The song Alison Wonderland x Fishing x Leaderboy - Get Ready (Tasker\'s Illegitimate Rmx) [FREE DL] has been added to the queue');
 });
 
 it('test !blacklist add lX44CAz-JhU', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!blacklist', 'add', 'lX44CAz-JhU'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> The song SIAMÉS - "The Wolf" [Official Video] has been added to the blacklist!');
+	expect(res).to.have.string('@dogebot -> The song SIAMÉS - "The Wolf" [Official Video] has been added to the blacklist!');
 });
 
 it('test !blacklist remove lX44CAz-JhU', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!blacklist', 'remove', 'lX44CAz-JhU'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> The song SIAMÉS - "The Wolf" [Official Video] has been removed from the blacklist!');
+	expect(res).to.have.string('@dogebot -> The song SIAMÉS - "The Wolf" [Official Video] has been removed from the blacklist!');
 });
 
 it('test !promote QeBaxc4Cglo', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!promote','QeBaxc4Cglo'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@skedogbot -> Song #QeBaxc4Cglo has been promoted!');
+	expect(res).to.have.string('@dogebot -> Song #QeBaxc4Cglo has been promoted!');
 });
 
 it('test !wrongsong', async function() {
