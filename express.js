@@ -63,6 +63,7 @@ function setupApp() {
 		app.use((req, res, next) => {
 			if (req.headers.host === 'skedogbot.com') {
 				res.redirect('https://thedogebot.com' + req.url);
+				return;
 			}
 			if (req.secure) {
 				// Request was via https, so do no special handling
@@ -70,12 +71,14 @@ function setupApp() {
 			} else {
 				// Request was via http, so redirect to https
 				res.redirect('https://' + req.headers.host + req.url);
+				return;
 			}
 		});
 
 		router.use((req, res, next) => {
 			if (req.headers.host === 'skedogbot.com') {
 				res.redirect('https://thedogebot.com' + req.url);
+				return;
 			}
 			if (req.secure) {
 				// Request was via https, so do no special handling
@@ -83,12 +86,14 @@ function setupApp() {
 			} else {
 				// Request was via http, so redirect to https
 				res.redirect('https://' + req.headers.host + req.url);
+				return;
 			}
 		});
 
 		statsPage.use((req, res, next) => {
 			if (req.headers.host === 'skedogbot.com') {
 				res.redirect('https://thedogebot.com' + req.url);
+				return;
 			}
 			if (req.secure) {
 				// Request was via https, so do no special handling
@@ -96,6 +101,7 @@ function setupApp() {
 			} else {
 				// Request was via http, so redirect to https
 				res.redirect('https://' + req.headers.host + req.url);
+				return;
 			}
 		});
 	}
