@@ -275,9 +275,11 @@ async function checkIfChannelIsLive(channel) {
 
 async function getCurrentChatUsers(channel) {
 	const twitchAPIRequest = await request('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
-	const body = JSON.parse(twitchAPIRequest.body);
-	const listOfUsers = body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
-	return listOfUsers;
+	if (twitchAPIRequest.body) {
+		const body = JSON.parse(twitchAPIRequest.body);
+		const listOfUsers = body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
+		return listOfUsers;
+	}
 }
 
 async function start() {

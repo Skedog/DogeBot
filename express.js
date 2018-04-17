@@ -71,7 +71,6 @@ function setupApp() {
 			} else {
 				// Request was via http, so redirect to https
 				res.redirect('https://' + req.headers.host + req.url);
-				return;
 			}
 		});
 
@@ -86,7 +85,6 @@ function setupApp() {
 			} else {
 				// Request was via http, so redirect to https
 				res.redirect('https://' + req.headers.host + req.url);
-				return;
 			}
 		});
 
@@ -101,7 +99,6 @@ function setupApp() {
 			} else {
 				// Request was via http, so redirect to https
 				res.redirect('https://' + req.headers.host + req.url);
-				return;
 			}
 		});
 	}
