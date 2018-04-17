@@ -266,19 +266,28 @@ async function checkIfChannelIsLive(channel) {
 	} else {
 		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchClientID;
 	}
-	const twitchAPIRequest = await request(URLtoUse);
-	if (JSON.parse(twitchAPIRequest.body).stream === null) {
+	try {
+		const twitchAPIRequest = await request(URLtoUse);
+		if (JSON.parse(twitchAPIRequest.body).stream === null) {
+			return false;
+		}
+		return true;
+	} catch (err) {
+		log.error('Command was called and produced an error: ' + err);
 		return false;
 	}
-	return true;
 }
 
 async function getCurrentChatUsers(channel) {
-	const twitchAPIRequest = await request('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
-	if (twitchAPIRequest.body) {
-		const body = JSON.parse(twitchAPIRequest.body);
-		const listOfUsers = body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
-		return listOfUsers;
+	try {
+		const twitchAPIRequest = await request('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
+		if (twitchAPIRequest.body) {
+			const body = JSON.parse(twitchAPIRequest.body);
+			const listOfUsers = body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
+			return listOfUsers;
+		}
+	} catch (err) {
+		log.error('Command was called and produced an error: ' + err);
 	}
 }
 
