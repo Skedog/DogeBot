@@ -162,19 +162,21 @@ async function handleLogin(props) {
 					case '!regular':
 					case '!dj':
 					case '!supermod':
-					case '!commands':
-					case '!volume':
 					case '!shuffle':
 					case '!lastseen':
 					case '!firstseen':
 					case '!mute':
 					case '!unmute':
 					case '!blacklist':
-					case '!game':
-					case '!title':
 					case '!nocache':
 					case '!srp':
 						newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
+						break;
+					case '!commands':
+					case '!volume':
+					case '!game':
+					case '!title':
+						newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
 						break;
 					case '!giveaway':
 						newData = [{channel: userToAdd, permissionLevel: 301, isEnabled: true, moderationPermissionLevel: 301}];
