@@ -1,15 +1,9 @@
-<div class="inner-content-wrapper">
-	<div class="main-content">
-		<div class="container wrapper">
-			<h1><i class="fa fa-comments"></i> Chatlog <small>{{{userData.urlChannel}}}</small></h1>
-			<p>Below is a list of your channel's chatlog!</p>
-			<div class="chat-search">
-				<label for="chat-date"><span>Jump to date: <i class="fa fa-calendar"></i></span><input type="date" name="chat-date" id="chat-date" /></label>
-			</div>
-			<div class="chatlog-box">{{{formattedChatlog}}}</div>
-		</div>
-	</div>
+<h1><i class="fa fa-comments"></i> Chatlog <small>{{{userData.urlChannel}}}</small></h1>
+<p>Below is a list of your channel's chatlog!</p>
+<div class="chat-search">
+	<label for="chat-date"><span>Jump to date: <i class="fa fa-calendar"></i></span><input type="date" name="chat-date" id="chat-date" /></label>
 </div>
+<div class="chatlog-box">{{{formattedChatlog}}}</div>
 <script>
 $(document).ready(function() {
 	let tempDate;

@@ -1,19 +1,13 @@
-<div class="inner-content-wrapper">
-	<div class="main-content">
-		<div class="container wrapper">
-			<h1><i class="fa fa-cog"></i> Song Settings</h1>
-			<p>Change the settings below to change the way the bot handles your song requests!</p>
-			<form action="#" name="settings" id="settings">
-				<label for="duplicateSongDelay"><span>Duplicate song delay (hours): </span><input type="text" name="duplicateSongDelay" id="duplicateSongDelay" value="{{{userData.channelInfo.0.duplicateSongDelay}}}" /></label>
-				<label for="songNumberLimit"><span>Songs per user (count): </span><input type="text" name="songNumberLimit" id="songNumberLimit" value="{{{userData.channelInfo.0.songNumberLimit}}}" /></label>
-				<label for="maxSongLength"><span>Max song length (minutes): </span><input type="text" name="maxSongLength" id="maxSongLength" value="{{{userData.channelInfo.0.maxSongLength}}}" /></label>
-				<label for="channelCountry"><span>Country Code (<a href="http://www.nationsonline.org/oneworld/country_code_list.htm" target="_blank">2 letters</a>): </span><input type="text" name="channelCountry" id="channelCountry" maxlength="2" value="{{{userData.channelInfo.0.ChannelCountry}}}" /></label>
-				<input type="submit" name="submit" value="Submit" class="blue-styled-button" />
-				<div class="messagesFromBot"></div>
-			</form>
-		</div>
-	</div>
-</div>
+<h1><i class="fa fa-cog"></i> Song Settings</h1>
+<p>Change the settings below to change the way the bot handles your song requests!</p>
+<form action="#" name="settings" id="settings">
+	<label for="duplicateSongDelay"><span>Duplicate song delay (hours): </span><input type="text" name="duplicateSongDelay" id="duplicateSongDelay" value="{{{userData.channelInfo.0.duplicateSongDelay}}}" /></label>
+	<label for="songNumberLimit"><span>Songs per user (count): </span><input type="text" name="songNumberLimit" id="songNumberLimit" value="{{{userData.channelInfo.0.songNumberLimit}}}" /></label>
+	<label for="maxSongLength"><span>Max song length (minutes): </span><input type="text" name="maxSongLength" id="maxSongLength" value="{{{userData.channelInfo.0.maxSongLength}}}" /></label>
+	<label for="channelCountry"><span>Country Code (<a href="http://www.nationsonline.org/oneworld/country_code_list.htm" target="_blank">2 letters</a>): </span><input type="text" name="channelCountry" id="channelCountry" maxlength="2" value="{{{userData.channelInfo.0.ChannelCountry}}}" /></label>
+	<input type="submit" name="submit" value="Submit" class="blue-styled-button" />
+</form>
+<div class="messagesFromBot"></div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script src="/js/validator.min.js"></script>
 <script>

@@ -1,42 +1,36 @@
-<div class="inner-content-wrapper">
-	<div class="main-content">
-		<div class="container wrapper">
-			<h1><i class="fa fa-unlock-alt"></i> Moderation Panel <small>{{{userData.urlChannel}}}</small></h1>
-			<p>This page is designed so your mods can manage your music queue, without spamming chat with a bunch of messages!</p>
-			<div class="moderation-messages"></div>
-			<div class="control-buttons moderation">
-				<div class="volumeContainer clearfix">
-					<div class="slider">
-						<div class="linktoshare">
-							<span>Link To Share: </span>
-							<input type="text" readonly="readonly" value="" class="linktoshareinput darkinput" />
-						</div>
-						<input type="range" id="volumeRange" value="{{currentVolume}}" max="100" min="0" step="5" onchange="updateRangeVolume(this.value)" />
-						<input type="text" name="volumeInput" id="volumeInput" class="currentvolume darkinput" disabled />
-					</div>
-					<div class="buttons">
-						{{> player-buttons}}
-					</div>
+<h1><i class="fa fa-unlock-alt"></i> Moderation Panel <small>{{{userData.urlChannel}}}</small></h1>
+<p>This page is designed so your mods can manage your music queue, without spamming chat with a bunch of messages!</p>
+<div class="mod-wrapper">
+	<div class="mod-wrapper-left">
+		<div class="moderation-messages"></div>
+		<div class="control-buttons moderation">
+			<div class="volumeContainer clearfix">
+				<div class="buttons">
+					{{> player-buttons}}
+				</div>
+				<div class="slider">
+					<input type="range" id="volumeRange" value="{{currentVolume}}" max="100" min="0" step="5" onchange="updateRangeVolume(this.value)" />
+					<input type="text" name="volumeInput" id="volumeInput" class="currentvolume darkinput" disabled />
 				</div>
 			</div>
-			<div class="song-container">
-					<table class="datatable moderation">
-						<thead>
-							<th class="moderation-number">#</th>
-							<th class="datatable-half">Title</th>
-							<th>Requested</th>
-							<th width="80"></th>
-						</thead>
-						<tbody>{{{formattedSonglist}}}</tbody>
-					</table>
-					<div class="nosongs"></div>
-			</div>
-			<div class="chatbox"></div>
-			<div class="details">
-				<div class="messagesFromBot clear"></div>
-			</div>
+		</div>
+		<div class="song-container">
+			<table class="datatable moderation">
+				<thead>
+					<th class="moderation-number">#</th>
+					<th class="datatable-half">Title</th>
+					<th>Requested</th>
+					<th></th>
+				</thead>
+				<tbody>{{{formattedSonglist}}}</tbody>
+			</table>
+			<div class="nosongs"></div>
 		</div>
 	</div>
+	<!-- <div class="chatbox"></div> -->
+</div>
+<div class="details">
+	<div class="messagesFromBot clear"></div>
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>

@@ -1,20 +1,14 @@
-<div class="inner-content-wrapper clearfix">
-	<div class="main-content">
-		<div class="container wrapper">
-			<h1><i class="fa fa-music"></i>  Songcache <small>{{{userData.urlChannel}}}</small></h1>
-			<p>Below is a list of your channel's song cache. This is a comprehensive list of every song ever requested in your channel!</p>
-			<div class="nosongs"><div class="gear"><div class="center"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div></div></div>
-			<table class="datatable songcache overflow-wrapper">
-				<thead>
-					<th>#</th>
-					<th class="datatable-half">Title</th>
-					<th>Video ID</th>
-				</thead>
-				<tbody>{{{formattedSongCache}}}</tbody>
-			</table>
-		</div>
-	</div>
-</div>
+<h1><i class="fa fa-music"></i>  Songcache <small>{{{userData.urlChannel}}}</small></h1>
+<p>Below is a list of your channel's song cache. This is a comprehensive list of every song ever requested in your channel!</p>
+<div class="nosongs"><div class="gear"><div class="center"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div></div></div>
+<table class="datatable songcache overflow-wrapper">
+	<thead>
+		<th>#</th>
+		<th class="datatable-half">Title</th>
+		<th>Video ID</th>
+	</thead>
+	<tbody>{{{formattedSongCache}}}</tbody>
+</table>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
 	$(document).ready(function() {

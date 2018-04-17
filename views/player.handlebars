@@ -1,28 +1,24 @@
-<div class="inner-content-wrapper">
-	<div class="main-content">
-		<div class="container wrapper">
-			<h1><i class="fa fa-music"></i> Player</h1>
-			<p>Below is how you listen to your song queue! Request some songs, and then click play; the bot will handle the rest!</p>
-			<div class="player-page">
-				<div id="player"></div>
-				<div class="buttons">
-					{{> player-buttons}}
-				</div>
-				<div class="currentsong">{{{formattedFirstSongInSonglist}}}</div>
-				<div class="currentvolume"><strong>Current Volume: </strong>{{currentVolume}}</div>
-			</div>
-			<div class="player-songlist songlist">
-				<table class="datatable">
-					<thead>
-						<th>#</th>
-						<th class="datatable-half">Title</th>
-						<th>Requested</th>
-					</thead>
-					<tbody>{{{formattedSonglist}}}</tbody>
-				</table>
-				<div class="nosongs"></div>
-			</div>
+<h1><i class="fa fa-music"></i> Player</h1>
+<p>Below is how you listen to your song queue! Request some songs, and then click play; the bot will handle the rest!</p>
+<div class="player-flex">
+	<div class="player-page">
+		<div id="player"></div>
+		<div class="buttons">
+			{{> player-buttons}}
 		</div>
+		<div class="currentsong">{{{formattedFirstSongInSonglist}}}</div>
+		<div class="currentvolume"><strong>Current Volume: </strong>{{currentVolume}}</div>
+	</div>
+	<div class="player-songlist songlist">
+		<table class="datatable">
+			<thead>
+				<th>#</th>
+				<th class="datatable-half">Title</th>
+				<th>Requested</th>
+			</thead>
+			<tbody>{{{formattedSonglist}}}</tbody>
+		</table>
+		<div class="nosongs"></div>
 	</div>
 </div>
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>

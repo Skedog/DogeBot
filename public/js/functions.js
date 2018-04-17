@@ -87,7 +87,6 @@ function buildDataTable(elementToUse, startSize, dataToUse) {
 	$(elementToUse).on('length.dt', function(e, settings, len) {
 		document.cookie = page + '=' + len;
 	});
-	const numberOfTDs = $(elementToUse + ' tbody tr:first > td').length;
 	if (startSize === '-1') {
 		$(elementToUse).DataTable({
 			"lengthMenu": [[-1, 5, 10, 25], ["All", 5, 10, 25]]

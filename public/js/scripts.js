@@ -6,8 +6,8 @@ const urlUser = URLSplit[2];
 function setNavShowingSection(page, channelName) {
 	let changedOne = false;
 	// Loop through all the nav items, and determine the "active" one
-	$('.left-bar .main-nav ul li a').each(function(index, el) {
-		if ('/' + page == $(this).attr('href') || '/' + page + '/' + stripHash(channelName) == $(this).attr('href')) {
+	$('.main-nav ul li a').each(function(index, el) {
+		if ('/' + page == $(this).attr('href') || '/' + page + '/' + stripHash(channelName) == $(this).attr('href') || $(this).attr('href') == '/' && page == 'getting-started') {
 			if ($(this).parent().parent().is(":hidden")) {
 				changeNavIconState($(this).parent().parent());
 				changedOne = true;
@@ -15,7 +15,7 @@ function setNavShowingSection(page, channelName) {
 			$(this).addClass('current-page');
 		}
 	});
-	$('.left-bar .doc-nav ul li a').each(function(index, el) {
+	$('.doc-nav ul li a').each(function(index, el) {
 		if (($(this).attr('href') == '/' && page == 'getting-started') || '/' + page == $(this).attr('href')) {
 			if ($(this).parent().parent().is(":hidden")) {
 				changeNavIconState($(this).parent().parent());
@@ -80,17 +80,18 @@ async function setupClickHandlers(channelName) {
 
 	// Handle click of menu button to toggle showing left bar
 	let toggleMe = true;
-	$('.navstatus').click(function(e) {
+	$('.nav-toggle-button').click(function(e) {
 		e.preventDefault();
 		if (toggleMe) {
 			toggleMe = false;
-			$('.left-bar').css({
+			$('#left').css({
+				width: '100%',
 				transform: 'translate(0, 0)'
 			});
 		} else {
 			toggleMe = true;
-			$('.left-bar').css({
-				transform: 'translate(-285px, 0)'
+			$('#left').css({
+				transform: 'translateX(-100%)'
 			});
 		};
 	});
@@ -148,20 +149,15 @@ $(document).ready(function() {
 	const socketURL = getUrl.protocol + "//" + getUrl.host + "/";
 	startSocket(socketURL, page, channelData, URLChannel);
 
-	// If no leftbar content is loaded, set the content width to be fullscreen
-	if ($('.left-bar-container').is(':empty')) {
-		$('.inner-content-wrapper').width('100%');
-	};
-
 	// Setup all the click handlers
 	setupClickHandlers(URLChannel);
 
 	// On resize check if leftbar should be removed
 	$(window).on('resize', debounce(function() {
-		if ($(window).width() > 1138) {
-			$('.left-bar').removeAttr('style');
+		if ($(window).width() > 960) {
+			$('#left').removeAttr('style');
 		}
-	}, 200));
+	}, 100));
 
 	// Hide all the showing nav dropdowns
 	$('.main-nav h4 a i').each(function(index, el) {

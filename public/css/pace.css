@@ -20,8 +20,8 @@
   height: 5px;
 }
 
-.home .pace .pace-progress {
-  top:50px;
+.home .pace .pace-progress,.login .pace .pace-progress {
+  top:53px;
 }
 
 .pace .pace-progress-inner {

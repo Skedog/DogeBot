@@ -1,15 +1,13 @@
-<div class="inner-content-wrapper">
-	<section class="content">
-		<div class="channel-form-container">
-			<form action="#" id="channel-form" name="channel-form">
-				<input type="text" value="" name="channel-name" id="channel-name" class="channel-name darkinput" placeholder="channel name" />
-				<input type="submit" name="submit" class="submit blue-styled-button mini channel-form-submit" value="Submit" />
-			</form>
-		</div>
+<section class="content">
+	<div class="channel-form-container">
 		<h1><i class="fa fa-file-text"></i> Bot Stats <small>ALL</small></h1>
-		{{{stats}}}
-	</section>
-</div>
+		<form action="#" id="channel-form" name="channel-form">
+			<input type="text" value="" name="channel-name" id="channel-name" class="channel-name darkinput" placeholder="channel name" />
+			<input type="submit" name="submit" class="submit blue-styled-button mini channel-form-submit" value="Submit" />
+		</form>
+	</div>
+	{{{stats}}}
+</section>
 <script>
 	$('#channel-form').submit(function(e) {
 		e.preventDefault();

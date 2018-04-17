@@ -25,25 +25,15 @@
 		<script src="/js/pace.js"></script>
 		<script src="/js/popup.js"></script>
 	</head>
-	<body>
-		<div class="navbar navbar-inverse navbar-top" role="navigation">
+	<body class="login">
+		<div class="navbar">
 			<div class="navbar-header">
-				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<!-- <a href="#" class="navstatus blue-styled-button mini">Toggle Nav</a> -->
-				<a href="#" class="navstatus blue-styled-button mini"><i class="fa fa-bars"></i></a>
-				<a class="navbar-brand dont-hide" href="/">Doge<span class="blue-highlight">Bot</span></a>
+				<img src="img/logo.png" alt="" height="100" class="mobile-only" />
+				<a class="brand" href="/">Doge<span class="blue-highlight">Bot</span></a>
 			</div>
-			<div class="collapse navbar-collapse">
-				<ul class="nav navbar-nav">
-					{{> nav}}
-				</ul>
-			</div>
-			<!--/.nav-collapse -->
+			<ul class="home-nav">
+				{{> nav}}
+			</ul>
 		</div>
 		<div class="notLoggedIn">
 			{{{body}}}
