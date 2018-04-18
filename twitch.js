@@ -268,12 +268,12 @@ async function checkIfChannelIsLive(channel) {
 	}
 	try {
 		const twitchAPIRequest = await request(URLtoUse);
-		if (JSON.parse(twitchAPIRequest.body).stream === null) {
-			return false;
+		if (JSON.parse(twitchAPIRequest.body).stream !== null) {
+			return true;
 		}
-		return true;
+		return false;
 	} catch (err) {
-		log.error('Command was called and produced an error: ' + err);
+		log.error('checkIfChannelIsLive(' + channel + ') produced an error: ' + err);
 		return false;
 	}
 }
@@ -283,11 +283,14 @@ async function getCurrentChatUsers(channel) {
 		const twitchAPIRequest = await request('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
 		if (twitchAPIRequest.body) {
 			const body = JSON.parse(twitchAPIRequest.body);
-			const listOfUsers = body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
-			return listOfUsers;
+			if (body.chatters) {
+				return body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
+			}
+			throw new Error('body from request was empty');
 		}
 	} catch (err) {
-		log.error('Command was called and produced an error: ' + err);
+		log.error('getCurrentChatUsers(' + channel + ') produced an error: ' + err);
+		return null;
 	}
 }
 

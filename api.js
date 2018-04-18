@@ -34,7 +34,7 @@ class API {
 		const twitchAPIRequest = await request(url);
 		if (twitchAPIRequest.body) {
 			if (twitchAPIRequest.body.length < 40) {
-				if (twitchAPIRequest.body.includes('is not following') || twitchAPIRequest.body.includes('cannot follow themself')) {
+				if (twitchAPIRequest.body.includes('is not following') || twitchAPIRequest.body.includes('cannot follow themself') || twitchAPIRequest.body.includes('Follow not found') || twitchAPIRequest.body.includes('No user with')) {
 					return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
 				}
 				return functions.buildUserString(props) + userToCheck + ' has been following for ' + twitchAPIRequest.body + '!';

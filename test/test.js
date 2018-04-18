@@ -146,9 +146,9 @@ it('test !winner', async function() {
 
 it('test !bf4stats', async function() {
 	this.timeout(10000);
-	props.messageParams = ['!bf4stats', 'TwitchYgTSkedog'];
+	props.messageParams = ['!bf4stats', 'YgTSkedog'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('TwitchYgTSkedog has played');
+	expect(res).to.have.string('YgTSkedog has played');
 });
 
 it('test !8ball', async function() {
@@ -246,7 +246,7 @@ it('test !sr multi fails', async function() {
 
 it('test !sr multi all get added', async function() {
 	this.timeout(10000);
-	props.messageParams = ['!sr', 'https://www.youtube.com/watch?v=EMfNB3fakB8&feature=youtu.be,https://www.youtube.com/watch?v=zO3J12uQIXI,https://www.youtube.com/watch?v=V5-AQTPFJSg,https://www.youtube.com/watch?v=OmnDEUD9NyI&feature=youtu.be,https://www.youtube.com/watch?v=3OC2aPCuzjo&feature=youtu.be'];
+	props.messageParams = ['!sr', 'https://www.youtube.com/watch?v=9-NU7yOSElE,https://www.youtube.com/watch?v=zO3J12uQIXI,https://www.youtube.com/watch?v=V5-AQTPFJSg,https://www.youtube.com/watch?v=OmnDEUD9NyI,https://www.youtube.com/watch?v=3OC2aPCuzjo'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@dogebot -> 5 songs added!');
 });
@@ -331,18 +331,18 @@ it('test !sr QeBaxc4Cglo', async function() {
 	expect(res).to.have.string('@dogebot -> The song Alison Wonderland x Fishing x Leaderboy - Get Ready (Tasker\'s Illegitimate Rmx) [FREE DL] has been added to the queue');
 });
 
-it('test !blacklist add lX44CAz-JhU', async function() {
+it('test !blacklist add AzHqv4wXghI', async function() {
 	this.timeout(5000);
-	props.messageParams = ['!blacklist', 'add', 'lX44CAz-JhU'];
+	props.messageParams = ['!blacklist', 'add', 'AzHqv4wXghI'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@dogebot -> The song SIAMÉS - "The Wolf" [Official Video] has been added to the blacklist!');
+	expect(res).to.have.string('@dogebot -> The song What a strange phone... has been added to the blacklist!');
 });
 
-it('test !blacklist remove lX44CAz-JhU', async function() {
+it('test !blacklist remove AzHqv4wXghI', async function() {
 	this.timeout(5000);
-	props.messageParams = ['!blacklist', 'remove', 'lX44CAz-JhU'];
+	props.messageParams = ['!blacklist', 'remove', 'AzHqv4wXghI'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@dogebot -> The song SIAMÉS - "The Wolf" [Official Video] has been removed from the blacklist!');
+	expect(res).to.have.string('@dogebot -> The song What a strange phone... has been removed from the blacklist!');
 });
 
 it('test !promote QeBaxc4Cglo', async function() {
