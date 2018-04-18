@@ -233,29 +233,31 @@ async function handleLoyalty(channel) {
 	const currentUsers = await getCurrentChatUsers(channel);
 	let dataToUse = {};
 	let propsForUpdate = {};
-	if (currentUsers.length > 0) {
-		const arrayOfUsers = currentUsers.split(',');
-		// Mark all users in the chatters list as "active" and increase loyalty points by 1
-		dataToUse = {
-			isActive: true
-		};
-		propsForUpdate = {
-			table: 'chatusers',
-			query: {channel: '#' + channel, userName: {$in: arrayOfUsers}},
-			dataToUse,
-			inc: {loyaltyPoints: 0.1, minutesInChat: 1}
-		};
-		await database.updateall(propsForUpdate);
-		// Mark all users NOT in the chatters list as "inactive"
-		dataToUse = {
-			isActive: false
-		};
-		propsForUpdate = {
-			table: 'chatusers',
-			query: {channel: '#' + channel, userName: {$nin: arrayOfUsers}},
-			dataToUse
-		};
-		await database.updateall(propsForUpdate);
+	if (currentUsers) {
+		if (currentUsers.length > 0) {
+			const arrayOfUsers = currentUsers.split(',');
+			// Mark all users in the chatters list as "active" and increase loyalty points by 1
+			dataToUse = {
+				isActive: true
+			};
+			propsForUpdate = {
+				table: 'chatusers',
+				query: {channel: '#' + channel, userName: {$in: arrayOfUsers}},
+				dataToUse,
+				inc: {loyaltyPoints: 0.1, minutesInChat: 1}
+			};
+			await database.updateall(propsForUpdate);
+			// Mark all users NOT in the chatters list as "inactive"
+			dataToUse = {
+				isActive: false
+			};
+			propsForUpdate = {
+				table: 'chatusers',
+				query: {channel: '#' + channel, userName: {$nin: arrayOfUsers}},
+				dataToUse
+			};
+			await database.updateall(propsForUpdate);
+		}
 	}
 }
 
