@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		{{> head}}
-	</head>
-	<body class="login">
-		<div class="navbar">
-			<div class="navbar-header">
-				<img src="img/logo.png" alt="" height="100" class="mobile-only" />
+<head>
+	{{> head}}
+</head>
+<body class="not-logged-in">
+	<div id="left" class="column">
+		<div class="top-left">
+			<a class="brand" href="/">Doge<span class="blue-highlight">Bot</span></a>
+		</div>
+		<div class="bottom-left">
+			{{> leftbar-logged-out}}
+		</div>
+	</div><!--left-->
+	<div id="right" class="column">
+		<div class="top-right">
+			<div class="mobile-brand-container">
+				<a href="#" class="nav-toggle-button blue-styled-button mini"><i class="fa fa-bars"></i></a>
 				<a class="brand" href="/">Doge<span class="blue-highlight">Bot</span></a>
 			</div>
-			<ul class="home-nav">
+			<ul class="user-nav">
 				{{> nav}}
 			</ul>
 		</div>
-		<div class="notLoggedIn">
+		<div class="bottom-right">
 			{{{body}}}
 		</div>
-		{{> ga}}
-	</body>
+	</div><!--right-->
+	{{> ga}}
+</body>
 </html>

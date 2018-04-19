@@ -252,7 +252,7 @@ hr {
 .user-nav a {
 	color:#999;
 }
-.user-nav .urlChannel {
+.urlChannel {
 	display: none;
 }
 .user-nav img.channel-logo {
@@ -833,6 +833,25 @@ body.documentation blockquote p {
     -moz-column-count: 3;
     column-count: 3;
 }
+
+/* =============================================================================
+	404/500/etc
+   ========================================================================== */
+.error {
+	margin:0 auto;
+	display: block;
+	text-align: center;
+}
+.error h1 {
+	font-size:7em;
+}
+.error img {
+	margin:20px 0;
+	max-width:100%;
+}
+.error p {
+	font-size:2em;
+}
 /* =============================================================================
 	media queries
    ========================================================================== */
@@ -1063,6 +1082,9 @@ body.documentation blockquote p {
 	}
 	.mobile-only {
 		display: block;
+	}
+	.home .pace .pace-progress,.login .pace .pace-progress {
+	  top:206px;
 	}
 	.user-nav .notifications-link,.user-nav li.dropdown {
 		display: none;

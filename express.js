@@ -123,7 +123,7 @@ async function setupRoutes() {
 			postURL = constants.postURL;
 		}
 		res.render('login', {
-			layout: 'notLoggedIn',
+			layout: 'loginLogout',
 			apiKey,
 			postURL,
 			redirectTo: req.session.redirectTo
@@ -133,7 +133,7 @@ async function setupRoutes() {
 	app.get('/logout', async (req, res) => {
 		req.session.reset();
 		res.render('logout', {
-			layout: 'notLoggedIn'
+			layout: 'loginLogout'
 		});
 	});
 
