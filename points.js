@@ -51,7 +51,7 @@ class Points {
 
 	async canUserCallCommand(props) {
 		const userPoints = await this.getUserPointCount(props);
-		if (userPoints > props.pointsToRemove) {
+		if (userPoints > props.pointsToRemove || props.pointsToRemove === 0) {
 			return true;
 		}
 		const userStr = functions.buildUserString(props);
