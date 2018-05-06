@@ -62,6 +62,7 @@ class Commands {
 			dataToUse.listArray = [];
 			dataToUse.globalDelay = 0;
 			dataToUse.userDelay = 0;
+			dataToUse.pointCost = 0;
 			if (dataToUse.trigger.charAt(0) === '!' && dataToUse.chatmessage !== '') {
 				const propsForAdd = {
 					table: 'commands',
