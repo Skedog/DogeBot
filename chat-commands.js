@@ -9,6 +9,7 @@ const regulars = require('./regulars.js');
 const superMods = require('./super-mods.js');
 const djs = require('./djs.js');
 const giveaway = require('./giveaway.js');
+const points = require('./points.js');
 const api = require('./api.js');
 const users = require('./users.js');
 const songs = require('./songs.js');
@@ -227,6 +228,8 @@ class Chat {
 					return await giveaway.call(props);
 				case '!enter':
 					return await giveaway.call(props);
+				case '!points':
+					return await points.getUserPoints(props);
 				default:
 					throw new Error('missing a break; inside switch for callDefaultCommand!');
 			}

@@ -22,6 +22,10 @@ class Commands {
 			case 'permission':
 			case 'perms':
 				return this.permission(props);
+			case 'setcost':
+			case 'cost':
+			case 'points':
+				return this.cost(props);
 			default:
 				return this.buildCommandLink(props);
 		}
@@ -177,6 +181,68 @@ class Commands {
 			}
 			listOfOptions = listOfOptions.slice(0, -2);
 			return functions.buildUserString(props) + 'Error setting permissions for ' + props.messageParams[2] + ' - the options are ' + listOfOptions + '!';
+		}
+	}
+
+	async cost(props) {
+		try {
+			props.ignoreMessageParamsForUserString = true;
+			const commandToEdit = props.messageParams[2].toLowerCase();
+			const numberOfPointsToSet = props.messageParams[3];
+			if (!isNaN(parseInt(numberOfPointsToSet, 10))) {
+				const propsForSelect = {
+					table: 'commands',
+					query: {channel: props.channel, trigger: commandToEdit}
+				};
+				const results = await database.select(propsForSelect);
+				if (results) {
+					props.results = results;
+					return this.setCostForUserAddedCommand(props);
+				}
+				return this.setCostForDefaultCommand(props);
+			}
+		} catch (err) {
+			return functions.buildUserString(props) + 'Error setting cost for ' + props.messageParams[2] + ' - try again in a little bit!';
+		}
+	}
+
+	async setCostForUserAddedCommand(props) {
+		const dataToUse = {};
+		dataToUse.pointCost = props.messageParams[3];
+		const propsForUpdate = {
+			table: 'commands',
+			query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
+			dataToUse
+		};
+		await database.update(propsForUpdate);
+		await cache.del(props.channel + 'commands');
+		socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
+		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' cost has been updated to ' + props.messageParams[3] + '!';
+	}
+
+	async setCostForDefaultCommand(props) {
+		const commandToEdit = props.messageParams[2].toLowerCase();
+		// We need to exclude these commands from this to avoid situations where mods need to use these commands and can't due to a lack of points
+		// these will awlays be set to 0
+		if (commandToEdit !== '!commands' && commandToEdit !== '!volume' && commandToEdit !== '!title' && commandToEdit !== '!game') {
+			// Select from default commands
+			const propsForSelect = {
+				table: 'defaultCommands',
+				query: {trigger: commandToEdit}
+			};
+			props.results = await database.select(propsForSelect);
+			if (props.results) {
+				const aliasResults = await this.getAliasedDefaultCommand(props, props.results);
+				const propsForUpdate = {
+					table: 'defaultCommands',
+					query: {trigger: aliasResults[0].trigger, pointsPerChannel: {$elemMatch: {channel: props.channel}}},
+					dataToUse: {'pointsPerChannel.$.pointCost': props.messageParams[3]}
+				};
+				props.results = await database.update(propsForUpdate);
+				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' cost has been updated to ' + props.messageParams[3] + '!';
+			}
+		} else {
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' cannnot have it\'s cost changed. If you need to limit access, try setting the permissions instead!';
 		}
 	}
 

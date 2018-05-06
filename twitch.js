@@ -4,6 +4,7 @@ const tmi = require('tmi.js');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const permissions = require('./permissions.js');
+const points = require('./points.js');
 const stats = require('./stats.js');
 const chat = require('./chat-commands.js');
 const messages = require('./chat-messages.js');
@@ -154,6 +155,9 @@ async function callCommandFromChat(props) {
 		props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 		await permissions.canUserCallCommand(props);
 		await chat.checkAndSetCommandDelayTimer(props);
+		props.pointsToRemove = await points.commandPointCost(props);
+		await points.canUserCallCommand(props);
+		await points.removePoints(props);
 		stats.addCounterStat(props);
 		stats.updateUserCounter(props);
 		props.messageToSend = await chat.callCommand(props);
