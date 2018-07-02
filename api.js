@@ -62,23 +62,36 @@ class API {
 		}
 	}
 
+	async getUserID(props) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName: props.channel}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			return results[0].twitchUserID;
+		}
+	}
+
 	async game(props) {
 		const dbConstants = await database.constants();
 		if (props.messageParams[1]) {
 			props.ignoreMessageParamsForUserString = true;
 			const newGame = props.messageParams.slice(1, props.messageParams.length).join(' ');
 			const token = await this.getUserOAuthToken(props);
+			const userID = await this.getUserID(props);
 			const updateData = request.defaults({
 				method: 'PUT',
 				headers: {
 					Authorization: 'OAuth ' + token,
-					'Client-ID': dbConstants.twitchClientID
+					'Client-ID': dbConstants.twitchClientID,
+					Accept: 'application/vnd.twitchtv.v5+json'
 				},
 				data: {
 					'channel[game]': newGame
 				}
 			});
-			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1);
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + userID;
 			const twitchAPIRequest = await updateData(URLtoUse);
 			const updatedGame = JSON.parse(twitchAPIRequest.body).game;
 			if (updatedGame) {
@@ -112,17 +125,19 @@ class API {
 			props.ignoreMessageParamsForUserString = true;
 			const newTitle = props.messageParams.slice(1, props.messageParams.length).join(' ');
 			const token = await this.getUserOAuthToken(props);
+			const userID = await this.getUserID(props);
 			const updateData = request.defaults({
 				method: 'PUT',
 				headers: {
 					Authorization: 'OAuth ' + token,
-					'Client-ID': dbConstants.twitchClientID
+					'Client-ID': dbConstants.twitchClientID,
+					Accept: 'application/vnd.twitchtv.v5+json'
 				},
 				data: {
 					'channel[status]': newTitle
 				}
 			});
-			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1);
+			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + userID;
 			const twitchAPIRequest = await updateData(URLtoUse);
 			const updatedGame = JSON.parse(twitchAPIRequest.body).game;
 			if (updatedGame) {
@@ -141,9 +156,14 @@ class API {
 	async viewers(props) {
 		const URLtoUse = 'https://tmi.twitch.tv/group/user/' + props.channel.slice(1) + '/chatters';
 		const twitchAPIRequest = await request(URLtoUse);
-		const currentViewerCount = JSON.parse(twitchAPIRequest.body).chatter_count;
-		if (currentViewerCount >= 0) {
-			return functions.buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
+		if (twitchAPIRequest.body) {
+			const json = JSON.parse(twitchAPIRequest.body);
+			if (!json.error) {
+				const currentViewerCount = json.chatter_count;
+				if (currentViewerCount >= 0) {
+					return functions.buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
+				}
+			}
 		}
 	}
 
