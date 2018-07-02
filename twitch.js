@@ -38,7 +38,7 @@ async function getListOfJoinedChannels() {
 async function connectToTwitch() {
 	dbConstants = await database.constants();
 	const channelsToJoin = await getListOfJoinedChannels();
-	chat.setDelayTimerForMultipleChannels(channelsToJoin);
+	chat.setDelayTimerForArrayOfChannels(channelsToJoin);
 	const twitchClientOptions = {
 		options: {
 			debug: false
@@ -69,10 +69,8 @@ async function connectToTwitch() {
 async function joinSingleChannel(channelToJoin) {
 	try {
 		await twitchClient.join(channelToJoin);
-		const propsForsetDelayTimerForSingleChannel = {
-			channel: channelToJoin
-		};
-		chat.setDelayTimerForSingleChannel(propsForsetDelayTimerForSingleChannel);
+		const arrayOfChannelsToJoin = [channelToJoin];
+		chat.setDelayTimerForArrayOfChannels(arrayOfChannelsToJoin);
 		const dataToUse = {};
 		dataToUse.inChannel = true;
 		const propsForUpdate = {
@@ -152,6 +150,7 @@ function monitorWhispers() {
 
 async function callCommandFromChat(props) {
 	try {
+		await chat.isChannelMonitorOnly(props);
 		props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 		await permissions.canUserCallCommand(props);
 		await chat.checkAndSetCommandDelayTimer(props);

@@ -106,6 +106,88 @@ async function checkPassedCommand(req, res, next) {
 	});
 }
 
+async function createChannel(props) {
+	const dataToUse = {};
+	const userToAdd = '#' + props.ChannelName.toLowerCase();
+	dataToUse.ChannelName = userToAdd;
+	dataToUse.ChannelEmail = props.userEmail;
+	dataToUse.ChannelLogo = props.userLogo;
+	dataToUse.twitchUserID = props.twitchUserID;
+	dataToUse.volume = 30;
+	dataToUse.musicStatus = 'pause';
+	dataToUse.tempSortVal = 199999;
+	dataToUse.inChannel = false; // Starts off with the bot not in this channel
+	dataToUse.maxSongLength = 12; // Stored in minutes - max length per song
+	dataToUse.songNumberLimit = 10; // How many songs per user
+	dataToUse.duplicateSongDelay = 20; // Stored in hours - hours before allowing duplicate song
+	dataToUse.isSilent = false;
+	dataToUse.ChannelCountry = 'US';
+	dataToUse.lastSong = 'No previous song found, try requesting some music with !sr';
+	dataToUse.timedMessages = [];
+	dataToUse.monitorOnly = false; // This is only used via whisper/admin commands to monitor a channel's chat
+	const propsForAdd = {
+		table: 'channels',
+		dataToUse
+	};
+	await database.add(propsForAdd);
+	const propsForSelect = {
+		table: 'defaultCommands'
+	};
+	const results = await database.select(propsForSelect);
+	if (results) {
+		let newData = [];
+		const addResults = [];
+		for (let i = results.length - 1; i >= 0; i--) {
+			switch (results[i].trigger) {
+				case '!promote':
+				case '!removesong':
+				case '!pause':
+				case '!play':
+				case '!skipsong':
+				case '!regular':
+				case '!dj':
+				case '!supermod':
+				case '!shuffle':
+				case '!lastseen':
+				case '!firstseen':
+				case '!mute':
+				case '!unmute':
+				case '!blacklist':
+				case '!nocache':
+				case '!srp':
+					newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
+					break;
+				case '!commands':
+				case '!volume':
+				case '!game':
+				case '!title':
+					newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
+					break;
+				case '!giveaway':
+					newData = [{channel: userToAdd, permissionLevel: 301, isEnabled: true, moderationPermissionLevel: 301}];
+					break;
+				default:
+					newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
+					break;
+			}
+			const dataToUse = {};
+			const currentList = results[i].permissionsPerChannel;
+			if (Array.isArray(currentList)) {
+				Array.prototype.push.apply(currentList, newData);
+				dataToUse.permissionsPerChannel = currentList;
+				const propsForUpdate = {
+					table: 'defaultCommands',
+					query: {trigger: results[i].trigger},
+					dataToUse
+				};
+				addResults.push(database.update(propsForUpdate));
+			}
+		}
+		await Promise.all(addResults);
+	}
+	return 'useradded';
+}
+
 // Helpers
 async function handleLogin(props) {
 	const sessionData = {};
@@ -119,89 +201,21 @@ async function handleLogin(props) {
 	// Handle user adding and updating
 	const propsForSelect = {
 		table: 'channels',
-		query: {twitchUserID: props.twitchUserID}
+		query: {ChannelName: '#' + props.ChannelName.toLowerCase()}
 	};
 	const results = await database.select(propsForSelect);
 	if (!results) {
 		// Channel doesn't exist, add it
-		const dataToUse = {};
-		const userToAdd = '#' + props.ChannelName.toLowerCase();
-		dataToUse.ChannelName = userToAdd;
-		dataToUse.ChannelEmail = props.userEmail;
-		dataToUse.ChannelLogo = props.userLogo;
-		dataToUse.twitchUserID = props.twitchUserID;
-		dataToUse.volume = 30;
-		dataToUse.musicStatus = 'pause';
-		dataToUse.tempSortVal = 199999;
-		dataToUse.inChannel = false; // Starts off with the bot not in this channel
-		dataToUse.maxSongLength = 12; // Stored in minutes - max length per song
-		dataToUse.songNumberLimit = 10; // How many songs per user
-		dataToUse.duplicateSongDelay = 20; // Stored in hours - hours before allowing duplicate song
-		dataToUse.isSilent = false;
-		dataToUse.ChannelCountry = 'US';
-		dataToUse.lastSong = 'No previous song found, try requesting some music with !sr';
-		dataToUse.timedMessages = [];
-		const propsForAdd = {
+		return createChannel(props);
+	}
+	if (results[0].monitorOnly && results[0].twitchUserID === undefined) {
+		// Channel does exist, but it was a monitor only channel, delete current channel record then add it fully
+		const propsForDelete = {
 			table: 'channels',
-			dataToUse
+			query: {ChannelName: '#' + props.ChannelName.toLowerCase()}
 		};
-		await database.add(propsForAdd);
-		const propsForSelect = {
-			table: 'defaultCommands'
-		};
-		const results = await database.select(propsForSelect);
-		if (results) {
-			let newData = [];
-			const addResults = [];
-			for (let i = results.length - 1; i >= 0; i--) {
-				switch (results[i].trigger) {
-					case '!promote':
-					case '!removesong':
-					case '!pause':
-					case '!play':
-					case '!skipsong':
-					case '!regular':
-					case '!dj':
-					case '!supermod':
-					case '!shuffle':
-					case '!lastseen':
-					case '!firstseen':
-					case '!mute':
-					case '!unmute':
-					case '!blacklist':
-					case '!nocache':
-					case '!srp':
-						newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
-						break;
-					case '!commands':
-					case '!volume':
-					case '!game':
-					case '!title':
-						newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
-						break;
-					case '!giveaway':
-						newData = [{channel: userToAdd, permissionLevel: 301, isEnabled: true, moderationPermissionLevel: 301}];
-						break;
-					default:
-						newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
-						break;
-				}
-				const dataToUse = {};
-				const currentList = results[i].permissionsPerChannel;
-				if (Array.isArray(currentList)) {
-					Array.prototype.push.apply(currentList, newData);
-					dataToUse.permissionsPerChannel = currentList;
-					const propsForUpdate = {
-						table: 'defaultCommands',
-						query: {trigger: results[i].trigger},
-						dataToUse
-					};
-					addResults.push(database.update(propsForUpdate));
-				}
-			}
-			await Promise.all(addResults);
-		}
-		return 'useradded';
+		await database.delete(propsForDelete);
+		return createChannel(props);
 	}
 	const userToUpdate = '#' + props.ChannelName;
 	let propsForUpdate;

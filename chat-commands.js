@@ -131,6 +131,65 @@ class Chat {
 					props.twitchClient.whisper(props.from, 'Notification sent!');
 				}
 				break;
+			case '!startmonitor':
+				if (props.messageParams[1]) {
+					const propsForSelect = {
+						table: 'channels',
+						query: {ChannelName: '#' + props.messageParams[1]}
+					};
+					const results = await database.select(propsForSelect);
+					if (results) {
+						// Channel exists, turn monitoring on
+						const dataToUse = {};
+						dataToUse.monitorOnly = true;
+						const propsForUpdate = {
+							table: 'channels',
+							query: {ChannelName: '#' + props.messageParams[1]},
+							dataToUse
+						};
+						database.update(propsForUpdate);
+						props.twitchClient.whisper(props.from, 'Monitoring enabled. This channel has been logged into before, and has a full account, keep in mind this means the bot will NOT function in their channel. Use !stopmonitor ' + props.messageParams[1] + ' to turn this off.');
+					} else {
+						// Channel doesn't exist, create it and set monitorOnly = true
+						props.twitchClient.join('#' + props.messageParams[1]);
+						const dataToUse = {};
+						dataToUse.ChannelName = '#' + props.messageParams[1];
+						dataToUse.inChannel = true;
+						dataToUse.isSilent = true;
+						dataToUse.monitorOnly = true;
+						dataToUse.timedMessages = [];
+						const propsForAdd = {
+							table: 'channels',
+							dataToUse
+						};
+						await database.add(propsForAdd);
+						props.twitchClient.whisper(props.from, 'Now monitoring #' + props.messageParams[1]);
+					}
+				}
+				break;
+			case '!stopmonitor':
+				if (props.messageParams[1]) {
+					const propsForSelect = {
+						table: 'channels',
+						query: {ChannelName: '#' + props.messageParams[1]}
+					};
+					const results = await database.select(propsForSelect);
+					if (results) {
+						// Channel exists, turn monitoring off
+						const dataToUse = {};
+						dataToUse.monitorOnly = false;
+						const propsForUpdate = {
+							table: 'channels',
+							query: {ChannelName: '#' + props.messageParams[1]},
+							dataToUse
+						};
+						database.update(propsForUpdate);
+						props.twitchClient.whisper(props.from, 'Monitoring disabled for #' + props.messageParams[1]);
+					} else {
+						props.twitchClient.whisper(props.from, 'Channel ' + props.messageParams[1] + ' was not found!');
+					}
+				}
+				break;
 			default:
 				log.error('Whisper command not found!');
 				props.twitchClient.whisper(props.from, 'Whisper command not found!');
@@ -308,6 +367,19 @@ class Chat {
 		return 'increased';
 	}
 
+	async isChannelMonitorOnly(props) {
+		const propsForSelect = {
+			table: 'channels',
+			query: {ChannelName: props.channel}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			if (results[0].monitorOnly) {
+				throw new Error('channel is in monitor only mode, do not call any commands');
+			}
+		}
+	}
+
 	checkAndSetCommandDelayTimer(props) {
 		const currentTime = new Date().getTime() / 1000;
 		// Setting this to 0 basically disables all of this code, but leaving it for now
@@ -321,13 +393,9 @@ class Chat {
 		throw new Error('didn\'t meet time requirement, try again in a couple of seconds');
 	}
 
-	setDelayTimerForSingleChannel(props) {
-		commandDelayTimerArray[props.channel] = commandDelayTimerArray[props.channel] ? '' : commandDelayTimerArray[props.channel] = {};
-	}
-
-	async setDelayTimerForMultipleChannels(channelArray) {
+	async setDelayTimerForArrayOfChannels(channelArray) {
 		for (const channel of channelArray) {
-			commandDelayTimerArray[channel] = commandDelayTimerArray[channel] ? '' : commandDelayTimerArray[channel] = {};
+			commandDelayTimerArray[channel] = {};
 		}
 	}
 }
