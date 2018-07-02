@@ -139,6 +139,7 @@ async function handleLogin(props) {
 		dataToUse.duplicateSongDelay = 20; // Stored in hours - hours before allowing duplicate song
 		dataToUse.isSilent = false;
 		dataToUse.ChannelCountry = 'US';
+		dataToUse.lastSong = 'No previous song found, try requesting some music with !sr';
 		dataToUse.timedMessages = [];
 		const propsForAdd = {
 			table: 'channels',
