@@ -689,11 +689,12 @@ function getMusicStatus(userData) {
 	return isMusicPlaying;
 }
 
-async function getChatlog(channel, passedDate) {
+async function getChatlog(channel, passedDate, userTimeZone) {
 	channel = addHashToChannel(channel);
 	let startTime;
 	let endTime;
-	const currentDate = new Date();
+	const tzDate = new Date(passedDate).toLocaleString('en-US', {timeZone: userTimeZone});
+	const currentDate = new Date(tzDate);
 	if (typeof passedDate === 'undefined') {
 		currentDate.setHours(0, 0, 0, 0);
 		startTime = currentDate.getTime();
@@ -741,9 +742,9 @@ function parseBadgesFromMessage(message) {
 	return parsedBadges;
 }
 
-async function getFormattedChatlog(channel, passedDate) {
+async function getFormattedChatlog(channel, passedDate, userTimeZone) {
 	channel = addHashToChannel(channel);
-	const chatlog = await getChatlog(channel, passedDate);
+	const chatlog = await getChatlog(channel, passedDate, userTimeZone);
 	if (chatlog) {
 		let builtChatlog = '<div class="chatlogs">';
 		for (const log in chatlog) {
@@ -837,7 +838,7 @@ async function getStatsForStatsPage(channel) {
 function buildStatsLayout(data) {
 	let temp = '';
 	if (data) {
-		const channelName = data[6];
+		const channelName = data[5];
 		if (channelName) {
 			temp = '<div class="statbox-container statspage">';
 			temp += '<div class="statbox">';
