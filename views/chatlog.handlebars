@@ -7,21 +7,11 @@
 <script>
 $(document).ready(function() {
 	let tempDate;
-	$('#chat-date').val(new Date().toDateInputValue());
-	loadChatLogs();
+    $('#chat-date').val(new Date().toDateInputValue());
 });
-async function loadChatLogs(passedDate) {
-	const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-	if (passedDate) {
-		let chatlogs = await loadFormattedChatlogs($('.urlChannel').text(), passedDate, userTimeZone);
-		$('.chatlog-box').html(chatlogs);
-	} else {
-		let chatlogs = await loadFormattedChatlogs($('.urlChannel').text(), new Date(), userTimeZone);
-		$('.chatlog-box').html(chatlogs);
-	}
-}
 $('#chat-date').change(async function(e) {
 	showLoader($('.chatlog-box'));
-	loadChatLogs($(this).val());
+	let chatlogs = await loadFormattedChatlogs($('.urlChannel').text(), ($(this).val()));
+	$('.chatlog-box').html(chatlogs);
 });
 </script>

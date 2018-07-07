@@ -689,12 +689,11 @@ function getMusicStatus(userData) {
 	return isMusicPlaying;
 }
 
-async function getChatlog(channel, passedDate, userTimeZone) {
+async function getChatlog(channel, passedDate) {
 	channel = addHashToChannel(channel);
 	let startTime;
 	let endTime;
-	const tzDate = new Date(passedDate).toLocaleString('en-US', {timeZone: userTimeZone});
-	const currentDate = new Date(tzDate);
+	const currentDate = new Date();
 	if (typeof passedDate === 'undefined') {
 		currentDate.setHours(0, 0, 0, 0);
 		startTime = currentDate.getTime();
@@ -742,9 +741,9 @@ function parseBadgesFromMessage(message) {
 	return parsedBadges;
 }
 
-async function getFormattedChatlog(channel, passedDate, userTimeZone) {
+async function getFormattedChatlog(channel, passedDate) {
 	channel = addHashToChannel(channel);
-	const chatlog = await getChatlog(channel, passedDate, userTimeZone);
+	const chatlog = await getChatlog(channel, passedDate);
 	if (chatlog) {
 		let builtChatlog = '<div class="chatlogs">';
 		for (const log in chatlog) {
