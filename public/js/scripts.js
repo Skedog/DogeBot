@@ -150,7 +150,9 @@ $(document).ready(function() {
 	startSocket(socketURL, page, channelData, URLChannel);
 
 	// Setup all the click handlers
-	setupClickHandlers(URLChannel);
+	if (loggedInChannel) {
+		setupClickHandlers(loggedInChannel);
+	}
 
 	// On resize check if leftbar should be removed
 	$(window).on('resize', debounce(function() {
