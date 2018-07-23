@@ -646,10 +646,7 @@ async function getListCommandItems(channel, passedCommand) {
 
 function getChannelName(req, userDetails) {
 	let channel;
-	if (req.params.channel) {
-		// Channel was in URL, this always takes priority
-		channel = req.params.channel;
-	} else if (userDetails) {
+	if (userDetails) {
 		channel = userDetails[2].slice(1);
 	}
 	return channel;
