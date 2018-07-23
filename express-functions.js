@@ -646,12 +646,10 @@ async function getListCommandItems(channel, passedCommand) {
 
 function getChannelName(req, userDetails) {
 	let channel;
-	if (userDetails) {
+	if (req.params.channel) {
+		channel = req.params.channel;
+	} else if (userDetails) {
 		channel = userDetails[2].slice(1);
-	} else {
-		if (req.params.channel) {
-			channel = req.params.channel;
-		}
 	}
 	return channel;
 }
