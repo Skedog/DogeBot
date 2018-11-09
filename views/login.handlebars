@@ -23,6 +23,8 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 					} else {
 						window.location.assign("/dashboard");
 					}
+				} else {
+					window.location.assign("/?loginFailed");
 				};
 			}
 		});

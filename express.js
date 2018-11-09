@@ -5,7 +5,7 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const subdomain = require('express-subdomain');
 const bodyParser = require('body-parser');
-const request = require('async-request');
+const bhttp = require("bhttp");
 const log = require('npmlog');
 const session = require('client-sessions');
 const database = require('./database.js');
@@ -225,20 +225,25 @@ async function setupRoutes() {
 		// Token comes from the Twitch API login request
 		const token = req.body.token;
 		req.session.token = token;
-		const getTwitchUserDetails = await request('https://api.twitch.tv/kraken/user/?oauth_token=' + token);
-		const body = JSON.parse(getTwitchUserDetails.body);
-		const props = {
-			userEmail: body.email,
-			twitchUserID: body._id,
-			userLogo: body.logo,
-			ChannelName: body.name,
-			token
-		};
-		const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
-		// Set the userDetails as a session
-		req.session.userDetails = userDetails;
-		const returnVal = await expressFunctions.handleLogin(props);
-		res.send(returnVal);
+		try {
+			const getTwitchUserDetails = await bhttp.get('https://api.twitch.tv/kraken/user/?oauth_token=' + token);
+			const body = getTwitchUserDetails.body;
+			const props = {
+				userEmail: body.email,
+				twitchUserID: body._id,
+				userLogo: body.logo,
+				ChannelName: body.name,
+				token
+			};
+			const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
+			// Set the userDetails as a session
+			req.session.userDetails = userDetails;
+			const returnVal = await expressFunctions.handleLogin(props);
+			res.send(returnVal);
+		} catch (err) {
+			log.error('/handleLogin produced an error: ' + err);
+			res.redirect('/');
+		}
 	});
 
 	app.post('/removenotification', [expressFunctions.checkIfUserIsLoggedIn], async (req, res) => {
