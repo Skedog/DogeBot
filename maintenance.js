@@ -38,13 +38,20 @@ class Maintenance {
 			const updateResults = [];
 			for (let i = results.length - 1; i >= 0; i--) {
 				const arrayOfPermissions = results[i].permissionsPerChannel;
+				const arrayOfPoints = results[i].pointsPerChannel;
 				for (let x = 0; x < arrayOfPermissions.length; x++) {
 					if (results[i].permissionsPerChannel[x].channel === props.channel) {
 						arrayOfPermissions.splice(x, 1);
 					}
 				}
+				for (let y = 0; y < arrayOfPoints.length; y++) {
+					if (results[i].pointsPerChannel[y].channel === props.channel) {
+						arrayOfPoints.splice(y, 1);
+					}
+				}
 				const dataToUse = {};
 				dataToUse.permissionsPerChannel = arrayOfPermissions;
+				dataToUse.pointsPerChannel = arrayOfPoints;
 				const propsForUpdate = {
 					table: 'defaultCommands',
 					query: {trigger: results[i].trigger},

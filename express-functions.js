@@ -136,6 +136,7 @@ async function createChannel(props) {
 	const results = await database.select(propsForSelect);
 	if (results) {
 		let newData = [];
+		let newPointData = [];
 		const addResults = [];
 		for (let i = results.length - 1; i >= 0; i--) {
 			switch (results[i].trigger) {
@@ -156,25 +157,32 @@ async function createChannel(props) {
 				case '!nocache':
 				case '!srp':
 					newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
+					newPointData = [{channel: userToAdd, pointCost: 0}];
 					break;
 				case '!commands':
 				case '!volume':
 				case '!game':
 				case '!title':
 					newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
+					newPointData = [{channel: userToAdd, pointCost: 0}];
 					break;
 				case '!giveaway':
 					newData = [{channel: userToAdd, permissionLevel: 301, isEnabled: true, moderationPermissionLevel: 301}];
+					newPointData = [{channel: userToAdd, pointCost: 0}];
 					break;
 				default:
 					newData = [{channel: userToAdd, permissionLevel: 0, isEnabled: true, moderationPermissionLevel: 300}];
+					newPointData = [{channel: userToAdd, pointCost: 0}];
 					break;
 			}
 			const dataToUse = {};
-			const currentList = results[i].permissionsPerChannel;
-			if (Array.isArray(currentList)) {
-				Array.prototype.push.apply(currentList, newData);
-				dataToUse.permissionsPerChannel = currentList;
+			const listOfPermissionsPerChannel = results[i].permissionsPerChannel;
+			const listOfPointsPerChannel = results[i].pointsPerChannel;
+			if (Array.isArray(listOfPermissionsPerChannel) && Array.isArray(listOfPointsPerChannel)) {
+				Array.prototype.push.apply(listOfPermissionsPerChannel, newData);
+				Array.prototype.push.apply(listOfPointsPerChannel, newPointData);
+				dataToUse.permissionsPerChannel = listOfPermissionsPerChannel;
+				dataToUse.pointsPerChannel = listOfPointsPerChannel;
 				const propsForUpdate = {
 					table: 'defaultCommands',
 					query: {trigger: results[i].trigger},

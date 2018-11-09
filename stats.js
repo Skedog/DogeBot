@@ -58,6 +58,9 @@ class Stats {
 			dataToUse.numberOfChatMessages = 0;
 			dataToUse.numberOfCommandMessages = 0;
 			dataToUse.numberOfSongRequests = 0;
+			dataToUse.loyaltyPoints = 0.0;
+			dataToUse.minutesInChat = 0;
+			dataToUse.isActive = false;
 			const propsForAdd = {
 				table: 'chatusers',
 				dataToUse
