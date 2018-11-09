@@ -14,6 +14,7 @@ const expressFunctions = require('./express-functions.js');
 const songs = require('./songs.js');
 const cache = require('./cache.js');
 const twitch = require('./twitch.js');
+const stats = require('./stats.js');
 
 const app = express();
 const router = new express.Router();
@@ -239,6 +240,11 @@ async function setupRoutes() {
 			// Set the userDetails as a session
 			req.session.userDetails = userDetails;
 			const returnVal = await expressFunctions.handleLogin(props);
+			const propsForUser = {
+				channel: '#' + props.ChannelName,
+				username: props.ChannelName
+			};
+			await stats.addTrackedUser(propsForUser);
 			res.send(returnVal);
 		} catch (err) {
 			log.error('/handleLogin produced an error: ' + err);
