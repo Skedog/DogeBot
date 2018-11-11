@@ -3,15 +3,30 @@
 <div class="chat-search">
 	<label for="chat-date"><span>Jump to date: <i class="fa fa-calendar"></i></span><input type="date" name="chat-date" id="chat-date" /></label>
 </div>
-<div class="chatlog-box">{{{formattedChatlog}}}</div>
+<div class="chatlog-box"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 <script>
 $(document).ready(function() {
 	let tempDate;
     $('#chat-date').val(new Date().toDateInputValue());
+    const start = moment().startOf('day');
+	const end = moment().endOf('day');
+    getChatLog(start, end);
 });
 $('#chat-date').change(async function(e) {
-	showLoader($('.chatlog-box'));
-	let chatlogs = await loadFormattedChatlogs($('.urlChannel').text(), ($(this).val()));
-	$('.chatlog-box').html(chatlogs);
+	var start = moment($('#chat-date').val()).startOf('day');
+	var end = moment($('#chat-date').val()).endOf('day');
+	getChatLog(start, end);
 });
+async function getChatLog(start, end) {
+	showLoader($('.chatlog-box'));
+	const offset = new Date().getTimezoneOffset();
+	const chatlogs = await loadFormattedChatlogs($('.urlChannel').text(), start, end, offset);
+	$('.chatlog-box').html(chatlogs);
+	$('.chatlog-box .date').each(function(index, el) {
+		const localFixedDate = moment(parseFloat($(this).text())).utcOffset(offset).format();
+		const localTestDate = new Date(localFixedDate).toLocaleString('en-US');
+		$(this).text(localTestDate);
+	});
+}
 </script>

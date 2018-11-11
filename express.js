@@ -209,8 +209,7 @@ async function setupRoutes() {
 
 	app.get('/chatlog/:channel*?', [expressFunctions.checkPassedChannel], async (req, res) => {
 		const userData = await expressFunctions.getUserData(req);
-		const formattedChatlog = await expressFunctions.getFormattedChatlog(userData.channel);
-		res.render('chatlog', {userData, formattedChatlog, layout: userData.layout});
+		res.render('chatlog', {userData, layout: userData.layout});
 	});
 
 	app.get('/currentsonginfo/:channel*?', [expressFunctions.checkPassedChannel], async (req, res) => {
@@ -362,7 +361,11 @@ async function setupRoutes() {
 	});
 
 	app.post('/getchatlogs', async (req, res) => {
-		const formattedChatlog = await expressFunctions.getFormattedChatlog(req.body.channel, req.body.passedDate);
+		const channelToPass = req.body.channel;
+		const startTime = parseFloat(req.body.start);
+		const endTime = parseFloat(req.body.end);
+		const offset = parseFloat(req.body.offset);
+		const formattedChatlog = await expressFunctions.getFormattedChatlog(channelToPass, startTime, endTime, offset);
 		res.send(formattedChatlog);
 	});
 

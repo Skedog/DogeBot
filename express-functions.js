@@ -706,24 +706,9 @@ function getMusicStatus(userData) {
 	return isMusicPlaying;
 }
 
-async function getChatlog(channel, passedDate) {
+async function getChatlog(channel, start, end, offset) {
 	channel = addHashToChannel(channel);
-	let startTime;
-	let endTime;
-	const currentDate = new Date();
-	if (typeof passedDate === 'undefined') {
-		currentDate.setHours(0, 0, 0, 0);
-		startTime = currentDate.getTime();
-		currentDate.setHours(23, 59, 59, 999);
-		endTime = currentDate.getTime();
-	} else {
-		passedDate = new Date(passedDate + 'T00:00:00');
-		passedDate.setHours(0, 0, 0, 0);
-		startTime = passedDate.getTime();
-		passedDate.setHours(23, 59, 59, 999);
-		endTime = passedDate.getTime();
-	}
-	const cachedChatlog = await cache.get(channel + 'chatlog' + startTime + endTime);
+	const cachedChatlog = await cache.get(channel + 'chatlog' + start + end + offset);
 	if (cachedChatlog) {
 		return cachedChatlog;
 	}
@@ -732,13 +717,15 @@ async function getChatlog(channel, passedDate) {
 		query: {
 			channel,
 			timestamp: {
-				$gte: startTime,
-				$lte: endTime
+				$gte: start,
+				$lte: end
 			}
 		}
 	};
 	const results = await database.select(propsForSelect);
-	await cache.set(channel + 'chatlog' + startTime + endTime, results);
+	if (results) {
+		await cache.set(channel + 'chatlog' + start + end + offset, results);
+	}
 	return results;
 }
 
@@ -758,15 +745,14 @@ function parseBadgesFromMessage(message) {
 	return parsedBadges;
 }
 
-async function getFormattedChatlog(channel, passedDate) {
+async function getFormattedChatlog(channel, start, end, offset) {
 	channel = addHashToChannel(channel);
-	const chatlog = await getChatlog(channel, passedDate);
+	const chatlog = await getChatlog(channel, start, end, offset);
 	if (chatlog) {
 		let builtChatlog = '<div class="chatlogs">';
 		for (const log in chatlog) {
 			if (Object.prototype.hasOwnProperty.call(chatlog, log)) {
 				const d = chatlog[log].timestamp;
-				const localTestDate = new Date(d).toLocaleString('en-US');
 				const displayName = chatlog[log].userstate['display-name'];
 				const username = chatlog[log].userstate.username;
 				let color = chatlog[log].userstate.color;
@@ -776,7 +762,7 @@ async function getFormattedChatlog(channel, passedDate) {
 				}
 				const message = chatlog[log].message;
 				builtChatlog += '<div class="chat-message">';
-				builtChatlog += '<span class="date">' + localTestDate + '</span>';
+				builtChatlog += '<span class="date">' + d + '</span>';
 				if (displayName) {
 					builtChatlog += '<span class="displayName">';
 					builtChatlog += '<span class="badges">' + parsedBadges + '</span>';

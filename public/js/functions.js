@@ -153,12 +153,11 @@ Date.prototype.toDateInputValue = (function() {
     return local.toJSON().slice(0,10);
 });
 
-async function loadFormattedChatlogs(channel, date) {
+async function loadFormattedChatlogs(channel, start, end, offset) {
 	let dataToReturn;
-	const d = new Date();
 	await $.ajax({
 		url: '/getchatlogs',
-		data: 'channel=' + channel + '&passedDate=' + date,
+		data: 'channel=' + channel + '&start=' + start + "&end=" + end + "&offset=" + offset,
 		type: 'POST',
 		success: function(data) {
 			dataToReturn = data;
