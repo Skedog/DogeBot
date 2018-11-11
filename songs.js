@@ -977,16 +977,18 @@ class Songs {
 		const dbConstants = await database.constants();
 		const youTube = new YouTube();
 		youTube.setKey(dbConstants.YouTubeAPIKey);
-		if (props.songToAdd.length === 11 && !props.songToAdd.includes(' ')) {
-			// Try pulling data from songcache first, instead of always kicking out to YouTube
-			// This would mean that the title may not match if it gets updated
-			const resultsFromCache = await this.getResultsFromCache(props);
-			if (resultsFromCache) {
-				return resultsFromCache;
-			}
-			const resultsFromYouTube = await this.getResultsFromYouTube(props, youTube);
-			if (resultsFromYouTube) {
-				return resultsFromYouTube;
+		if (props.songToAdd) {
+			if (props.songToAdd.length === 11 && !props.songToAdd.includes(' ')) {
+				// Try pulling data from songcache first, instead of always kicking out to YouTube
+				// This would mean that the title may not match if it gets updated
+				const resultsFromCache = await this.getResultsFromCache(props);
+				if (resultsFromCache) {
+					return resultsFromCache;
+				}
+				const resultsFromYouTube = await this.getResultsFromYouTube(props, youTube);
+				if (resultsFromYouTube) {
+					return resultsFromYouTube;
+				}
 			}
 		}
 		throw 'failed getYouTubeSongData';
@@ -1040,8 +1042,10 @@ class Songs {
 				vars = songToAdd.split('/');
 				finalVideoID = vars[3];
 			}
-			if (finalVideoID.length === 11) {
-				return finalVideoID;
+			if (finalVideoID) {
+				if (finalVideoID.length === 11) {
+					return finalVideoID;
+				}
 			}
 			throw 'Invalid URL! To request a song, type the following: !sr youtube URL, video ID, or the song name';
 		} else if (songToAdd.indexOf('v=') > -1) {
