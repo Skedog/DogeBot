@@ -31,6 +31,21 @@ class Commands {
 		}
 	}
 
+	async addcom(props) {
+		props.messageParams.splice(0, 1, '!commands', 'add');
+		return this.call(props);
+	}
+
+	async editcom(props) {
+		props.messageParams.splice(0, 1, '!commands', 'edit');
+		return this.call(props);
+	}
+
+	async deletecom(props) {
+		props.messageParams.splice(0, 1, '!commands', 'delete');
+		return this.call(props);
+	}
+
 	buildCommandLink(props) {
 		const msgStr = 'The commands for this channel are available here: ';
 		let msgURL;

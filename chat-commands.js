@@ -202,6 +202,13 @@ class Chat {
 				case '!commands':
 				case '!command':
 					return await commands.call(props);
+				case '!addcom':
+					return await commands.addcom(props);
+				case '!editcom':
+					return await commands.editcom(props);
+				case '!deletecom':
+				case '!delcom':
+					return await commands.deletecom(props);
 				case '!blacklist':
 					return await blacklist.call(props);
 				case '!regular':
