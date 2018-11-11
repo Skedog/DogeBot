@@ -1,5 +1,5 @@
 const log = require('npmlog');
-const bhttp = require("bhttp");
+const bhttp = require('bhttp');
 const tmi = require('tmi.js');
 const database = require('./database.js');
 const constants = require('./constants.js');
@@ -9,6 +9,7 @@ const stats = require('./stats.js');
 const chat = require('./chat-commands.js');
 const messages = require('./chat-messages.js');
 const functions = require('./functions.js');
+const commands = require('./commands.js');
 
 let twitchClient;
 let dbConstants;
@@ -110,7 +111,7 @@ async function leaveSingleChannel(channelToLeave) {
 function monitorChat() {
 	twitchClient.on('chat', (channel, userstate, message, self) => {
 		stats.addChatMessage(channel, userstate, message);
-		if (!self && message.startsWith('!')) {
+		if (!self) {
 			const props = {
 				channel,
 				messageParams: message.split(' '),
@@ -119,16 +120,18 @@ function monitorChat() {
 				statTableToUpdate: 'commandmessages',
 				statFieldToUpdate: 'numberOfCommandMessages'
 			};
-			callCommandFromChat(props);
-		} else if (!self) {
-			const props = {
-				channel,
-				userstate,
-				statTableToUpdate: 'chatmessages',
-				statFieldToUpdate: 'numberOfChatMessages'
-			};
-			stats.addCounterStat(props);
-			stats.updateUserCounter(props);
+			if (commands.doesUserAddedCommandExist(props)) {
+				callCommandFromChat(props);
+			} else {
+				const props = {
+					channel,
+					userstate,
+					statTableToUpdate: 'chatmessages',
+					statFieldToUpdate: 'numberOfChatMessages'
+				};
+				stats.addCounterStat(props);
+				stats.updateUserCounter(props);
+			}
 		}
 	});
 }
@@ -164,7 +167,10 @@ async function callCommandFromChat(props) {
 			messages.send(props);
 		}
 	} catch (err) {
-		log.error('Command was called and produced an error: ' + err);
+		// Don't want to see an error for every message that isn't a command
+		if (!String(err).includes('Command doesn\'t exist')) {
+			log.error('Command was called and produced an error: ' + err);
+		}
 	}
 }
 

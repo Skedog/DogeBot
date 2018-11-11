@@ -63,7 +63,7 @@ class Commands {
 			dataToUse.globalDelay = 0;
 			dataToUse.userDelay = 0;
 			dataToUse.pointCost = 0;
-			if (dataToUse.trigger.charAt(0) === '!' && dataToUse.chatmessage !== '') {
+			if (dataToUse.chatmessage !== '') {
 				const propsForAdd = {
 					table: 'commands',
 					dataToUse
@@ -73,7 +73,7 @@ class Commands {
 				socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
 				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been added!';
 			}
-			return functions.buildUserString(props) + 'The syntax to add a command is !commands add !commandtoadd text';
+			return functions.buildUserString(props) + 'The syntax to add a command is !commands add commandtoadd text';
 		}
 		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' already exists!';
 	}
@@ -83,29 +83,27 @@ class Commands {
 		const commandExistence = await this.doesUserAddedCommandExist(props);
 		if (!commandExistence) {
 			if (props.messageParams[3]) {
-				if (props.messageParams[2].charAt(0) === '!' && props.messageParams[3].charAt(0) === '!') {
-					const dataToUse = {};
-					dataToUse.trigger = props.messageParams[2].toLowerCase();
-					dataToUse.chatmessage = 'Alias for ' + props.messageParams[3];
-					dataToUse.commandcounter = 0;
-					dataToUse.channel = props.channel;
-					dataToUse.permissionsLevel = 0;
-					dataToUse.isAlias = true;
-					dataToUse.aliasFor = props.messageParams[3];
-					dataToUse.listArray = [];
-					dataToUse.globalDelay = 0;
-					dataToUse.userDelay = 0;
-					const propsForAdd = {
-						table: 'commands',
-						dataToUse
-					};
-					await database.add(propsForAdd);
-					await cache.del(props.channel + 'commands');
-					socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
-					return functions.buildUserString(props) + 'The alias command ' + props.messageParams[2] + ' has been added!';
-				}
+				const dataToUse = {};
+				dataToUse.trigger = props.messageParams[2].toLowerCase();
+				dataToUse.chatmessage = 'Alias for ' + props.messageParams[3];
+				dataToUse.commandcounter = 0;
+				dataToUse.channel = props.channel;
+				dataToUse.permissionsLevel = 0;
+				dataToUse.isAlias = true;
+				dataToUse.aliasFor = props.messageParams[3];
+				dataToUse.listArray = [];
+				dataToUse.globalDelay = 0;
+				dataToUse.userDelay = 0;
+				const propsForAdd = {
+					table: 'commands',
+					dataToUse
+				};
+				await database.add(propsForAdd);
+				await cache.del(props.channel + 'commands');
+				socket.io.in(functions.stripHash(props.channel)).emit('commands', ['added']);
+				return functions.buildUserString(props) + 'The alias command ' + props.messageParams[2] + ' has been added!';
 			}
-			return functions.buildUserString(props) + 'The syntax to add an alias is !commands addalias !newcommandname !commandtoalias';
+			return functions.buildUserString(props) + 'The syntax to add an alias is !commands addalias newCommandName commandToAlias';
 		}
 		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' already exists!';
 	}
@@ -209,7 +207,7 @@ class Commands {
 
 	async setCostForUserAddedCommand(props) {
 		const dataToUse = {};
-		dataToUse.pointCost = props.messageParams[3];
+		dataToUse.pointCost = parseInt(props.messageParams[3], 10);
 		const propsForUpdate = {
 			table: 'commands',
 			query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
@@ -237,7 +235,7 @@ class Commands {
 				const propsForUpdate = {
 					table: 'defaultCommands',
 					query: {trigger: aliasResults[0].trigger, pointsPerChannel: {$elemMatch: {channel: props.channel}}},
-					dataToUse: {'pointsPerChannel.$.pointCost': props.messageParams[3]}
+					dataToUse: {'pointsPerChannel.$.pointCost': parseInt(props.messageParams[3], 10)}
 				};
 				props.results = await database.update(propsForUpdate);
 				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' cost has been updated to ' + props.messageParams[3] + '!';

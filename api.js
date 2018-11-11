@@ -1,4 +1,4 @@
-const bhttp = require("bhttp");
+const bhttp = require('bhttp');
 const database = require('./database.js');
 const functions = require('./functions.js');
 
@@ -19,7 +19,7 @@ class API {
 				}
 				return 'Error getting uptime, try again in a few minutes!';
 			}
-		} catch(err) {
+		} catch (err) {
 			return 'Error getting uptime, try again in a few minutes!';
 		}
 	}
@@ -48,7 +48,7 @@ class API {
 				}
 				return 'Error getting followage, try again in a few minutes!';
 			}
-		} catch(err) {
+		} catch (err) {
 			return 'Error getting followage, try again in a few minutes!';
 		}
 	}
@@ -105,7 +105,7 @@ class API {
 				if (updatedGame) {
 					return functions.buildUserString(props) + 'The current game has been updated to ' + newGame + '!';
 				}
-			} catch(err) {
+			} catch (err) {
 				return 'Error setting the game, try again in a few minutes!';
 			}
 		} else {
@@ -116,7 +116,7 @@ class API {
 				if (currentGame) {
 					return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
 				}
-			} catch(err) {
+			} catch (err) {
 				return 'Error getting the current game, try again in a few minutes!';
 			}
 		}
@@ -132,9 +132,7 @@ class API {
 				if (currentGame) {
 					return currentGame;
 				}
-			} catch(err) {
-				return;
-			}
+			} catch (err) {}
 		}
 	}
 
@@ -154,15 +152,14 @@ class API {
 			};
 			const dataToSend = {'channel[status]': newTitle};
 			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + userID;
-			const twitchAPIRequest = await bhttp.put(URLtoUse, dataToSend, putSettings);
+			await bhttp.put(URLtoUse, dataToSend, putSettings);
 			return functions.buildUserString(props) + 'The title has been updated to ' + newTitle + '!';
-		} else {
-			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID;
-			const twitchAPIRequest = await bhttp.get(URLtoUse);
-			const currentTitle = twitchAPIRequest.body.status;
-			if (currentTitle) {
-				return functions.buildUserString(props) + 'The title is ' + currentTitle + '!';
-			}
+		}
+		const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID;
+		const twitchAPIRequest = await bhttp.get(URLtoUse);
+		const currentTitle = twitchAPIRequest.body.status;
+		if (currentTitle) {
+			return functions.buildUserString(props) + 'The title is ' + currentTitle + '!';
 		}
 	}
 
@@ -174,7 +171,7 @@ class API {
 			if (currentViewerCount >= 0) {
 				return functions.buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
 			}
-		} catch(err) {
+		} catch (err) {
 			return functions.buildUserString(props) + 'Error getting the number of viewers, try again in a few minutes!';
 		}
 	}
@@ -236,9 +233,8 @@ class API {
 		const httpRequest = await bhttp.get(url);
 		if (httpRequest.body) {
 			return functions.buildUserString(props) + httpRequest.body;
-		} else {
-			return functions.buildUserString(props) + 'Error getting server information, please try again in a few minutes!';
 		}
+		return functions.buildUserString(props) + 'Error getting server information, please try again in a few minutes!';
 	}
 
 	async eightBall(props) {
@@ -249,18 +245,17 @@ class API {
 	}
 
 	async shoutout(props) {
+		const streamerToShoutout = props.messageParams[1];
 		try {
 			props.ignoreMessageParamsForUserString = true;
-			const streamerToShoutout = props.messageParams[1];
 			const lastPlayedGame = await this.getLastPlayedGame(streamerToShoutout);
 			if (streamerToShoutout) {
 				if (lastPlayedGame) {
 					return 'Make sure to give ' + streamerToShoutout + ' a follow! ' + streamerToShoutout + ' was last seen playing ' + lastPlayedGame + '. You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
-				} else {
-					return 'Make sure to give ' + streamerToShoutout + ' a follow! You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
 				}
+				return 'Make sure to give ' + streamerToShoutout + ' a follow! You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
 			}
-		} catch(err) {
+		} catch (err) {
 			return 'Make sure to give ' + streamerToShoutout + ' a follow! You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
 		}
 	}
