@@ -209,6 +209,8 @@ class Chat {
 				case '!deletecom':
 				case '!delcom':
 					return await commands.deletecom(props);
+				case '!addalias':
+					return await commands.addalias(props);
 				case '!blacklist':
 					return await blacklist.call(props);
 				case '!regular':

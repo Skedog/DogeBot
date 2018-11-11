@@ -46,6 +46,11 @@ class Commands {
 		return this.call(props);
 	}
 
+	async addalias(props) {
+		props.messageParams.splice(0, 1, '!commands', 'addalias');
+		return this.call(props);
+	}
+
 	buildCommandLink(props) {
 		const msgStr = 'The commands for this channel are available here: ';
 		let msgURL;
