@@ -371,12 +371,12 @@ async function setupRoutes() {
 		res.send(listCommandItems);
 	});
 
-	app.post('/joinchannel', async (req, res) => {
+	app.post('/joinchannel', [expressFunctions.checkIfUserIsLoggedIn, expressFunctions.validatePassedUser], async (req, res) => {
 		await twitch.joinSingleChannel(req.body.channel);
 		res.send('joined');
 	});
 
-	app.post('/partchannel', async (req, res) => {
+	app.post('/partchannel', [expressFunctions.checkIfUserIsLoggedIn, expressFunctions.validatePassedUser], async (req, res) => {
 		await twitch.leaveSingleChannel(req.body.channel);
 		res.send('parted');
 	});

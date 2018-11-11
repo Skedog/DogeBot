@@ -14,12 +14,22 @@ function checkIfUserIsLoggedIn(req, res, next) {
 	} else {
 		if (req.originalUrl !== '/login') {
 			// Invalid session, but trying to view some other page
-			// Redirect to logout page and force login
 			setRedirectTo(req);
 			return res.redirect('/login');
 		}
 		// Invalid session, but trying to login
 		next();
+	}
+}
+
+async function validatePassedUser(req, res, next) {
+	const userData = await getUserData(req);
+	if (userData.loggedInChannel === req.body.channel.replace('#', '')) {
+		next();
+	} else {
+		// The user is trying to pass a user into an API that doesn't match the logged in user
+		// redirect them to login
+		return res.redirect('/login');
 	}
 }
 
@@ -32,16 +42,16 @@ function setRedirectTo(req) {
 }
 
 async function checkModStatus(req, res, next) {
-	const userDetails = req.session.userDetails.split(',');
+	const userData = await getUserData(req);
 	let channelToCheckMods;
 	if (req.params.channel !== undefined) {
 		channelToCheckMods = req.params.channel;
-	} else if (userDetails[2].includes('#')) {
-		channelToCheckMods = userDetails[2].substring(1); // Has #, needs to be removed
+	} else if (userData[2].includes('#')) {
+		channelToCheckMods = userData[2].substring(1); // Has #, needs to be removed
 	} else {
-		channelToCheckMods = userDetails[2];
+		channelToCheckMods = userData[2];
 	}
-	const twitchUserID = userDetails[3];
+	const twitchUserID = userData[3];
 	if (twitchUserID) {
 		// Select channelName from database
 		const propsForSelect = {
@@ -901,6 +911,7 @@ module.exports = {
 	getDashboardStats,
 	getNotifications,
 	checkIfUserIsLoggedIn,
+	validatePassedUser,
 	getSonglist,
 	getFormattedSonglist,
 	getFirstSongFromSonglist,
