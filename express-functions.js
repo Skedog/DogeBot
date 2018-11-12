@@ -42,16 +42,16 @@ function setRedirectTo(req) {
 }
 
 async function checkModStatus(req, res, next) {
-	const userData = await getUserData(req);
+	const userDetails = req.session.userDetails.split(',');
 	let channelToCheckMods;
 	if (req.params.channel !== undefined) {
 		channelToCheckMods = req.params.channel;
-	} else if (userData[2].includes('#')) {
-		channelToCheckMods = userData[2].substring(1); // Has #, needs to be removed
+	} else if (userDetails[2].includes('#')) {
+		channelToCheckMods = userDetails[2].substring(1); // Has #, needs to be removed
 	} else {
-		channelToCheckMods = userData[2];
+		channelToCheckMods = userDetails[2];
 	}
-	const twitchUserID = userData[3];
+	const twitchUserID = userDetails[3];
 	if (twitchUserID) {
 		// Select channelName from database
 		const propsForSelect = {
