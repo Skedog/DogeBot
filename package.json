@@ -6,6 +6,7 @@
   "dependencies": {
     "bhttp": "^1.2.4",
     "body-parser": "^1.16.1",
+    "bottleneck": "^2.15.3",
     "chai": "^4.1.1",
     "chance": "^1.0.6",
     "client-sessions": "^0.8.0",

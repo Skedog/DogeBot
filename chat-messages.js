@@ -1,4 +1,10 @@
+const Bottleneck = require('bottleneck');
 const database = require('./database.js');
+
+const limiter = new Bottleneck({
+	maxConcurrent: 1,
+	minTime: 600
+});
 
 class Messages {
 
@@ -58,7 +64,7 @@ class Messages {
 			if (results[0].isSilent || props.isWhisper) {
 				props.twitchClient.whisper(props.userstate.username, props.messageToSend);
 			} else {
-				props.twitchClient.say(props.channel, props.messageToSend);
+				limiter.schedule(() => props.twitchClient.say(props.channel, props.messageToSend));
 			}
 		} catch (err) {
 			throw err;

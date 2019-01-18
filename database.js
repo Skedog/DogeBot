@@ -156,7 +156,8 @@ class Database {
 			twitchTestClientID: constants[0].twitchTestClientID,
 			YouTubeAPIKey: constants[0].YouTubeAPIKey,
 			discordAPIKey: constants[0].discordAPIKey,
-			sessionKey: constants[0].sessionKey
+			sessionKey: constants[0].sessionKey,
+			twitchOauthPassTest: constants[0].twitchOauthPassTest
 		};
 	}
 }

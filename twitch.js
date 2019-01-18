@@ -54,6 +54,12 @@ async function connectToTwitch() {
 		},
 		channels: channelsToJoin
 	};
+	if (constants.testMode) {
+		twitchClientOptions.identity = {
+			username: 'ygtskedogtest',
+			password: dbConstants.twitchOauthPassTest
+		};
+	}
 	// Turn this on if you want debug messages from twitchClient
 	// If (constants.testMode) {twitchClientOptions.options.debug = true}
 	twitchClient = new tmi.Client(twitchClientOptions);
