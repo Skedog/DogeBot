@@ -1,4 +1,5 @@
 const log = require('npmlog');
+const schedule = require('node-schedule');
 const Discord = require('discord.js');
 const database = require('./database.js');
 const lists = require('./lists.js');
@@ -14,12 +15,80 @@ async function start() {
 async function connect() {
 	const dbConstants = await database.constants();
 	discordClient.login(dbConstants.discordAPIKey);
-	discordClient.on('ready', () => {});
+	discordClient.on('ready', () => {
+		schedule.scheduleJob('0 59 23 * * *', () => {
+			sendDailyReport();
+		});
+	});
 }
 
 function monitorDiscordChat() {
 	discordClient.on('message', message => {
 		handleChatMessage(message);
+	});
+}
+
+async function sendDailyReport() {
+	// select channel data
+	const propsForChannelSelect = {
+		table: 'channels'
+	};
+	const arrayOfJoinedChannels = [];
+	const listOfChannels = await database.select(propsForChannelSelect);
+	const numberOfChannelsThatHaveLoggedIn = listOfChannels.length;
+	let numberOfJoinedChannels = 0;
+	if (listOfChannels) {
+		for (let channelLoop = listOfChannels.length - 1; channelLoop >= 0; channelLoop--) {
+			if (listOfChannels[channelLoop].inChannel) {
+				numberOfJoinedChannels++;
+			}
+		}
+	}
+	const propsForUserCounting = {
+		table: 'chatusers'
+	};
+	const numberOfUsersInAllChats = await database.count(propsForUserCounting);
+
+	// select seen message data
+	const start = new Date();
+	start.setHours(0,0,0,0);
+	const propsForChatlog = {
+		table: 'chatlog',
+		query: {
+			timestamp: {$gte: start.getTime()},
+			"userstate.display-name": {$ne: 'DogeBot'}
+		}
+	};
+	const numberOfMessagesSeenToday = await database.count(propsForChatlog);
+
+	// select sent message data
+	const propsForSentMessages = {
+		table: 'chatlog',
+		query: {
+			timestamp: {$gte: start.getTime()},
+			"userstate.display-name": 'DogeBot'
+		}
+	};
+	const numberOfMessagesSentToday = await database.count(propsForSentMessages);
+
+	// select song data
+	const propsForSongCacheCounting = {
+		table: 'songcache'
+	};
+	const numberOfAllCachedSongs = await database.count(propsForSongCacheCounting);
+
+	// build the report
+	let report = '';
+	report += '```Number of logged in channels: ' + numberOfChannelsThatHaveLoggedIn + '\n';
+	report += 'Number of joined channels: ' + numberOfJoinedChannels + '\n';
+	report += 'Number of users seen in all chats: ' + numberOfUsersInAllChats + '\n';
+	report += 'Number of messages seen today: ' + numberOfMessagesSeenToday + '\n';
+	report += 'Number of messages sent today: ' + numberOfMessagesSentToday + '\n';
+	report += 'Number of all cached songs: ' + numberOfAllCachedSongs + '\n```';
+
+	// send report to me in a DM
+	discordClient.fetchUser('153273593738952704').then((user) => {
+		user.send(report);
 	});
 }
 
