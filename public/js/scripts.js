@@ -8,7 +8,7 @@ function setNavShowingSection(page, channelName) {
 	// Loop through all the nav items, and determine the "active" one
 	$('.main-nav ul li a').each(function(index, el) {
 		if ('/' + page == $(this).attr('href') || '/' + page + '/' + stripHash(channelName) == $(this).attr('href') || $(this).attr('href') == '/' && page == 'getting-started') {
-			if ($(this).parent().parent().is(":hidden")) {
+			if ($(this).parent().parent().is(":hidden") && changedOne === false) {
 				changeNavIconState($(this).parent().parent());
 				changedOne = true;
 			};
@@ -17,7 +17,7 @@ function setNavShowingSection(page, channelName) {
 	});
 	$('.doc-nav ul li a').each(function(index, el) {
 		if (($(this).attr('href') == '/' && page == 'getting-started') || '/' + page == $(this).attr('href')) {
-			if ($(this).parent().parent().is(":hidden")) {
+			if ($(this).parent().parent().is(":hidden") && changedOne === false) {
 				changeNavIconState($(this).parent().parent());
 				changedOne = true;
 			};
