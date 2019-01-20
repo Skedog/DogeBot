@@ -708,7 +708,8 @@ function getMusicStatus(userData) {
 
 async function getChatlog(channel, start, end, offset) {
 	channel = addHashToChannel(channel);
-	const cachedChatlog = await cache.get(channel + 'chatlog' + start + end + offset);
+	const cacheName = channel + 'chatlog' + start + end + offset;
+	const cachedChatlog = await cache.get(cacheName);
 	if (cachedChatlog) {
 		return cachedChatlog;
 	}
@@ -724,7 +725,7 @@ async function getChatlog(channel, start, end, offset) {
 	};
 	const results = await database.select(propsForSelect);
 	if (results) {
-		await cache.set(channel + 'chatlog' + start + end + offset, results);
+		await cache.set(cacheName, results);
 	}
 	return results;
 }
