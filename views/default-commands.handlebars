@@ -1,67 +1,221 @@
 <div class="inner-content-wrapper">
 	<section class="content">
 		<h1><i class="fa fa-magic"></i> Default Commands</h1>
-		<div class="link-container">
-			<ul>
-				<li>
-					<strong style="margin-right: 10px;font-size: 25px;margin-top: 0;display: inline-block;padding-top: 0;top: 2px;position: relative;">!8ball - </strong><code>!8ball</code> - Returns a random '8-Ball' type of message [<a href="/default-commands/8ball"><em>More Info</em></a>]
-				</li>
-				<li><code>!bf4stats</code> <code>username</code> <code>platform (pc/xbox/ps3/xone/ps4)</code> - Returns <code>username</code>'s rank, k/d and full stats link  [<a href="/default-commands/bf4stats"><em>More Info</em></a>]</li>
-				<li><code>!blacklist</code> - Returns a link to the song blacklist for the channel [<a href="/default-commands/blacklist"><em>More Info</em></a>]
-					<ul>
-						<li><code>add</code> <code>song</code> - Adds <code>song</code> to the blacklist [<a href="/default-commands/blacklist#adding"><em>More Info</em></a>]</li>
-						<li><code>add</code> <code>current</code> - Adds the current playing song to the blacklist and skips the song [<a href="/default-commands/blacklist#adding-current"><em>More Info</em></a>]</li>
-						<li><code>delete</code> <code>song</code> - Removes <code>song</code> from the blacklist [<a href="/default-commands/blacklist#remove"><em>More Info</em></a>]</li>
-					</ul>
-				</li>
-				<li><code>!commands</code> - Returns a link to the user added commands for the channel [<a href="/default-commands/commands"><em>More Info</em></a>]
-					<ul>
-						<li><code>add</code> <code>!command</code> <code>text</code> - Adds <code>!command</code> to the channel [<a href="/default-commands/commands#adding"><em>More Info</em></a>]</li>
-						<li><code>addalias</code> <code>!newcommand</code> <code>!commandtoalias</code> - Adds <code>!newcommand</code> as an alias for <code>!commandtoalias</code> [<a href="/default-commands/commands#adding-alias"><em>More Info</em></a>]</li>
-						<li><code>edit</code> <code>!command</code> <code>command text</code> - Edits <code>!command</code> to contain <code>command text</code> [<a href="/default-commands/commands#editing"><em>More Info</em></a>]</li>
-						<li><code>permissions</code> <code>!command</code> <code>permissionLevel</code> - Sets the needed permission level for the given <code>!command</code> [<a href="/default-commands/commands#permissions"><em>More Info</em></a>]</li>
-						<li><code>delete</code> <code>!command</code> - Removes <code>!command</code> [<a href="/default-commands/commands#remove"><em>More Info</em></a>]</li>
-					</ul>
-				</li>
-				<li><code>!currentsong</code> - Returns the currently playing song</li>
-				<li><code>!firstseen</code> <code>username</code> - Returns when <code>username</code> was first seen in the channel</li>
-				<li><code>!followage</code> <code>username</code> - Returns how long <code>username</code> has been following the channel</li>
-				<li><code>!game</code> - Returns the game currently being played on the channel
-					<ul>
-						<li><code>newgame</code> - Updates the current game on Twith to <code>newgame</code></li>
-					</ul>
-				</li>
-				<li><code>!lastseen</code> <code>username</code> - Returns when <code>username</code> was first seen in the channel</li>
-				<li><code>!lastsong</code> - Returns the last song that played</li>
-				<li><code>!nocache</code> <code>song</code> - Allows a (mod by default) to request a song and ignore the cache timer</li>
-				<li><code>!pause</code> - Pauses the music</li>
-				<li><code>!play</code> - Plays the music</li>
-				<li><code>!playlistrequest</code> <code>playlist</code> - Allows users to request <code>x</code> amount of songs from a YouTube playlist. Can be a URL or playlistID.</li>
-				<li><code>!promote</code> <code>queue position</code> - Promotes <code>queue position</code> to be the next song played</li>
-				<li><code>!regulars</code> - Used to add and remove regulars from the channel
-					<ul>
-						<li><code>add</code> <code>username</code> - Add <code>username</code> as a regular for the channel</li>
-						<li><code>delete</code> <code>username</code> - Deletes <code>username</code> as a regular for the channel</li>
-					</ul>
-				</li>
-				<li><code>!removesongs</code> <code>queue position or username</code>: Removes song by queue position or all songs by <code>username</code>.</li>
-				<li><code>!shuffle</code> - Shuffles all songs in the song queue</li>
-				<li><code>!skipsong</code> - Skips the currently playing song</li>
-				<li><code>!songcache</code> - Keeps a record of all songs that have been requested, and doesn't allow the same songs to be repeated within <code>x</code> time frame.</li>
-				<li><code>!songlist</code> - Returns the list of songs in the queue</li>
-				<li><code>!songrequest</code> <code>song</code> - Adds the <code>song</code> to the song list. Can be a URL, videoID, or song title.</li>
-				<li><code>!srp</code> <code>song</code> - Adds the <code>song</code> to the song list and promotes it at the same time.</li>
-				<li><code>!title</code> - Returns the current title of the stream
-					<ul>
-						<li><code>newtitle</code> - Updates the current title of the stream on Twitch to <code>newtitle</code></li>
-					</ul>
-				</li>
-				<li><code>!uptime</code> - Returns the uptime</li>
-				<li><code>!viewers</code> - Returns the current number of viewers</li>
-				<li><code>!volume</code> - Returns the volume for the currently playing song</li>
-				<li><code>!winner</code> - Returns a random user from the viewer list as a 'winner'</li>
-				<li><code>!wrongsong</code> - Removes the last song requested by the user calling the command.</li>
-			</ul>
+		<div id="8ball">
+			<h2><a href="#8ball">!8ball</a></h2>
+			<p>Returns a random '8-Ball' type of message.</p>
+			<p><a href="/default-commands/8ball">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="bf4stats">
+			<h2><a href="#bf4stats">!bf4stats</a></h2>
+			<p>Returns <code>username</code>'s rank, k/d and full stats link.</p>
+			<p><a href="/default-commands/bf4stats">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="blacklist">
+			<h2><a href="#blacklist">!blacklist</a></h2>
+			<p>Returns a link to the song blacklist for the channel, or modifies the channels blacklist.</p>
+			<p><a href="/default-commands/blacklist">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="commands">
+			<h2><a href="#commands">!commands</a></h2>
+			<p>Returns a link to the user added commands for the channel, or modifies the channels commands.</p>
+			<p><a href="/default-commands/commands">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="currentsong">
+			<h2><a href="#currentsong">!currentsong</a></h2>
+			<p>Returns the currently playing song.</p>
+			<p><a href="/default-commands/currentsong">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="dj">
+			<h2><a href="#dj">!dj</a></h2>
+			<p>Used to add and remove djs from the channel.</p>
+			<p><a href="/default-commands/dj">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="firstseen">
+			<h2><a href="#firstseen">!firstseen</a></h2>
+			<p>Returns when <code>username</code> was first seen in the channel.</p>
+			<p><a href="/default-commands/firstseen">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="followage">
+			<h2><a href="#followage">!followage</a></h2>
+			<p>Returns how long <code>username</code> has been following the channel.</p>
+			<p><a href="/default-commands/followage">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="giveaway">
+			<h2><a href="#giveaway">!giveaway</a></h2>
+			<p>Starts, stops, and picks a winner for a giveaway.</p>
+			<p><a href="/default-commands/giveaway">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="game">
+			<h2><a href="#game">!game</a></h2>
+			<p>Returns the game currently being played on the channel, or modifies the current game.</p>
+			<p><a href="/default-commands/game">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="lastseen">
+			<h2><a href="#lastseen">!lastseen</a></h2>
+			<p>Returns when <code>username</code> was last seen in the channel.</p>
+			<p><a href="/default-commands/lastseen">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="lastsong">
+			<h2><a href="#lastsong">!lastsong</a></h2>
+			<p>Returns the last song that played.</p>
+			<p><a href="/default-commands/lastsong">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="nocache">
+			<h2><a href="#nocache">!nocache</a></h2>
+			<p>Allows a user to request a song and ignore the cache timer.</p>
+			<p><a href="/default-commands/nocache">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="mute">
+			<h2><a href="#mute">!mute</a></h2>
+			<p>Stops the bot from sending messages in chat and sends all messages via whisper instead.</p>
+			<p><a href="/default-commands/mute">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="pause">
+			<h2><a href="#pause">!pause</a></h2>
+			<p>Pauses the music.</p>
+			<p><a href="/default-commands/pause">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="play">
+			<h2><a href="#play">!play</a></h2>
+			<p>Plays the music.</p>
+			<p><a href="/default-commands/play">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="playlistrequest">
+			<h2><a href="#playlistrequest">!playlistrequest</a></h2>
+			<p>Allows users to request <code>x</code> amount of songs from a YouTube playlist. This can be a URL or playlistID, and the number of songs allowed is determined in the channel song settings.</p>
+			<p><a href="/default-commands/playlistrequest">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="points">
+			<h2><a href="#points">!points</a></h2>
+			<p>Returns the number of loyalty points the user running the command has.</p>
+			<p><a href="/default-commands/points">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="promote">
+			<h2><a href="#promote">!promote</a></h2>
+			<p>Promotes <code>queue position</code> to be the next song played.</p>
+			<p><a href="/default-commands/promote">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="regular">
+			<h2><a href="#regular">!regular</a></h2>
+			<p>Used to add and remove regulars from the channel.</p>
+			<p><a href="/default-commands/regular">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="removesongs">
+			<h2><a href="#removesongs">!removesongs</a></h2>
+			<p>Removes song by queue position or all songs by <code>username</code>.</p>
+			<p><a href="/default-commands/removesongs">More Info &rarr;</a></p>
+			</blockquote>
+		</div>
+		<hr>
+		<div id="shoutout">
+			<h2><a href="#shoutout">!shoutout</a></h2>
+			<p>Sends a message shouting out another streamer.</p>
+			<p><a href="/default-commands/shoutout">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="shuffle">
+			<h2><a href="#shuffle">!shuffle</a></h2>
+			<p>Shuffles all songs in the song queue.</p>
+			<p><a href="/default-commands/shuffle">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="skipsong">
+			<h2><a href="#skipsong">!skipsong</a></h2>
+			<p>Skips the currently playing song.</p>
+			<p><a href="/default-commands/skipsong">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="songcache">
+			<h2><a href="#songcache">!songcache</a></h2>
+			<p>Returns a link to the song cache for the channel, and doesn't allow the same songs to be repeated within <code>x</code> time frame.</p>
+			<p><a href="/default-commands/songcache">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="songlist">
+			<h2><a href="#songlist">!songlist</a></h2>
+			<p>Returns the list of songs in the queue.</p>
+			<p><a href="/default-commands/songlist">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="songrequest">
+			<h2><a href="#songrequest">!songrequest</a></h2>
+			<p>Adds the <code>song</code> to the song list. Can be a URL, videoID, or song title.</p>
+			<p><a href="/default-commands/songrequest">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="srp">
+			<h2><a href="#srp">!srp</a></h2>
+			<p>Adds the <code>song</code> to the song list and promotes it at the same time.</p>
+			<p><a href="/default-commands/srp">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="supermod">
+			<h2><a href="#supermod">!supermod</a></h2>
+			<p>Used to add and remove super mods from the channel.</p>
+			<p><a href="/default-commands/supermod">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="title">
+			<h2><a href="#title">!title</a></h2>
+			<p>Returns the current title of the stream, or updates the title.</p>
+			<p><a href="/default-commands/title">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="unmute">
+			<h2><a href="#unmute">!unmute</a></h2>
+			<p>Allows the bot to send messages in chat again.</p>
+			<p><a href="/default-commands/unmute">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="uptime">
+			<h2><a href="#uptime">!uptime</a></h2>
+			<p>Returns the stream uptime.</p>
+			<p><a href="/default-commands/uptime">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="viewers">
+			<h2><a href="#viewers">!viewers</a></h2>
+			<p>Returns the current number of viewers.</p>
+			<p><a href="/default-commands/viewers">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="volume">
+			<h2><a href="#volume">!volume</a></h2>
+			<p>Returns the volume for the currently playing song, or sets the current volume.</p>
+			<p><a href="/default-commands/volume">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="winner">
+			<h2><a href="#winner">!winner</a></h2>
+			<p>Returns a random user from the viewer list as a 'winner'.</p>
+			<p><a href="/default-commands/winner">More Info &rarr;</a></p>
+		</div>
+		<hr>
+		<div id="wrongsong">
+			<h2><a href="#wrongsong">!wrongsong</a></h2>
+			<p>Removes the last song requested by the user calling the command.</p>
+			<p><a href="/default-commands/wrongsong">More Info &rarr;</a></p>
 		</div>
 	</section>
 </div>

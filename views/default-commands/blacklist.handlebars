@@ -1,56 +1,33 @@
 <div class="inner-content-wrapper">
 	<section class="content">
 		<h1><i class="fa fa-magic"></i> !blacklist</h1>
-		<div class="link-container">
-			<p>The !blacklist command returns a link to the song blacklist for the channel and allows you and your moderators to modify the song blacklist</p>
-			<hr>
-			<h2 id="adding">Adding Songs to the Blacklist</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!blacklist add <code>song</code></p>
-			</blockquote>
-			<p><em><code>song</code> can be the song title, videoID, or full URL</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!blacklist add super troll song</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The song TROLL SONG | TROLL CANCION | NO COPYRIGHT | has been added to the blacklist!</p>
-			</blockquote>
-			<hr>
-			<h2 id="adding-current">Adding the current song to the Blacklist</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!blacklist add current</p>
-			</blockquote>
-			<p><em>This adds the current playing song to the blacklist, and skips it</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!blacklist add current</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The song TROLL SONG | TROLL CANCION | NO COPYRIGHT | has been added to the blacklist!</p>
-			</blockquote>
-			<hr>
-			<h2 id="remove">Removing Songs from the Blacklist</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!blacklist remove <code>song</code></p>
-			</blockquote>
-			<p><em><code>song</code> can be the song title, videoID, or full URL</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!blacklist remove 6rgpgIucY4o</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The song TROLL SONG | TROLL CANCION | NO COPYRIGHT | has been removed to the blacklist!</p>
-			</blockquote>
-			<p><strong>Note:</strong> The default permission level for <code>!blacklist</code> is set to everyone. However the permission level for the ability to add/remove to/from the blacklist is set to mods and above</p>
-			<hr>
-			<p><a href="/default-commands">&larr; Back to Default Commands</a></p>
-		</div>
+		<p>Returns a link to the song blacklist for the channel, or modifies the channels blacklist.</p>
+		<!-- <h3>Parameters</h3>
+		<p>Song: Song to blacklist, can be URL, videoID, or "current"</p> -->
+		<h3>Permissions</h3>
+		<p>The default permission level for <code>!blacklist</code> is set to <code>everyone</code>. However, the permission level for the ability to add/remove to/from the blacklist is set to <code>mods and above</code>.</p>
+		<h3>Examples</h3>
+		<blockquote>
+			<h4>!blacklist</h4>
+			<p><strong>User: </strong>!blacklist</p>
+			<p><strong>DogeBot: </strong>@user -> The song blacklist for this channel is available here: https://thedogebot.com/blacklist/channel</p>
+		</blockquote>
+		<blockquote>
+			<h4>!blacklist add song</h4>
+			<p><strong>Modded User: </strong>!blacklist add super troll song</p>
+			<p><strong>DogeBot: </strong>@user -> The song TROLL SONG | TROLL CANCION | NO COPYRIGHT | has been added to the blacklist!</p>
+		</blockquote>
+		<blockquote>
+			<h4>!blacklist add current</h4>
+			<p><strong>Modded User: </strong>!blacklist add current</p>
+			<p><strong>DogeBot: </strong>@user -> The song TROLL SONG | TROLL CANCION | NO COPYRIGHT | has been added to the blacklist!</p>
+			<p><small>This adds the currently playing song to the blacklist and skips the song</small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!blacklist remove song</h4>
+			<p><strong>Modded User: </strong>!blacklist remove 6rgpgIucY4o</p>
+			<p><strong>DogeBot: </strong>@user -> The song TROLL SONG | TROLL CANCION | NO COPYRIGHT | has been removed to the blacklist!</p>
+		</blockquote>
+		<p><a href="/default-commands">&larr; Back to Default Commands</a></p>
 	</section>
 </div>

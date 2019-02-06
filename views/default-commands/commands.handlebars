@@ -1,101 +1,62 @@
 <div class="inner-content-wrapper">
 	<section class="content">
 		<h1><i class="fa fa-magic"></i> !commands</h1>
-		<div class="link-container">
-			<p>The !commands command returns a link to the user added commands for the channel and allows you and your moderators to add, edit, and remove commands.</p>
-			<hr>
-			<h2 id="adding">Adding Commands</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!commands add <code>!command</code> <code>text</code></p>
-			</blockquote>
-			<p><em><code>!command</code> is the name of the command you wish to add.</em></p>
-			<p><em><code>text</code> is the message you want the bot to reply with when the command is called.</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!commands add !testcommand This is a test!</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The command !testcommand has been added!</p>
-			</blockquote>
-			<hr>
-			<h2 id="adding-alias">Adding Alias Commands</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!commands addalias <code>!newcommand</code> <code>!commandtoalias</code></p>
-			</blockquote>
-			<p><em><code>!newcommand</code> is the name of the command you wish to add as an alias.</em></p>
-			<p><em><code>!commandtoalias</code> is the name of the command you are making an alias for.</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!commands addalias !testalias !testcommand</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The alias command !testalias has been added!</p>
-			</blockquote>
-			<hr>
-			<h2 id="editing">Editing Commands</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!commands edit <code>!command</code> <code>text</code></p>
-			</blockquote>
-			<p><em><code>!command</code> is the name of the command you wish to edit.</em></p>
-			<p><em><code>text</code> is the message you want the bot to reply with when the command is called.</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!commands edit !testcommand This is the edited command!</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The command !testcommand has been added!</p>
-			</blockquote>
-			<hr>
-			<h2 id="permissions">Setting Command Permissions</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!commands permissions <code>!command</code> <code>permissionLevel</code></p>
-				<p>!commands permission <code>!command</code> <code>permissionLevel</code></p>
-				<p>!commands perms <code>!command</code> <code>permissionLevel</code></p>
-			</blockquote>
-			<p><em><code>!command</code> is the name of the command you wish to set permissions for.</em></p>
-			<p><em><code>permissionLevel</code> is the permission level you want to set.</em></p>
-			<ul>
+		<p>Returns a link to the user added commands for the channel, or modifies the channels commands.</p>
+		<h3>Permissions</h3>
+		<p>The default permission level for <code>!commands</code> is set to <code>everyone</code>. However, the permission level for the ability to modify the command list is set to <code>mods and above</code>.</p>
+		<h3>Examples</h3>
+		<blockquote>
+			<h4>!commands</h4>
+			<p><strong>User: </strong>!commands</p>
+			<p><strong>DogeBot: </strong>@user -> The commands for this channel are available here: https://thedogebot.com/commands/channel</p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands add !command text</h4>
+			<p><strong>Modded User: </strong>!commands add !testcommand text</p>
+			<p><strong>DogeBot: </strong>@user -> The command !testcommand has been added!</p>
+			<p><small>You can use the shorthand <code>!addcom !command text</code></small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands addalias !newcommand !commandtoalias</h4>
+			<p><strong>Modded User: </strong>!commands addalias !testalias !testcommand</p>
+			<p><strong>DogeBot: </strong>@user -> The alias command !testalias has been added!</p>
+			<p><small>You can use the shorthand <code>!addalias !newcommand !commandtoalias</code></small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands edit !command text</h4>
+			<p><strong>Modded User: </strong>!commands edit !testcommand This is the edited command!</p>
+			<p><strong>DogeBot: </strong>@user -> The command !testcommand has been updated!</p>
+			<p><small>You can use the shorthand <code>!editcom !command text</code></small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands permissions !command permissionLevel</h4>
+			<p><strong>Modded User: </strong>!commands permissions !testcommand mods</p>
+			<p><strong>DogeBot: </strong>@user -> The command !testcommand permissions have been updated!</p>
+			<p>Permission Levels:</p>
+			<ul class="indent">
 				<li>everyone</li>
 				<li>regulars</li>
 				<li>subscribers</li>
-				<li>moderators</li>
+				<li>dj</li>
+				<li>mods</li>
+				<li>supermods</li>
 				<li>owner</li>
 			</ul>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!commands permissions !testcommand moderators</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The command !testcommand permissions have been updated!</p>
-			</blockquote>
-			<hr>
-			<h2 id="remove">Deleting Commands</h2>
-			<h3>Usage:</h3>
-			<blockquote>
-				<p>!commands delete <code>!command</code></p>
-			</blockquote>
-			<p><em><code>!command</code> is the name of the command you wish to delete.</em></p>
-			<h3>Example:</h3>
-			<blockquote>
-				<p>!commands delete !testcommand</p>
-				<p>!commands remove !testcommand</p>
-			</blockquote>
-			<h3>Would return:</h3>
-			<blockquote>
-				<p>@YgTSkedog -> The command !testcommand has been deleted!</p>
-			</blockquote>
-			<hr>
-			<p><strong>Note:</strong> The default permission level for <code>!commands</code> is set to everyone. However the permission level for the ability to add, edit, or delete commands is set to mods and above</p>
-			<hr>
-			<p><a href="/default-commands">&larr; Back to Default Commands</a></p>
-		</div>
+			<p><small>You can use permissions, permission, or perms</small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands setcost !command cost</h4>
+			<p><strong>Modded User: </strong>!commands setcost !testcommand 10</p>
+			<p><strong>DogeBot: </strong>@user -> The command !testcommand cost has been updated to 10!</p>
+			<p><small>You can use setcost, cost, or points</small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands delete !command</h4>
+			<p><strong>Modded User: </strong>!commands delete !testcommand</p>
+			<p><strong>DogeBot: </strong>@user -> The command !testcommand has been deleted!</p>
+			<p><small>You can use delete or remove</small></p>
+			<p><small>You can use the shorthand <code>!delcom !command</code> or <code>!deletecom !command</code></small></p>
+		</blockquote>
+		<p><a href="/default-commands">&larr; Back to Default Commands</a></p>
 	</section>
 </div>

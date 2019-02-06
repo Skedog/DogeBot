@@ -783,7 +783,7 @@ iframe#player {
 	text-align: left;
 }
 
-.link-container code {
+body.documentation .content code {
 	background:#154671;
 	color:#fff;
 	margin-right: 5px;
@@ -792,11 +792,45 @@ iframe#player {
 body.documentation blockquote {
 	font-size:14px;
 	border-left:5px solid #3F83BB;
+	background:rgba(63, 131, 187, 0.4);
 	padding:10px 20px;
-	margin:0 0 20px;
+	margin:0 auto 20px;
+	max-width:95%;
+}
+body.documentation blockquote ul {
+	margin-left: 0;
+	padding-left: 0;
+}
+body.documentation blockquote ul.indent {
+	margin-left: 20px;
+}
+body.documentation blockquote ul li:first-child {
+	margin-top: 0;
 }
 body.documentation blockquote p {
-	margin: 0;
+	margin: 5px 0;
+}
+body.documentation blockquote p small {
+	background:#3f82bb;
+	padding:5px;
+	margin-left: 10px;
+	margin-top: 10px;
+	display: block;
+}
+body.documentation .content h2 {
+	font-size:25px;
+}
+body.documentation .content h2 a {
+	color:#fff;
+}
+body.documentation .content hr {
+	margin:20px 0;
+}
+body.documentation .content h3 {
+	font-size:20px;
+}
+body.documentation .content h4 a {
+	text-decoration: underline;
 }
 /* =============================================================================
 	stats

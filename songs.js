@@ -85,7 +85,7 @@ class Songs {
 			query: {ChannelName: props.channel}
 		};
 		const results = await database.select(propsForSelect);
-		const msgToSend = 'The current volume is: ' + results[0].volume;
+		const msgToSend = 'The current volume is ' + results[0].volume + '!';
 		return functions.buildUserString(props) + msgToSend;
 	}
 

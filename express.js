@@ -452,27 +452,49 @@ async function setupRoutes() {
 		});
 	});
 
-	router.get('/default-commands/8ball', async (req, res) => {
-		res.render('default-commands/8ball.handlebars', {
-			layout: 'documentation'
-		});
-	});
-
-	router.get('/default-commands/bf4stats', async (req, res) => {
-		res.render('default-commands/bf4stats.handlebars', {
-			layout: 'documentation'
-		});
-	});
-
-	router.get('/default-commands/blacklist', async (req, res) => {
-		res.render('default-commands/blacklist.handlebars', {
-			layout: 'documentation'
-		});
-	});
-
-	router.get('/default-commands/commands', async (req, res) => {
-		res.render('default-commands/commands.handlebars', {
-			layout: 'documentation'
+	const defaultCommands = [
+		'8ball',
+		'bf4stats',
+		'blacklist',
+		'commands',
+		'currentsong',
+		'dj',
+		'firstseen',
+		'followage',
+		'game',
+		'giveaway',
+		'lastseen',
+		'lastsong',
+		'mute',
+		'nocache',
+		'pause',
+		'play',
+		'playlistrequest',
+		'points',
+		'promote',
+		'regular',
+		'removesongs',
+		'shoutout',
+		'shuffle',
+		'skipsong',
+		'songcache',
+		'songlist',
+		'songrequest',
+		'srp',
+		'supermod',
+		'title',
+		'unmute',
+		'uptime',
+		'viewers',
+		'volume',
+		'winner',
+		'wrongsong'
+	];
+	defaultCommands.forEach(command => {
+		router.get(`/default-commands/${command}`, (req, res) => {
+			res.render(`default-commands/${command}.handlebars`, {
+				layout: 'documentation'
+			});
 		});
 	});
 

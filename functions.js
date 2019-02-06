@@ -73,13 +73,6 @@ function buildUserString(props) {
 	return userStr;
 }
 
-function isEmptyArray(value) {
-	if (value.isArray()) {
-		return value.length === 0;
-	}
-	return toString(value).length === 0;
-}
-
 module.exports = {
 	isNumber,
 	getRandomItemFromArray,

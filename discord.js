@@ -16,7 +16,7 @@ async function connect() {
 	const dbConstants = await database.constants();
 	discordClient.login(dbConstants.discordAPIKey);
 	discordClient.on('ready', () => {
-		schedule.scheduleJob('0 59 23 * * *', () => {
+		schedule.scheduleJob('0 59 04 * * *', () => {
 			sendDailyReport();
 		});
 	});
@@ -29,11 +29,10 @@ function monitorDiscordChat() {
 }
 
 async function sendDailyReport() {
-	// select channel data
+	// Select channel data
 	const propsForChannelSelect = {
 		table: 'channels'
 	};
-	const arrayOfJoinedChannels = [];
 	const listOfChannels = await database.select(propsForChannelSelect);
 	const numberOfChannelsThatHaveLoggedIn = listOfChannels.length;
 	let numberOfJoinedChannels = 0;
@@ -49,35 +48,35 @@ async function sendDailyReport() {
 	};
 	const numberOfUsersInAllChats = await database.count(propsForUserCounting);
 
-	// select seen message data
+	// Select seen message data
 	const start = new Date();
-	start.setHours(0,0,0,0);
+	start.setHours(0, 0, 0, 0);
 	const propsForChatlog = {
 		table: 'chatlog',
 		query: {
 			timestamp: {$gte: start.getTime()},
-			"userstate.display-name": {$ne: 'DogeBot'}
+			'userstate.display-name': {$ne: 'DogeBot'}
 		}
 	};
 	const numberOfMessagesSeenToday = await database.count(propsForChatlog);
 
-	// select sent message data
+	// Select sent message data
 	const propsForSentMessages = {
 		table: 'chatlog',
 		query: {
 			timestamp: {$gte: start.getTime()},
-			"userstate.display-name": 'DogeBot'
+			'userstate.display-name': 'DogeBot'
 		}
 	};
 	const numberOfMessagesSentToday = await database.count(propsForSentMessages);
 
-	// select song data
+	// Select song data
 	const propsForSongCacheCounting = {
 		table: 'songcache'
 	};
 	const numberOfAllCachedSongs = await database.count(propsForSongCacheCounting);
 
-	// build the report
+	// Build the report
 	let report = '';
 	report += '```Number of logged in channels: ' + numberOfChannelsThatHaveLoggedIn + '\n';
 	report += 'Number of joined channels: ' + numberOfJoinedChannels + '\n';
@@ -86,8 +85,8 @@ async function sendDailyReport() {
 	report += 'Number of messages sent today: ' + numberOfMessagesSentToday + '\n';
 	report += 'Number of all cached songs: ' + numberOfAllCachedSongs + '\n```';
 
-	// send report to me in a DM
-	discordClient.fetchUser('153273593738952704').then((user) => {
+	// Send report to me in a DM
+	discordClient.fetchUser('153273593738952704').then(user => {
 		user.send(report);
 	});
 }

@@ -150,7 +150,7 @@ $(document).ready(function() {
 	startSocket(socketURL, page, channelData, URLChannel);
 
 	// Setup all the click handlers
-	if (loggedInChannel) {
+	if (loggedInChannel || getUrl.host.includes('docs')) {
 		setupClickHandlers(loggedInChannel);
 	}
 
