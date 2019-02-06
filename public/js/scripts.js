@@ -150,9 +150,9 @@ $(document).ready(function() {
 	startSocket(socketURL, page, channelData, URLChannel);
 
 	// Setup all the click handlers
-	if (loggedInChannel || getUrl.host.includes('docs')) {
+	// if (loggedInChannel || getUrl.host.includes('docs')) {
 		setupClickHandlers(loggedInChannel);
-	}
+	// }
 
 	// On resize check if leftbar should be removed
 	$(window).on('resize', debounce(function() {

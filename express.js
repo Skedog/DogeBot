@@ -167,9 +167,10 @@ async function setupRoutes() {
 		res.render('song-settings', {userData});
 	});
 
-	app.get('/contact', [expressFunctions.checkIfUserIsLoggedIn], async (req, res) => {
-		const userData = await expressFunctions.getUserData(req);
-		res.render('contact', {userData});
+	app.get('/contact', async (req, res) => {
+		res.render('contact', {
+			layout: 'notLoggedIn'
+		});
 	});
 
 	app.get('/moderation/:channel*?', [expressFunctions.checkIfUserIsLoggedIn, expressFunctions.checkPassedChannel, expressFunctions.checkModStatus], async (req, res) => {
