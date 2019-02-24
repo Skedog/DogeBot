@@ -26,6 +26,7 @@ function monitorDiscordChat() {
 	discordClient.on('message', message => {
 		handleChatMessage(message);
 	});
+	discordClient.on('error', console.error);
 }
 
 async function sendDailyReport() {
