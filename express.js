@@ -5,7 +5,7 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const subdomain = require('express-subdomain');
 const bodyParser = require('body-parser');
-const bhttp = require('bhttp');
+const rp = require('request-promise');
 const log = require('npmlog');
 const session = require('client-sessions');
 const database = require('./database.js');
@@ -239,9 +239,11 @@ async function setupRoutes() {
 		// Token comes from the Twitch API login request
 		const token = req.body.token;
 		req.session.token = token;
-		try {
-			const getTwitchUserDetails = await bhttp.get('https://api.twitch.tv/kraken/user/?oauth_token=' + token);
-			const body = getTwitchUserDetails.body;
+		const options = {
+			uri: 'https://api.twitch.tv/kraken/user/?oauth_token=' + token,
+			json: true
+		};
+		return rp(options).then(async body => {
 			const props = {
 				userEmail: body.email,
 				twitchUserID: body._id,
@@ -259,10 +261,10 @@ async function setupRoutes() {
 			};
 			await stats.addTrackedUser(propsForUser);
 			res.send(returnVal);
-		} catch (err) {
+		}).catch(err => {
 			log.error('/handleLogin produced an error: ' + err);
 			res.redirect('/');
-		}
+		});
 	});
 
 	app.post('/removenotification', [expressFunctions.checkIfUserIsLoggedIn], async (req, res) => {

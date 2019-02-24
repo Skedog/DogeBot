@@ -1,7 +1,6 @@
 const objectId = require('mongodb').ObjectId;
 const YouTube = require('youtube-node');
 const promisify = require('es6-promisify');
-const ypi = require('youtube-playlist-info');
 const database = require('./database.js');
 const constants = require('./constants.js');
 const stats = require('./stats.js');
@@ -431,26 +430,44 @@ class Songs {
 		return returnedMessage;
 	}
 
+	async getPlaylistItems(props, apiKey) {
+		try {
+			const youTube = new YouTube();
+			youTube.setKey(apiKey);
+			if (props.nextPageToken !== null) {
+				youTube.addParam('pageToken', props.nextPageToken);
+			}
+			const getPlaylistItemsByID = await promisify(youTube.getPlayListsItemsById);
+			const result = await getPlaylistItemsByID(props.playlistIDToRequest, 50);
+			if (props.playlistItems.length === 0) {
+				props.messageToSend = 'Gathering playlist data, please wait...';
+				await messages.send(props);
+			}
+			for (let x = 0; x < result.items.length; x++) {
+				props.playlistItems.push(result.items[x].snippet);
+			}
+			props.nextPageToken = result.nextPageToken;
+			if (props.nextPageToken) {
+				return await this.getPlaylistItems(props, apiKey);
+			}
+			return props.playlistItems;
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
 	async requestPlaylist(props) {
 		try {
 			props.messageParams.splice(0, 1);
-			const playlistID = await this.getYouTubePlaylistIDFromChatMessage(props);
 			const dbConstants = await database.constants();
 			const _this = this;
 			await this.checkIfUserCanAddSong(props);
-			let playlistItems = '';
-			props.messageToSend = 'Gathering playlist data, please wait...';
-			await messages.send(props);
-			await ypi(dbConstants.YouTubeAPIKey, playlistID).then(results => {
-				playlistItems = results;
-			}).catch(err => {
-				if (err.errors[0].reason === 'playlistNotFound') {
-					throw 'invalid playlist ID';
-				}
-			});
+			props.playlistIDToRequest = await this.getYouTubePlaylistIDFromChatMessage(props);
+			props.playlistItems = [];
+			await this.getPlaylistItems(props, dbConstants.YouTubeAPIKey);
 			const createdArray = [];
-			for (let x = 0; x < playlistItems.length; x++) {
-				createdArray.push(playlistItems[x].resourceId.videoId);
+			for (let x = 0; x < props.playlistItems.length; x++) {
+				createdArray.push(props.playlistItems[x].resourceId.videoId);
 			}
 			const shuffledSongs = await functions.shuffleArray(createdArray);
 			const songNumberLimit = await _this.getChannelSongNumberLimit(props);

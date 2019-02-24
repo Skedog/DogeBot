@@ -1,56 +1,56 @@
-const bhttp = require('bhttp');
+const rp = require('request-promise');
 const database = require('./database.js');
 const functions = require('./functions.js');
 
 class API {
 
 	async uptime(props) {
-		try {
-			const url = 'https://decapi.me/twitch/uptime?channel=' + props.channel.slice(1);
-			const twitchAPIRequest = await bhttp.get(url);
-			const returnedBody = String(twitchAPIRequest.body);
-			if (returnedBody) {
-				const editedBody = returnedBody.replace('.', '');
-				if (returnedBody.length < 40) {
-					if (editedBody.includes('offline')) {
-						return functions.buildUserString(props) + props.channel.slice(1) + ' is offline!';
-					}
-					return functions.buildUserString(props) + props.channel.slice(1) + ' has been live for ' + editedBody + '!';
+		const options = {
+			uri: 'https://decapi.me/twitch/uptime?channel=' + props.channel.slice(1)
+		};
+		const errMsg = 'Error getting uptime, try again in a few minutes!';
+		return rp(options).then(returnedBody => {
+			const editedBody = returnedBody.replace('.', '');
+			if (returnedBody.length < 40) {
+				if (editedBody.includes('offline')) {
+					return functions.buildUserString(props) + props.channel.slice(1) + ' is offline!';
 				}
-				return 'Error getting uptime, try again in a few minutes!';
+				return functions.buildUserString(props) + props.channel.slice(1) + ' has been live for ' + editedBody + '!';
 			}
-		} catch (err) {
-			return 'Error getting uptime, try again in a few minutes!';
-		}
+			return errMsg;
+		}).catch(err => {
+			console.log('Error with !uptime: ' + err);
+			return errMsg;
+		});
 	}
 
 	async followage(props) {
-		try {
-			props.ignoreMessageParamsForUserString = true;
-			let userToCheck;
-			if (props.messageParams[1]) {
-				userToCheck = props.messageParams[1];
-			} else {
-				userToCheck = props.userstate['display-name'];
-			}
-			if (props.channel.slice(1) === userToCheck) {
-				return 'You can\'t follow your own channel!';
-			}
-			const url = 'https://beta.decapi.me/twitch/followage/' + props.channel.slice(1) + '/' + userToCheck.replace('@', '');
-			const twitchAPIRequest = await bhttp.get(url);
-			const returnedBody = String(twitchAPIRequest.body);
-			if (returnedBody) {
-				if (returnedBody.length < 40) {
-					if (returnedBody.includes('is not following') || returnedBody.includes('cannot follow themself') || returnedBody.includes('Follow not found') || returnedBody.includes('No user with')) {
-						return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
-					}
-					return functions.buildUserString(props) + userToCheck + ' has been following for ' + returnedBody + '!';
-				}
-				return 'Error getting followage, try again in a few minutes!';
-			}
-		} catch (err) {
-			return 'Error getting followage, try again in a few minutes!';
+		props.ignoreMessageParamsForUserString = true;
+		let userToCheck;
+		if (props.messageParams[1]) {
+			userToCheck = props.messageParams[1];
+		} else {
+			userToCheck = props.userstate['display-name'];
 		}
+		if (props.channel.slice(1) === userToCheck) {
+			return 'You can\'t follow your own channel!';
+		}
+		const options = {
+			uri: 'https://beta.decapi.me/twitch/followage/' + props.channel.slice(1) + '/' + userToCheck.replace('@', '')
+		};
+		const errMsg = 'Error getting followage, try again in a few minutes!';
+		return rp(options).then(returnedBody => {
+			if (returnedBody.length < 40) {
+				if (returnedBody.includes('is not following') || returnedBody.includes('cannot follow themself') || returnedBody.includes('Follow not found') || returnedBody.includes('No user with')) {
+					return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
+				}
+				return functions.buildUserString(props) + userToCheck + ' has been following for ' + returnedBody + '!';
+			}
+			return errMsg;
+		}).catch(err => {
+			console.log('Error with !followage: ' + err);
+			return errMsg;
+		});
 	}
 
 	async getUserOAuthToken(props) {
@@ -90,49 +90,57 @@ class API {
 			const newGame = props.messageParams.slice(1, props.messageParams.length).join(' ');
 			const token = await this.getUserOAuthToken(props);
 			const userID = await this.getUserID(props);
-			const putSettings = {
+			const options = {
+				method: 'PUT',
+				uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+				form: {'channel[game]': newGame},
 				headers: {
 					Authorization: 'OAuth ' + token,
 					'Client-ID': dbConstants.twitchClientID,
 					Accept: 'application/vnd.twitchtv.v5+json'
-				}
+				},
+				json: true
 			};
-			const dataToSend = {'channel[game]': newGame};
-			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + userID;
-			try {
-				const twitchAPIRequest = await bhttp.put(URLtoUse, dataToSend, putSettings);
-				const updatedGame = twitchAPIRequest.body.game;
+			return rp(options).then(body => {
+				const updatedGame = body.game;
 				if (updatedGame) {
 					return functions.buildUserString(props) + 'The current game has been updated to ' + newGame + '!';
 				}
-			} catch (err) {
+			}).catch(err => {
+				console.log('Error with !game: ' + err);
 				return 'Error setting the game, try again in a few minutes!';
-			}
-		} else {
-			try {
-				const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID;
-				const twitchAPIRequest = await bhttp.get(URLtoUse);
-				const currentGame = twitchAPIRequest.body.game;
-				if (currentGame) {
-					return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
-				}
-			} catch (err) {
-				return 'Error getting the current game, try again in a few minutes!';
-			}
+			});
 		}
+		const options = {
+			uri: 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID,
+			json: true
+		};
+		return rp(options).then(body => {
+			const currentGame = body.game;
+			if (currentGame) {
+				return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
+			}
+		}).catch(err => {
+			console.log('Error with !game: ' + err);
+			return 'Error getting the current game, try again in a few minutes!';
+		});
 	}
 
 	async getLastPlayedGame(channel) {
 		if (channel) {
 			const dbConstants = await database.constants();
-			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + channel + '?client_id=' + dbConstants.twitchClientID;
-			try {
-				const twitchAPIRequest = await bhttp.get(URLtoUse);
-				const currentGame = twitchAPIRequest.body.game;
+			const options = {
+				uri: 'https://api.twitch.tv/kraken/channels/' + channel + '?client_id=' + dbConstants.twitchClientID,
+				json: true
+			};
+			return rp(options).then(body => {
+				const currentGame = body.game;
 				if (currentGame) {
 					return currentGame;
 				}
-			} catch (err) {}
+			}).catch(err => {
+				console.log('Error with getLastPlayedGame: ' + err);
+			});
 		}
 	}
 
@@ -143,81 +151,102 @@ class API {
 			const newTitle = props.messageParams.slice(1, props.messageParams.length).join(' ');
 			const token = await this.getUserOAuthToken(props);
 			const userID = await this.getUserID(props);
-			const putSettings = {
+			const options = {
+				method: 'PUT',
+				uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+				form: {'channel[status]': newTitle},
 				headers: {
 					Authorization: 'OAuth ' + token,
 					'Client-ID': dbConstants.twitchClientID,
 					Accept: 'application/vnd.twitchtv.v5+json'
-				}
+				},
+				json: true
 			};
-			const dataToSend = {'channel[status]': newTitle};
-			const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + userID;
-			await bhttp.put(URLtoUse, dataToSend, putSettings);
-			return functions.buildUserString(props) + 'The title has been updated to ' + newTitle + '!';
+			return rp(options).then(() => {
+				return functions.buildUserString(props) + 'The title has been updated to ' + newTitle + '!';
+			}).catch(err => {
+				console.log('Error with !title: ' + err);
+				return 'Error setting the title, try again in a few minutes!';
+			});
 		}
-		const URLtoUse = 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID;
-		const twitchAPIRequest = await bhttp.get(URLtoUse);
-		const currentTitle = twitchAPIRequest.body.status;
-		if (currentTitle) {
-			return functions.buildUserString(props) + 'The title is ' + currentTitle + '!';
-		}
+		const options = {
+			uri: 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID,
+			json: true
+		};
+		return rp(options).then(body => {
+			const currentTitle = body.status;
+			if (currentTitle) {
+				return functions.buildUserString(props) + 'The title is ' + currentTitle + '!';
+			}
+		}).catch(err => {
+			console.log('Error with !title: ' + err);
+		});
 	}
 
 	async viewers(props) {
-		const URLtoUse = 'https://tmi.twitch.tv/group/user/' + props.channel.slice(1) + '/chatters';
-		try {
-			const twitchAPIRequest = await bhttp.get(URLtoUse);
-			const currentViewerCount = twitchAPIRequest.body.chatter_count;
+		const options = {
+			uri: 'https://tmi.twitch.tv/group/user/' + props.channel.slice(1) + '/chatters',
+			json: true
+		};
+		return rp(options).then(body => {
+			const currentViewerCount = body.chatter_count;
 			if (currentViewerCount >= 0) {
 				return functions.buildUserString(props) + props.channel.slice(1) + ' currently has ' + currentViewerCount + ' viewers!';
 			}
-		} catch (err) {
+		}).catch(err => {
+			console.log('Error with !viewers: ' + err);
 			return functions.buildUserString(props) + 'Error getting the number of viewers, try again in a few minutes!';
-		}
+		});
 	}
 
 	async randomViewer(props) {
-		const url = 'https://2g.be/twitch/randomviewer.php?channel=' + props.channel.slice(1);
-		const twitchAPIRequest = await bhttp.get(url);
-		const returnedBody = String(twitchAPIRequest.body);
-		if (returnedBody.includes('dogebot') || returnedBody.includes(props.channel.slice(1))) {
-			if (props.attempts === undefined) {
-				props.attempts = 1;
-			} else {
-				props.attempts += 1;
+		const options = {
+			uri: 'https://2g.be/twitch/randomviewer.php?channel=' + props.channel.slice(1)
+		};
+		return rp(options).then(body => {
+			if (body.includes('dogebot') || body.includes(props.channel.slice(1))) {
+				if (props.attempts === undefined) {
+					props.attempts = 1;
+				} else {
+					props.attempts += 1;
+				}
+				if (props.attempts === 5) {
+					return 'Error getting winner, try again in a few minutes!';
+				}
+				return this.randomViewer(props);
 			}
-			if (props.attempts === 5) {
-				return 'Error getting winner, try again in a few minutes!';
+			if (body.trim().length <= 25) {
+				return functions.buildUserString(props) + 'The winner is ' + body.trim() + '!';
 			}
-			return this.randomViewer(props);
-		}
-		if (returnedBody.trim().length <= 25) {
-			return functions.buildUserString(props) + 'The winner is ' + returnedBody.trim() + '!';
-		}
-		return 'Error getting winner, try again in a few minutes!';
+		}).catch(err => {
+			console.log('Error with randomViewer: ' + err);
+			return 'Error getting winner, try again in a few minutes!';
+		});
 	}
 
 	async bf4stats(props) {
 		props.ignoreMessageParamsForUserString = true;
 		const plat = props.messageParams[2] ? props.messageParams[2] : 'pc';
 		const userToCheck = props.messageParams[1] ? props.messageParams[1] : props.userstate.username;
-		const url = 'https://api.bf4stats.com/api/playerInfo?plat=' + plat + '&name=' + userToCheck + '&output=json&opt=urls,stats';
-		const httpRequest = await bhttp.get(url);
-		if (httpRequest.body) {
-			const json = httpRequest.body;
-			if (!json.error) {
-				const playerName = json.player.name;
-				const kills = json.stats.kills;
-				const deaths = json.stats.deaths;
-				const timePlayed = Math.round(json.player.timePlayed / 3600);
-				const kd = Math.round(((kills / deaths) + 0.00001) * 100) / 100;
-				const statsLink = 'https://bf4stats.com/pc/' + playerName;
-				const rank = json.stats.rank;
-				const msgToSend = playerName + ' has played ~' + timePlayed + ' hours, has a ' + kd + ' k/d, and is rank ' + rank + '! More stats here: ' + statsLink;
-				return functions.buildUserString(props) + msgToSend;
-			}
+
+		const options = {
+			uri: 'https://api.bf4stats.com/api/playerInfo?plat=' + plat + '&name=' + userToCheck + '&output=json&opt=urls,stats',
+			json: true
+		};
+		return rp(options).then(body => {
+			const playerName = body.player.name;
+			const kills = body.stats.kills;
+			const deaths = body.stats.deaths;
+			const timePlayed = Math.round(body.player.timePlayed / 3600);
+			const kd = Math.round(((kills / deaths) + 0.00001) * 100) / 100;
+			const statsLink = 'https://bf4stats.com/pc/' + playerName;
+			const rank = body.stats.rank;
+			const msgToSend = playerName + ' has played ~' + timePlayed + ' hours, has a ' + kd + ' k/d, and is rank ' + rank + '! More stats here: ' + statsLink;
+			return functions.buildUserString(props) + msgToSend;
+		}).catch(err => {
+			console.log('Error with bf4stats: ' + err);
 			return functions.buildUserString(props) + 'User not found, the syntax is "!bf4stats username platform"!';
-		}
+		});
 	}
 
 	async bfServer(props) {
@@ -229,12 +258,15 @@ class API {
 		}
 		const commandSplit = commandMessage.split(':');
 		const userToCheck = commandSplit[1].replace(')', '').trim();
-		const url = 'https://api.dinu.tv/battlelogText/?op=server&username=' + userToCheck;
-		const httpRequest = await bhttp.get(url);
-		if (httpRequest.body) {
-			return functions.buildUserString(props) + httpRequest.body;
-		}
-		return functions.buildUserString(props) + 'Error getting server information, please try again in a few minutes!';
+		const options = {
+			uri: 'https://api.dinu.tv/battlelogText/?op=server&username=' + userToCheck
+		};
+		return rp(options).then(body => {
+			return functions.buildUserString(props) + body;
+		}).catch(err => {
+			console.log('Error with bfServer: ' + err);
+			return functions.buildUserString(props) + 'Error getting server information, please try again in a few minutes!';
+		});
 	}
 
 	async eightBall(props) {
@@ -256,6 +288,7 @@ class API {
 				return 'Make sure to give ' + streamerToShoutout + ' a follow! You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
 			}
 		} catch (err) {
+			console.log('Error with shoutout: ' + err);
 			return 'Make sure to give ' + streamerToShoutout + ' a follow! You can follow ' + streamerToShoutout + ' at https://twitch.tv/' + streamerToShoutout;
 		}
 	}

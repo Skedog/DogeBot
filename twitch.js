@@ -1,5 +1,5 @@
 const log = require('npmlog');
-const bhttp = require('bhttp');
+const rp = require('request-promise');
 const tmi = require('tmi.js');
 const database = require('./database.js');
 const constants = require('./constants.js');
@@ -283,32 +283,35 @@ async function checkIfChannelIsLive(channel) {
 	} else {
 		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchClientID;
 	}
-	try {
-		const twitchAPIRequest = await bhttp.get(URLtoUse);
-		if (twitchAPIRequest.body.stream !== null) {
+	const options = {
+		uri: URLtoUse,
+		json: true
+	};
+	return rp(options).then(body => {
+		if (body.stream !== null) {
 			return true;
 		}
 		return false;
-	} catch (err) {
+	}).catch(err => {
 		log.error('checkIfChannelIsLive(' + channel + ') produced an error: ' + err);
 		return false;
-	}
+	});
 }
 
 async function getCurrentChatUsers(channel) {
-	try {
-		const twitchAPIRequest = await bhttp.get('https://tmi.twitch.tv/group/user/' + channel + '/chatters');
-		if (twitchAPIRequest.body) {
-			const body = twitchAPIRequest.body;
-			if (body.chatters) {
-				return body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
-			}
-			throw new Error('body from getCurrentChatUsers request was empty');
+	const options = {
+		uri: 'https://tmi.twitch.tv/group/user/' + channel + '/chatters',
+		json: true
+	};
+	return rp(options).then(body => {
+		if (body.chatters) {
+			return body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
 		}
-	} catch (err) {
+		throw new Error('body from getCurrentChatUsers request was empty');
+	}).catch(err => {
 		log.error('getCurrentChatUsers(' + channel + ') produced an error: ' + err);
 		return null;
-	}
+	});
 }
 
 async function start() {
