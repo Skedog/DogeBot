@@ -28,6 +28,9 @@
     "youtube-node": "^1.3.3"
   },
   "devDependencies": {},
+  "resolutions": {
+    "sshpk": "1.13.2"
+  },
   "scripts": {
     "test": "mocha"
   },
