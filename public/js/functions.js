@@ -3,14 +3,19 @@ function isNumeric(n) {
 };
 
 function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+};
+
+function getUrlHash() {
 	var vars = [], hash;
 	if (window.location.href.indexOf('#')) {
 		var hashes = window.location.href.slice(window.location.href.indexOf('#') + 1).split('&');
-	} else {
-		var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
 	};
-	for(var i = 0; i < hashes.length; i++)
-	{
+	for(var i = 0; i < hashes.length; i++) {
 		hash = hashes[i].split('=');
 		vars.push(hash[0]);
 		vars[hash[0]] = hash[1];

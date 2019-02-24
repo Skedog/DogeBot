@@ -219,6 +219,19 @@ async function setupRoutes() {
 		res.render('currentsonginfo', {userData, firstSongInSonglist, showText: req.query.showText, layout: 'no-style'});
 	});
 
+	app.get('/error', async (req, res) => {
+		const err = new Error('Not Found');
+		err.status = 401;
+		res.status(err.status || 401);
+		console.log('Error while trying to log someone in: ' + req.query.error + ': ' + req.query.errorDesc);
+		res.render('error.handlebars', {
+			message: req.query.errorDesc,
+			status: err.status,
+			error: {},
+			layout: 'notLoggedIn'
+		});
+	});
+
 	// POST routes
 
 	app.post('/handlelogin', async (req, res) => {

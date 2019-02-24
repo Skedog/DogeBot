@@ -8,7 +8,7 @@
 <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 <script>
 Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
-	var accesstoken = getUrlVars()["access_token"];
+	var accesstoken = getUrlHash()['access_token'];
 	if (accesstoken != undefined) {
 		var token = Twitch.getToken();
 		var data = 'token=' + token;
@@ -18,24 +18,26 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 			type: 'POST',
 			success: function(data) {
 				if (data == 'useradded' || data == 'userupdated') {
-					if ('{{{redirectTo}}}' !== '') {
+					var redirect = '{{{redirectTo}}}';
+					if (redirect !== '' && redirect.includes('login') === false) {
 						window.location.assign('{{{redirectTo}}}');
 					} else {
-						window.location.assign("/dashboard");
+						window.location.assign('/dashboard');
 					}
 				} else {
-					window.location.assign("/?loginFailed");
+					window.location.assign('/error?error=loginFailed&errorDesc=An&nbsp;error&nbsp;occurred&nbsp;in&nbsp;/handlelogin');
 				};
 			}
 		});
 	} else {
-		var error = getUrlVars()["error"];
+		var error = getUrlVars()['error'];
 		if (error == undefined) {
 			Twitch.login({
 				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions']
 			});
 		} else {
-			window.location.assign("/error");
+			var errorDesc = getUrlVars()['error_description'];
+			window.location.assign('/error?error=' + error + '&errorDesc=' + errorDesc);
 		}
 	};
 });

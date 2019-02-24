@@ -5,14 +5,14 @@ const cache = require('./cache.js');
 // Middleware
 function checkIfUserIsLoggedIn(req, res, next) {
 	if (req.session && req.session.userDetails) {
-		if (req.originalUrl === '/login') {
+		if (req.path === '/login') {
 			// User is already logged in and has a valid session
 			// No need to run login code again
 			return res.redirect('/dashboard');
 		}
 		next();
 	} else {
-		if (req.originalUrl !== '/login') {
+		if (req.path !== '/login') {
 			// Invalid session, but trying to view some other page
 			setRedirectTo(req);
 			return res.redirect('/login');
@@ -34,7 +34,7 @@ async function validatePassedUser(req, res, next) {
 }
 
 function setRedirectTo(req) {
-	if (req.originalUrl !== '/getsocketdata') {
+	if (req.path !== '/getsocketdata') {
 		if (req.session) {
 			req.session.redirectTo = req.originalUrl;
 		}
