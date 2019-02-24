@@ -438,14 +438,15 @@ class Songs {
 			const dbConstants = await database.constants();
 			const _this = this;
 			await this.checkIfUserCanAddSong(props);
-			props.messageToSend = 'Gathering playlist data, please wait...';
-			messages.send(props);
-			const playlistInfo = await promisify(ypi.playlistInfo);
 			let playlistItems = '';
-			await playlistInfo(dbConstants.YouTubeAPIKey, playlistID).then(results => {
+			props.messageToSend = 'Gathering playlist data, please wait...';
+			await messages.send(props);
+			await ypi(dbConstants.YouTubeAPIKey, playlistID).then(results => {
 				playlistItems = results;
 			}).catch(err => {
-				playlistItems = err;
+				if (err.errors[0].reason === 'playlistNotFound') {
+					throw 'invalid playlist ID';
+				}
 			});
 			const createdArray = [];
 			for (let x = 0; x < playlistItems.length; x++) {
@@ -1004,13 +1005,13 @@ class Songs {
 
 	getYouTubePlaylistIDFromChatMessage(props) {
 		const passedInfo = props.messageParams.join(' ');
-		if ((passedInfo.length === 34 || passedInfo.length === 24 || passedInfo.length === 13) && !passedInfo.includes(' ')) {
+		if ((passedInfo.length === 34 || passedInfo.length === 24 || passedInfo.length === 15 || passedInfo.length === 13) && !passedInfo.includes(' ')) {
 			return passedInfo;
 		} else if (passedInfo.includes('http')) {
 			const tempSplit = passedInfo.split('?');
 			const query = functions.parseQuery(tempSplit[1]);
 			const playlistID = query.list;
-			if (playlistID.length === 34 || playlistID.length === 24 || playlistID.length === 13) {
+			if (playlistID.length === 34 || playlistID.length === 24 || playlistID.length === 15 || playlistID.length === 13) {
 				return playlistID;
 			}
 		} else if (passedInfo.indexOf('list=') > -1) {
