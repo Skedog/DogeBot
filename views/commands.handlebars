@@ -26,7 +26,8 @@
 			type: 'inline'
 		});
 	});
-	$('.view-list').click(async function(e) {
+	// $('.view-list').click(async function(e) {
+	$('.datatable').on('click', '.view-list', async function(e) {
 		e.preventDefault();
 		const trigger = $(this).parent().parent().attr('id');
 		const channel = $('.urlChannel').text();

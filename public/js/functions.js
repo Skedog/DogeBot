@@ -89,8 +89,15 @@ function buildDataTable(elementToUse, startSize, dataToUse) {
 	if (dataToUse) {
 		$(elementToUse + ' tbody').html(dataToUse);
 	}
+	// store search and page length in-case socket rebuilds the datatable
 	$(elementToUse).on('length.dt', function(e, settings, len) {
 		document.cookie = page + '=' + len;
+	});
+	$(elementToUse).on('search.dt', function () {
+		if ($(elementToUse).DataTable().search() !== '') {
+			// only store the search for 60 seconds
+			document.cookie = page + 'Search=' + $(elementToUse).DataTable().search() + '; max-age=60; path=/;';
+		}
 	});
 	if (startSize === '-1') {
 		$(elementToUse).DataTable({
@@ -101,6 +108,9 @@ function buildDataTable(elementToUse, startSize, dataToUse) {
 			"lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
 			'pageLength': parseInt(startSize, 10)
 		});
+	}
+	if (readCookie(page + 'Search')) {
+		$(elementToUse).DataTable().search(readCookie(page + 'Search')).draw();
 	}
 	$('.songinfo').hide();
 	$(elementToUse).show();
