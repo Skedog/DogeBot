@@ -96,10 +96,15 @@ class Database {
 
 	async update(props) {
 		try {
-			if (props.inc === undefined) {
-				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse});
-			} else {
+			if (props.dataToUse === undefined && props.inc !== undefined) {
+				// if you only want to inc. a field
+				await module.exports.db.collection(props.table).update(props.query, {$inc: props.inc});
+			} else if (props.inc !== undefined) {
+				// if you want to update fields and inc. a field
 				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse, $inc: props.inc});
+			} else {
+				// if you only want to update fields
+				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse});
 			}
 			return 'updated';
 		} catch (err) {
@@ -109,10 +114,15 @@ class Database {
 
 	async updateall(props) {
 		try {
-			if (props.inc === undefined) {
-				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse}, {multi: true});
-			} else {
+			if (props.dataToUse === undefined && props.inc !== undefined) {
+				// if you only want to inc. a field
+				await module.exports.db.collection(props.table).update(props.query, {$inc: props.inc}, {multi: true});
+			} else if (props.inc !== undefined) {
+				// if you want to update fields and inc. a field
 				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse, $inc: props.inc}, {multi: true});
+			} else {
+				// if you only want to update fields
+				await module.exports.db.collection(props.table).update(props.query, {$set: props.dataToUse}, {multi: true});
 			}
 			return 'updated';
 		} catch (err) {
