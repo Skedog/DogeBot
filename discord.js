@@ -26,7 +26,7 @@ function monitorDiscordChat() {
 	discordClient.on('message', message => {
 		handleChatMessage(message);
 	});
-	discordClient.on('error', console.error);
+	discordClient.on('error', console.log('An error occurred with the discord API - this can be safely ignored'));
 }
 
 async function sendDailyReport() {
