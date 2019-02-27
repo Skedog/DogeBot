@@ -4,6 +4,72 @@ const messages = require('./chat-messages.js');
 
 class Points {
 
+	async call(props) {
+		switch (props.messageParams[1]) {
+			case 'add':
+			case 'gift':
+				return this.addPoints(props);
+			default:
+				return this.getUserPoints(props);
+		}
+	}
+
+	async addPoints(props) {
+		try {
+			const userSendingPoints = props.userstate.username;
+			let userToSendPointsTo = props.messageParams[2].replace('@', '').toLowerCase();
+			const amountOfPointsToSend = parseInt(props.messageParams[3]);
+			const numberOfPointsSendingUserHas = await this.getUserPointCount(props);
+			let isStreamer = false;
+			if (isNaN(amountOfPointsToSend) || amountOfPointsToSend <= 0) {
+				return;
+			}
+			if (userSendingPoints === props.channel.replace('#', '')) {
+				isStreamer = true;
+			}
+			if (numberOfPointsSendingUserHas < amountOfPointsToSend && !isStreamer) {
+				props.ignoreMessageParamsForUserString = true;
+				return functions.buildUserString(props) + 'You don\'t have enough points to do that!';
+			}
+			if (userSendingPoints === userToSendPointsTo && !isStreamer) {
+				props.ignoreMessageParamsForUserString = true;
+				return functions.buildUserString(props) + 'You can\'t give yourself points!';
+			}
+			if (!isStreamer) {
+				const propsForSelect = {
+					table: 'chatusers',
+					query: {userName: userSendingPoints, channel: props.channel}
+				};
+				const results = await database.select(propsForSelect);
+				if (results) {
+					const propsForUpdate = {
+						table: 'chatusers',
+						query: {userName: userSendingPoints, channel: props.channel},
+						inc: {loyaltyPoints: amountOfPointsToSend * -1}
+					};
+					await database.update(propsForUpdate);
+				}
+			}
+			const propsForSelect2 = {
+				table: 'chatusers',
+				query: {userName: userToSendPointsTo, channel: props.channel}
+			};
+			const results2 = await database.select(propsForSelect2);
+			if (results2) {
+				const propsForUpdate2 = {
+					table: 'chatusers',
+					query: {userName: userToSendPointsTo, channel: props.channel},
+					inc: {loyaltyPoints: amountOfPointsToSend * 1}
+				};
+				await database.update(propsForUpdate2);
+				return userSendingPoints + ' sent ' + userToSendPointsTo + ' ' + amountOfPointsToSend + ' points!';
+			}
+			throw new Error('failed trying to addPoints to ' + userToSendPointsTo + ' from ' + userSendingPoints);
+		} catch (err) {
+			throw err;
+		}
+	}
+
 	async commandPointCost(props) {
 		const sentCommand = props.messageParams[0].toLowerCase();
 		let propsForSelect;
@@ -84,6 +150,18 @@ class Points {
 
 	async getUserPointCount(props) {
 		try {
+			let passedUser = props.messageParams[1];
+			if (passedUser) {
+				passedUser = passedUser.replace('@', '');
+				const propsForSelect = {
+					table: 'chatusers',
+					query: {userName: passedUser, channel: props.channel}
+				};
+				const results = await database.select(propsForSelect);
+				if (results) {
+					return results[0].loyaltyPoints;
+				}
+			}
 			const propsForSelect = {
 				table: 'chatusers',
 				query: {userName: props.userstate.username, channel: props.channel}
@@ -100,7 +178,12 @@ class Points {
 
 	// This is used for the default command !points
 	async getUserPoints(props) {
+		props.ignoreMessageParamsForUserString = true;
 		const numberOfPoints = await this.getUserPointCount(props);
+		let passedUser = props.messageParams[1];
+		if (passedUser) {
+			return functions.buildUserString(props) + passedUser + ' currently has ' + Math.floor(numberOfPoints) + ' points!';
+		}
 		return functions.buildUserString(props) + 'You currently have ' + Math.floor(numberOfPoints) + ' points!';
 	}
 }

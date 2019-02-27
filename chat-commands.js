@@ -297,7 +297,7 @@ class Chat {
 				case '!enter':
 					return await giveaway.call(props);
 				case '!points':
-					return await points.getUserPoints(props);
+					return await points.call(props);
 				default:
 					throw new Error('missing a break; inside switch for callDefaultCommand!');
 			}
