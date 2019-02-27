@@ -150,6 +150,10 @@ async function createChannel(props) {
 		const addResults = [];
 		for (let i = results.length - 1; i >= 0; i--) {
 			switch (results[i].trigger) {
+				case '!supermod':
+					newData = [{channel: userToAdd, permissionLevel: 400, isEnabled: true, moderationPermissionLevel: 400}];
+					newPointData = [{channel: userToAdd, pointCost: 0}];
+					break;
 				case '!promote':
 				case '!removesong':
 				case '!pause':
@@ -157,7 +161,6 @@ async function createChannel(props) {
 				case '!skipsong':
 				case '!regular':
 				case '!dj':
-				case '!supermod':
 				case '!shuffle':
 				case '!lastseen':
 				case '!firstseen':
