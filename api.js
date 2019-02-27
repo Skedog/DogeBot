@@ -277,8 +277,11 @@ class API {
 	}
 
 	async shoutout(props) {
-		const streamerToShoutout = props.messageParams[1];
+		let streamerToShoutout = props.messageParams[1];
 		try {
+			if (streamerToShoutout !== '') {
+				streamerToShoutout = streamerToShoutout.replace('@', '');
+			}
 			props.ignoreMessageParamsForUserString = true;
 			const lastPlayedGame = await this.getLastPlayedGame(streamerToShoutout);
 			if (streamerToShoutout) {
