@@ -27,13 +27,13 @@ class Points {
 			if (userSendingPoints === props.channel.replace('#', '')) {
 				isStreamer = true;
 			}
-			if (numberOfPointsSendingUserHas < amountOfPointsToSend && !isStreamer) {
-				props.ignoreMessageParamsForUserString = true;
-				return functions.buildUserString(props) + 'You don\'t have enough points to do that!';
-			}
 			if (userSendingPoints === userToSendPointsTo && !isStreamer) {
 				props.ignoreMessageParamsForUserString = true;
 				return functions.buildUserString(props) + 'You can\'t give yourself points!';
+			}
+			if (numberOfPointsSendingUserHas < amountOfPointsToSend && !isStreamer) {
+				props.ignoreMessageParamsForUserString = true;
+				return functions.buildUserString(props) + 'You don\'t have enough points to do that!';
 			}
 			if (!isStreamer) {
 				const propsForSelect = {
@@ -62,7 +62,7 @@ class Points {
 					inc: {loyaltyPoints: Number(amountOfPointsToSend)}
 				};
 				await database.update(propsForUpdate2);
-				return userSendingPoints + ' sent ' + userToSendPointsTo + ' ' + amountOfPointsToSend + ' points!';
+				return userSendingPoints + ' sent ' + userToSendPointsTo + ' ' + amountOfPointsToSend + ' point(s)!';
 			}
 			throw new Error('failed trying to addPoints to ' + userToSendPointsTo + ' from ' + userSendingPoints);
 		} catch (err) {

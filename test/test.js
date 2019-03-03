@@ -1,5 +1,5 @@
 const assert = require('assert');
-const expect = require("chai").expect;
+const expect = require('chai').expect;
 const functions = require('.././functions.js');
 const database = require('.././database.js');
 const twitch = require('.././twitch.js');
@@ -38,22 +38,22 @@ it('test start the app', async function() {
 });
 
 it('test getRandomItemFromArray()', async function() {
-	const arrayToSearch = ["test3","test2","test4","test5","test6","test1"];
+	const arrayToSearch = ['test3','test2','test4','test5','test6','test1'];
 	const randomItem = functions.getRandomItemFromArray(arrayToSearch);
 	assert(arrayToSearch.includes(randomItem[1]));
 });
 
 it('test parseQuery()', function() {
-	const queryToParse = "v=-PMd1PaI3M0&list=PLS84tqhbWDgNj3NnBMEN3DxM0n_cEiJCM";
+	const queryToParse = 'v=-PMd1PaI3M0&list=PLS84tqhbWDgNj3NnBMEN3DxM0n_cEiJCM';
 	const songID = '-PMd1PaI3M0';
-	assert(functions.parseQuery(queryToParse)["v"] == songID);
+	assert(functions.parseQuery(queryToParse)['v'] == songID);
 });
 
 
 // - - - - - - DATABASE FUNCTIONS - - - - - - - -//
 
 it('test database.getDbConstants()', function() {
-	assert(Object.keys(dbConstants).length == 7);
+	assert(Object.keys(dbConstants).length === 7);
 });
 
 
@@ -124,10 +124,24 @@ it('test !game', async function() {
 	expect(res).to.have.string('current game is');
 });
 
+it('test !game Battlefield 4', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!game','Battlefield','4'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been updated');
+});
+
 it('test !title', async function() {
 	props.messageParams = ['!title'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('The title is');
+});
+
+it('test !title testeroni', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!title','testeroni'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been updated');
 });
 
 it('test !viewers', async function() {
@@ -144,7 +158,7 @@ it('test !winner', async function() {
 	expect(res).to.have.string(' ');
 });
 
-it('test !bf4stats', async function() {
+it('test !bf4stats YgTSkedog', async function() {
 	this.timeout(10000);
 	props.messageParams = ['!bf4stats', 'YgTSkedog'];
 	res = await chat.callCommand(props);
@@ -155,6 +169,12 @@ it('test !8ball', async function() {
 	props.messageParams = ['!8ball'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string(' ');
+});
+
+it('test !shoutout ygtskedogtest', async function() {
+	props.messageParams = ['!shoutout','ygtskedogtest'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('You can follow');
 });
 
 it('test !lastseen', async function() {
@@ -373,20 +393,6 @@ it('test !unmute', async function() {
 	expect(res).to.have.string('has been unmuted');
 });
 
-it('test !game Battlefield 4', async function() {
-	this.timeout(5000);
-	props.messageParams = ['!game','Battlefield','4'];
-	res = await chat.callCommand(props);
-	expect(res).to.have.string('has been updated');
-});
-
-it('test !title testeroni', async function() {
-	this.timeout(5000);
-	props.messageParams = ['!title','testeroni'];
-	res = await chat.callCommand(props);
-	expect(res).to.have.string('has been updated');
-});
-
 // - - - - - - PERMISSIONS FUNCTIONS - - - - - - - -//
 
 it('test permissions', async function() {
@@ -395,4 +401,45 @@ it('test permissions', async function() {
 	expect(props.permissionLevelNeeded).to.equal(300);
 	const canUserCall = await permissions.canUserCallCommand(props);
 	expect(canUserCall).to.equal(true);
+});
+
+// - - - - - - POINTS FUNCTIONS - - - - - - - -//
+
+it('test !points', async function() {
+	props.messageParams = ['!points'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('You currently have');
+});
+
+it('test !points dogebot', async function() {
+	props.messageParams = ['!points','dogebot'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('dogebot currently has');
+});
+
+it('test !points gift ygtskedogtest 1', async function() {
+	props.messageParams = ['!points','gift','ygtskedogtest','1'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('You don\'t have enough points to do that!');
+});
+
+it('test !points gift dogebot 1', async function() {
+	props.messageParams = ['!points','gift','dogebot','1'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('You can\'t give yourself points!');
+});
+
+it('test !points gift ygtskedogtest 1', async function() {
+
+	// Set these to be the 'channel owner' to test a 'success' case
+	userstate.username = 'ygtskedogtest';
+	userstate['display-name'] = 'ygtskedogtest';
+
+	props.messageParams = ['!points','gift','ygtskedogtest','1'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('ygtskedogtest sent ygtskedogtest 1 point(s)!');
+
+	// Reset this to 'default' for future tests
+	userstate.username = 'dogebot';
+	userstate['display-name'] = 'dogebot';
 });
