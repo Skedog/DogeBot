@@ -17,8 +17,8 @@ class Points {
 	async addPoints(props) {
 		try {
 			const userSendingPoints = props.userstate.username;
-			let userToSendPointsTo = props.messageParams[2].replace('@', '').toLowerCase();
-			const amountOfPointsToSend = parseInt(props.messageParams[3]);
+			const userToSendPointsTo = props.messageParams[2].replace('@', '').toLowerCase();
+			const amountOfPointsToSend = parseInt(props.messageParams[3], 10);
 			const numberOfPointsSendingUserHas = await this.getUserPointCount(props);
 			let isStreamer = false;
 			if (isNaN(amountOfPointsToSend) || amountOfPointsToSend <= 0) {
@@ -45,7 +45,7 @@ class Points {
 					const propsForUpdate = {
 						table: 'chatusers',
 						query: {userName: userSendingPoints, channel: props.channel},
-						inc: {loyaltyPoints: amountOfPointsToSend * -1}
+						inc: {loyaltyPoints: Number(amountOfPointsToSend * -1)}
 					};
 					await database.update(propsForUpdate);
 				}
@@ -59,7 +59,7 @@ class Points {
 				const propsForUpdate2 = {
 					table: 'chatusers',
 					query: {userName: userToSendPointsTo, channel: props.channel},
-					inc: {loyaltyPoints: amountOfPointsToSend * 1}
+					inc: {loyaltyPoints: Number(amountOfPointsToSend)}
 				};
 				await database.update(propsForUpdate2);
 				return userSendingPoints + ' sent ' + userToSendPointsTo + ' ' + amountOfPointsToSend + ' points!';
@@ -180,7 +180,7 @@ class Points {
 	async getUserPoints(props) {
 		props.ignoreMessageParamsForUserString = true;
 		const numberOfPoints = await this.getUserPointCount(props);
-		let passedUser = props.messageParams[1];
+		const passedUser = props.messageParams[1];
 		if (passedUser) {
 			return functions.buildUserString(props) + passedUser + ' currently has ' + Math.floor(numberOfPoints) + ' points!';
 		}

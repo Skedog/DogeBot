@@ -471,12 +471,8 @@ class Songs {
 			}
 			const shuffledSongs = await functions.shuffleArray(createdArray);
 			const songNumberLimit = await _this.getChannelSongNumberLimit(props);
-			const randomList = await functions.generateListOfRandomNumbers(songNumberLimit + 10, shuffledSongs.length - 1);
-			let randomListOfSongsToAdd = '';
-			for (let y = 0; y < randomList.length; y++) {
-				randomListOfSongsToAdd = randomListOfSongsToAdd + shuffledSongs[randomList[y]] + ',';
-			}
-			const finalList = randomListOfSongsToAdd.substring(0, randomListOfSongsToAdd.length - 1);
+			const randomList = shuffledSongs.slice(0, songNumberLimit + 10);
+			const finalList = randomList.join(',');
 			props.messageParams = ['!sr', finalList];
 			return await _this.requestSongs(props);
 		} catch (err) {
