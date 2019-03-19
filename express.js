@@ -237,12 +237,14 @@ async function setupRoutes() {
 	app.post('/handlelogin', async (req, res) => {
 		// This whole post request is for handling initial logins
 		// Token comes from the Twitch API login request
+		console.log('got to /handlelogin');
 		const token = req.body.token;
 		req.session.token = token;
 		const options = {
 			uri: 'https://api.twitch.tv/kraken/user/?oauth_token=' + token,
 			json: true
 		};
+		console.log('options: ' + JSON.stringify(options));
 		return rp(options).then(async body => {
 			const props = {
 				userEmail: body.email,
@@ -251,7 +253,9 @@ async function setupRoutes() {
 				ChannelName: body.name,
 				token
 			};
+			console.log('props: ' + JSON.stringify(props));
 			const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
+			console.log('userDetails: ' + userDetails);
 			// Set the userDetails as a session
 			req.session.userDetails = userDetails;
 			const returnVal = await expressFunctions.handleLogin(props);
@@ -260,6 +264,7 @@ async function setupRoutes() {
 				username: props.ChannelName
 			};
 			await stats.addTrackedUser(propsForUser);
+			console.log('returnVal: ' + returnVal);
 			res.send(returnVal);
 		}).catch(err => {
 			log.error('/handleLogin produced an error: ' + err);
