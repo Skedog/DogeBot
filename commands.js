@@ -97,6 +97,7 @@ class Commands {
 			dataToUse.globalDelay = 0;
 			dataToUse.userDelay = 0;
 			dataToUse.pointCost = 0;
+			dataToUse.isEnabled = true;
 			if (dataToUse.chatmessage !== '') {
 				const propsForAdd = {
 					table: 'commands',

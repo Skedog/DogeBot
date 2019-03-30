@@ -168,6 +168,8 @@ async function createChannel(props) {
 				case '!unmute':
 				case '!blacklist':
 				case '!nocache':
+				case '!enablecom':
+				case '!disablecom':
 				case '!srp':
 					newData = [{channel: userToAdd, permissionLevel: 300, isEnabled: true, moderationPermissionLevel: 300}];
 					newPointData = [{channel: userToAdd, pointCost: 0}];
