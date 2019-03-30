@@ -211,6 +211,10 @@ class Chat {
 					return await commands.deletecom(props);
 				case '!addalias':
 					return await commands.addalias(props);
+				case '!enablecom':
+					return await commands.enablecom(props);
+				case '!disablecom':
+					return await commands.disablecom(props);
 				case '!blacklist':
 					return await blacklist.call(props);
 				case '!regular':
@@ -386,6 +390,38 @@ class Chat {
 			if (results[0].monitorOnly) {
 				throw new Error('channel is in monitor only mode, do not call any commands');
 			}
+		}
+	}
+
+	async isCommandEnabled(props) {
+		const channelToCheck = props.channel;
+		const propsForSelect = {
+			table: 'defaultCommands',
+			query: {trigger: props.messageParams[0]}
+		};
+		const results = await database.select(propsForSelect);
+		let isEnabled = false;
+		if (results) {
+			const arrayOfPermissions = results[0].permissionsPerChannel;
+			for (let x = 0; x < arrayOfPermissions.length; x++) {
+				if (arrayOfPermissions[x].channel === channelToCheck) {
+					isEnabled = arrayOfPermissions[x].isEnabled;
+					break;
+				}
+			}
+		} else {
+			// Command not found in defaultCommands, check userAdded commands next
+			const propsForUserSelect = {
+				table: 'commands',
+				query: {trigger: props.messageParams[0], channel: channelToCheck, isEnabled: true}
+			};
+			const userResults = await database.select(propsForUserSelect);
+			if (userResults) {
+				isEnabled = true;
+			}
+		}
+		if (!isEnabled) {
+			throw new Error('Command not enabled');
 		}
 	}
 

@@ -189,6 +189,46 @@ it('test !firstseen', async function() {
 	expect(res).to.have.string('was first seen');
 });
 
+it('test !disablecom !commands', async function() {
+	props.messageParams = ['!disablecom', '!commands'];
+	res = await chat.callCommand(props);
+	props.messageParams = ['!commands'];
+	try {
+		await chat.isCommandEnabled(props);
+	} catch(err) {
+		return;
+	}
+	throw new Error('Should have thrown an error');
+});
+
+it('test !enablecom !commands', async function() {
+	props.messageParams = ['!enablecom', '!commands'];
+	res = await chat.callCommand(props);
+	props.messageParams = ['!commands'];
+	res = await chat.isCommandEnabled(props);
+	expect(res).to.be.undefined;
+});
+
+it('test !disablecom !testing', async function() {
+	props.messageParams = ['!disablecom', '!testing'];
+	res = await chat.callCommand(props);
+	props.messageParams = ['!testing'];
+	try {
+		await chat.isCommandEnabled(props);
+	} catch(err) {
+		return;
+	}
+	throw new Error('Should have thrown an error');
+});
+
+it('test !enablecom !testing', async function() {
+	props.messageParams = ['!enablecom', '!testing'];
+	res = await chat.callCommand(props);
+	props.messageParams = ['!testing'];
+	res = await chat.isCommandEnabled(props);
+	expect(res).to.be.undefined;
+});
+
 it('test !songlist', async function() {
 	props.messageParams = ['!songlist'];
 	res = await chat.callCommand(props);

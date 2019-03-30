@@ -160,6 +160,7 @@ function monitorWhispers() {
 async function callCommandFromChat(props) {
 	try {
 		await chat.isChannelMonitorOnly(props);
+		await chat.isCommandEnabled(props);
 		props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 		await permissions.canUserCallCommand(props);
 		await chat.checkAndSetCommandDelayTimer(props);

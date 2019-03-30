@@ -18,6 +18,10 @@ class Commands {
 			case 'delete':
 			case 'remove':
 				return this.delete(props);
+			case 'enable':
+				return this.enable(props);
+			case 'disable':
+				return this.disable(props);
 			case 'permissions':
 			case 'permission':
 			case 'perms':
@@ -43,6 +47,16 @@ class Commands {
 
 	async deletecom(props) {
 		props.messageParams.splice(0, 1, '!commands', 'delete');
+		return this.call(props);
+	}
+
+	async enablecom(props) {
+		props.messageParams.splice(0, 1, '!commands', 'enable');
+		return this.call(props);
+	}
+
+	async disablecom(props) {
+		props.messageParams.splice(0, 1, '!commands', 'disable');
 		return this.call(props);
 	}
 
@@ -166,6 +180,72 @@ class Commands {
 			await cache.del(props.channel + 'commands');
 			socket.io.in(functions.stripHash(props.channel)).emit('commands', ['deleted']);
 			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been deleted!';
+		}
+		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
+	}
+
+	async enable(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandExistence = await this.doesUserAddedCommandExist(props);
+		if (commandExistence) {
+			const dataToUse = {};
+			dataToUse.isEnabled = true;
+			const propsForUpdate = {
+				table: 'commands',
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
+				dataToUse
+			};
+			await database.update(propsForUpdate);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been enabled!';
+		}
+		// Command wasn't a user added command, check if it is a default command
+		const propsForSelect = {
+			table: 'defaultCommands',
+			query: {trigger: props.messageParams[2].toLowerCase()}
+		};
+		props.results = await database.select(propsForSelect);
+		if (props.results) {
+			const aliasResults = await this.getAliasedDefaultCommand(props.results, props.results);
+			const propsForUpdate = {
+				table: 'defaultCommands',
+				query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
+				dataToUse: {'permissionsPerChannel.$.isEnabled': true}
+			};
+			props.results = await database.update(propsForUpdate);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been enabled!';
+		}
+		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
+	}
+
+	async disable(props) {
+		props.ignoreMessageParamsForUserString = true;
+		const commandExistence = await this.doesUserAddedCommandExist(props);
+		if (commandExistence) {
+			const dataToUse = {};
+			dataToUse.isEnabled = false;
+			const propsForUpdate = {
+				table: 'commands',
+				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
+				dataToUse
+			};
+			await database.update(propsForUpdate);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been disabled!';
+		}
+		// Command wasn't a user added command, check if it is a default command
+		const propsForSelect = {
+			table: 'defaultCommands',
+			query: {trigger: props.messageParams[2].toLowerCase()}
+		};
+		props.results = await database.select(propsForSelect);
+		if (props.results) {
+			const aliasResults = await this.getAliasedDefaultCommand(props.results, props.results);
+			const propsForUpdate = {
+				table: 'defaultCommands',
+				query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
+				dataToUse: {'permissionsPerChannel.$.isEnabled': false}
+			};
+			props.results = await database.update(propsForUpdate);
+			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been disabled!';
 		}
 		return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' doesn\'t exist!';
 	}

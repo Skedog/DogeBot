@@ -26,7 +26,7 @@ class Permissions {
 			}
 			const modifier = props.messageParams[1];
 			// If adding/modifying a command
-			if ((sentCommand === '!commands' && (modifier === 'add' || modifier === 'edit' || modifier === 'delete' || modifier === 'remove' || modifier === 'permissions' || modifier === 'permission' || modifier === 'perms' || modifier === 'addalias' || modifier === 'setcost' || modifier === 'cost' || modifier === 'points')) || (sentCommand === '!addcom') || (sentCommand === '!editcom') || (sentCommand === '!deletecom') || (sentCommand === '!delcom') || (sentCommand === '!addalias')) {
+			if ((sentCommand === '!commands' && (modifier === 'add' || modifier === 'edit' || modifier === 'delete' || modifier === 'remove' || modifier === 'permissions' || modifier === 'permission' || modifier === 'perms' || modifier === 'addalias' || modifier === 'setcost' || modifier === 'cost' || modifier === 'points' || modifier === 'enable' || modifier === 'disable')) || (sentCommand === '!addcom') || (sentCommand === '!editcom') || (sentCommand === '!deletecom') || (sentCommand === '!delcom') || (sentCommand === '!addalias') || (sentCommand === '!enablecom') || (sentCommand === '!disablecom')) {
 				return this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
 			}
 			// If modifying volume
