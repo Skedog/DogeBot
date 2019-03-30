@@ -160,6 +160,7 @@ function monitorWhispers() {
 async function callCommandFromChat(props) {
 	try {
 		await chat.isChannelMonitorOnly(props);
+		await chat.isUserIgnored(props);
 		// This checks permission level as well as command existence
 		props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 		await chat.isCommandEnabled(props);

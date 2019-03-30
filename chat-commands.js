@@ -393,6 +393,21 @@ class Chat {
 		}
 	}
 
+	async isUserIgnored(props) {
+		const userToCheck = props.userstate.username;
+		const propsForSelect = {
+			table: 'ignoredusers'
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			for (let x = 0; x < results.length; x++) {
+				if (results[x].ChannelName.toLowerCase() === '#' + userToCheck) {
+					throw new Error('User has been ignored');
+				}
+			}
+		}
+	}
+
 	async isCommandEnabled(props) {
 		const channelToCheck = props.channel;
 		const propsForSelect = {
