@@ -189,15 +189,23 @@ class Commands {
 		props.ignoreMessageParamsForUserString = true;
 		const commandExistence = await this.doesUserAddedCommandExist(props);
 		if (commandExistence) {
-			const dataToUse = {};
-			dataToUse.isEnabled = true;
-			const propsForUpdate = {
+			const propsForSelect = {
 				table: 'commands',
-				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
-				dataToUse
+				query: {trigger: props.messageParams[2].toLowerCase()}
 			};
-			await database.update(propsForUpdate);
-			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been enabled!';
+			props.results = await database.select(propsForSelect);
+			if (props.results) {
+				const aliasResults = await this.getAliasedUserAddedCommand(props, props.results);
+				const dataToUse = {};
+				dataToUse.isEnabled = true;
+				const propsForUpdate = {
+					table: 'commands',
+					query: {channel: props.channel, trigger: aliasResults[0].trigger},
+					dataToUse
+				};
+				await database.update(propsForUpdate);
+				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been enabled!';
+			}
 		}
 		// Command wasn't a user added command, check if it is a default command
 		const propsForSelect = {
@@ -206,7 +214,7 @@ class Commands {
 		};
 		props.results = await database.select(propsForSelect);
 		if (props.results) {
-			const aliasResults = await this.getAliasedDefaultCommand(props.results, props.results);
+			const aliasResults = await this.getAliasedDefaultCommand(props, props.results);
 			const propsForUpdate = {
 				table: 'defaultCommands',
 				query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
@@ -222,15 +230,23 @@ class Commands {
 		props.ignoreMessageParamsForUserString = true;
 		const commandExistence = await this.doesUserAddedCommandExist(props);
 		if (commandExistence) {
-			const dataToUse = {};
-			dataToUse.isEnabled = false;
-			const propsForUpdate = {
+			const propsForSelect = {
 				table: 'commands',
-				query: {channel: props.channel, trigger: props.messageParams[2].toLowerCase()},
-				dataToUse
+				query: {trigger: props.messageParams[2].toLowerCase()}
 			};
-			await database.update(propsForUpdate);
-			return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been disabled!';
+			props.results = await database.select(propsForSelect);
+			if (props.results) {
+				const aliasResults = await this.getAliasedUserAddedCommand(props, props.results);
+				const dataToUse = {};
+				dataToUse.isEnabled = false;
+				const propsForUpdate = {
+					table: 'commands',
+					query: {channel: props.channel, trigger: aliasResults[0].trigger},
+					dataToUse
+				};
+				await database.update(propsForUpdate);
+				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been disabled!';
+			}
 		}
 		// Command wasn't a user added command, check if it is a default command
 		const propsForSelect = {
@@ -239,7 +255,7 @@ class Commands {
 		};
 		props.results = await database.select(propsForSelect);
 		if (props.results) {
-			const aliasResults = await this.getAliasedDefaultCommand(props.results, props.results);
+			const aliasResults = await this.getAliasedDefaultCommand(props, props.results);
 			const propsForUpdate = {
 				table: 'defaultCommands',
 				query: {trigger: aliasResults[0].trigger, permissionsPerChannel: {$elemMatch: {channel: props.channel}}},
@@ -404,6 +420,18 @@ class Commands {
 				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' permissions have been updated!';
 			}
 		}
+	}
+
+	async getAliasedUserAddedCommand(props, results) {
+		if (results[0].isAlias) {
+			const propsForSelect = {
+				table: 'commands',
+				query: {trigger: results[0].aliasFor}
+			};
+			const newResults = await database.select(propsForSelect);
+			return this.getAliasedUserAddedCommand(props, newResults);
+		}
+		return results;
 	}
 
 	async getAliasedDefaultCommand(props, results) {
