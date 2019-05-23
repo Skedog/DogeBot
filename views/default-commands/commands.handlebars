@@ -4,6 +4,8 @@
 		<p>Returns a link to the user added commands for the channel, or modifies the channels commands.</p>
 		<h3>Permissions</h3>
 		<p>The default permission level for <code>!commands</code> is set to <code>everyone</code>. However, the permission level for the ability to modify the command list is set to <code>mods and above</code>.</p>
+		<h3>Variables</h3>
+		<p>You can use variables such as <code>$(touser)</code>, <code>$(counter)</code>, <code>$(query)</code>, and <code>$(list)</code> to make the bot's responses dynamic.</p>
 		<h3>Examples</h3>
 		<blockquote>
 			<h4>!commands</h4>
@@ -15,6 +17,12 @@
 			<p><strong>Modded User: </strong>!commands add !testcommand text</p>
 			<p><strong>DogeBot: </strong>@user -> The command !testcommand has been added!</p>
 			<p><small>You can use the shorthand <code>!addcom !command text</code></small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!commands add !command $(query)</h4>
+			<p><strong>Modded User: </strong>!commands add !testcommand This is what you said: $(query)</p>
+			<p><strong>DogeBot: </strong>@user -> The command !testcommand has been added!</p>
+			<p><small>You can use the shorthand <code>!addcom !command $(query)</code></small></p>
 		</blockquote>
 		<blockquote>
 			<h4>!commands addalias !newcommand !commandtoalias</h4>
