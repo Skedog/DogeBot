@@ -359,6 +359,9 @@ class Chat {
 				messageToSend = props.messageParams[1] ?
 					messageToSend.replace('$(touser)', props.messageParams[1]).replace('$(user)', props.messageParams[1]) :
 					messageToSend.replace('$(touser)', props.userstate['display-name']).replace('$(user)', props.userstate['display-name']);
+				const fullUserMessage = props.messageParams.slice(1, props.messageParams.length).join(' ');
+				messageToSend = messageToSend.replace('$(query)', fullUserMessage);
+				messageToSend = messageToSend.replace('$(fullquery)', fullUserMessage);
 				return messageToSend;
 			}
 		} catch (err) {
