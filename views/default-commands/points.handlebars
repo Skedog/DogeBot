@@ -1,13 +1,26 @@
 <div class="inner-content-wrapper">
 	<section class="content">
 		<h1><i class="fa fa-magic"></i> !points</h1>
-		<p>Returns the number of loyalty points the user running the command has.</p>
+		<p>Returns the number of loyalty points the user running the command has, or modifies a users points.</p>
 		<h3>Permissions</h3>
 		<p>The default permission level for <code>!points</code> is set to <code>everyone</code>.</p>
-		<h3>Example</h3>
+		<h3>Examples</h3>
 		<blockquote>
+			<h4>!points</h4>
 			<p><strong>User: </strong>!points</p>
 			<p><strong>DogeBot: </strong>@user -> You currently have 437 points!</p>
+		</blockquote>
+		<blockquote>
+			<h4>!points gift testUser 1</h4>
+			<p><strong>User: </strong>!points gift testUser 1</p>
+			<p><strong>DogeBot: </strong>User sent testUser 1 point(s)!</p>
+			<p><small>You can use <code>gift</code> or <code>add</code></small></p>
+		</blockquote>
+		<blockquote>
+			<h4>!points take testUser 1</h4>
+			<p><strong>Modded User: </strong>!points take testUser 1</p>
+			<p><strong>DogeBot: </strong>@user -> Removed 1 point(s) from testUser!</p>
+			<p><small>You can use <code>take</code> or <code>remove</code></small></p>
 		</blockquote>
 		<p><a href="/default-commands">&larr; Back to Default Commands</a></p>
 	</section>

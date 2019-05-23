@@ -10,8 +10,8 @@ class Points {
 			case 'add':
 			case 'gift':
 				return this.addPoints(props);
-			case 'take':
 			case 'remove':
+			case 'take':
 				return this.takePoints(props);
 			default:
 				return this.getUserPoints(props);

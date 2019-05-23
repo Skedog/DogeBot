@@ -483,3 +483,9 @@ it('test !points gift ygtskedogtest 1', async function() {
 	userstate.username = 'dogebot';
 	userstate['display-name'] = 'dogebot';
 });
+
+it('test !points remove ygtskedogtest 1', async function() {
+	props.messageParams = ['!points','remove','ygtskedogtest','1'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('Removed 1 point(s) from ygtskedogtest!');
+});
