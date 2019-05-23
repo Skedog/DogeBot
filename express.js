@@ -223,7 +223,7 @@ async function setupRoutes() {
 		const err = new Error('Not Found');
 		err.status = 401;
 		res.status(err.status || 401);
-		console.log('Error while trying to log someone in: ' + req.query.error + ': ' + req.query.errorDesc);
+		console.log('Error while trying to log someone in: ' + req.query.passedError + ': ' + req.query.errorDesc);
 		res.render('error.handlebars', {
 			message: req.query.errorDesc,
 			status: err.status,
@@ -244,7 +244,6 @@ async function setupRoutes() {
 			uri: 'https://api.twitch.tv/kraken/user/?oauth_token=' + token,
 			json: true
 		};
-		console.log('options: ' + JSON.stringify(options));
 		return rp(options).then(async body => {
 			const props = {
 				userEmail: body.email,
@@ -253,9 +252,8 @@ async function setupRoutes() {
 				ChannelName: body.name,
 				token
 			};
-			console.log('props: ' + JSON.stringify(props));
 			const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
-			console.log('userDetails: ' + userDetails);
+			console.log('channel logging in: ' + props.ChannelName);
 			// Set the userDetails as a session
 			req.session.userDetails = userDetails;
 			const returnVal = await expressFunctions.handleLogin(props);

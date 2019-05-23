@@ -25,19 +25,19 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 						window.location.assign('/dashboard');
 					}
 				} else {
-					window.location.assign('/error?error=loginFailed&errorDesc=An&nbsp;error&nbsp;occurred&nbsp;in&nbsp;/handlelogin');
+					window.location.assign('/error?passedError=loginFailed&errorDesc=An&nbsp;error&nbsp;occurred&nbsp;in&nbsp;/handlelogin');
 				};
 			}
 		});
 	} else {
-		var error = getUrlVars()['error'];
-		if (error == undefined) {
+		var urlError = getUrlVars()['urlError'];
+		if (urlError == undefined) {
 			Twitch.login({
 				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions']
 			});
 		} else {
 			var errorDesc = getUrlVars()['error_description'];
-			window.location.assign('/error?error=' + error + '&errorDesc=' + errorDesc);
+			window.location.assign('/error?passedError=' + urlError + '&errorDesc=' + errorDesc);
 		}
 	};
 });
