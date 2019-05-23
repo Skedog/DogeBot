@@ -1,6 +1,7 @@
 const database = require('./database.js');
 const functions = require('./functions.js');
 const messages = require('./chat-messages.js');
+const permissions = require('./permissions.js');
 
 class Points {
 
@@ -9,6 +10,9 @@ class Points {
 			case 'add':
 			case 'gift':
 				return this.addPoints(props);
+			case 'take':
+			case 'remove':
+				return this.takePoints(props);
 			default:
 				return this.getUserPoints(props);
 		}
@@ -70,6 +74,82 @@ class Points {
 		}
 	}
 
+	async getPointsModerationPermissionLevel(props) {
+		const sentCommand = props.messageParams[0].toLowerCase();
+		const propsForSelect = {
+			table: 'defaultCommands',
+			query: {trigger: sentCommand}
+		};
+		const results = await database.select(propsForSelect);
+		if (results) {
+			props.permissionLevelNeeded = await permissions.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
+			return permissions.canUserCallCommand(props);
+		}
+		throw new Error('Failed to get moderation permissions level of !points command for removing points');
+	}
+
+	// Handles removing points from !points remove user numberOfPoints
+	async takePoints(props) {
+		try {
+			const amountOfPointsToRemove = parseInt(props.messageParams[3], 10);
+			props.ignoreMessageParamsForUserString = true;
+			const userStr = functions.buildUserString(props);
+			const canUserCall = await this.getPointsModerationPermissionLevel(props);
+			const userToRemovePointsFrom = props.messageParams[2].replace('@', '').toLowerCase();
+			const propsForSelect = {
+				table: 'chatusers',
+				query: {userName: userToRemovePointsFrom, channel: props.channel}
+			};
+			const results = await database.select(propsForSelect);
+			if (canUserCall && amountOfPointsToRemove > 0 && results) {
+				const dataToUse = {};
+				if (results[0].loyaltyPoints >= amountOfPointsToRemove) {
+					dataToUse.loyaltyPoints = (results[0].loyaltyPoints - amountOfPointsToRemove);
+				} else {
+					dataToUse.loyaltyPoints = 0;
+				}
+				const propsForUpdate = {
+					table: 'chatusers',
+					query: {userName: userToRemovePointsFrom, channel: props.channel},
+					dataToUse
+				};
+				await database.update(propsForUpdate);
+				return userStr + 'Removed ' + amountOfPointsToRemove + ' point(s) from ' + userToRemovePointsFrom + '!';
+			} else if (!results) {
+				return userStr + 'User "' + userToRemovePointsFrom + '" does not exist!';
+			}
+		} catch (err) {
+			throw err;
+		}
+	}
+
+	// Handles removing points from calling commands that have a "cost"
+	async removePoints(props) {
+		if (props.pointsToRemove > 0) {
+			const propsForSelect = {
+				table: 'chatusers',
+				query: {userName: props.userstate.username, channel: props.channel}
+			};
+			const results = await database.select(propsForSelect);
+			if (results) {
+				const dataToUse = {};
+				if (results[0].loyaltyPoints >= props.pointsToRemove) {
+					dataToUse.loyaltyPoints = (results[0].loyaltyPoints - props.pointsToRemove);
+				} else {
+					dataToUse.loyaltyPoints = 0;
+				}
+				const propsForUpdate = {
+					table: 'chatusers',
+					query: {userName: props.userstate.username, channel: props.channel},
+					dataToUse
+				};
+				await database.update(propsForUpdate);
+				return;
+			}
+			throw new Error('failed trying to remove ' + props.pointsToRemove + ' points from ' + props.userstate.username);
+		}
+	}
+
 	async commandPointCost(props) {
 		const sentCommand = props.messageParams[0].toLowerCase();
 		let propsForSelect;
@@ -124,28 +204,6 @@ class Points {
 		props.messageToSend = userStr + 'You don\'t have enough points to call ' + props.messageParams[0].toLowerCase() + ', please try again later!';
 		messages.send(props);
 		throw new Error('not enough points');
-	}
-
-	async removePoints(props) {
-		if (props.pointsToRemove > 0) {
-			const propsForSelect = {
-				table: 'chatusers',
-				query: {userName: props.userstate.username, channel: props.channel}
-			};
-			const results = await database.select(propsForSelect);
-			if (results) {
-				const dataToUse = {};
-				dataToUse.loyaltyPoints = (results[0].loyaltyPoints - props.pointsToRemove);
-				const propsForUpdate = {
-					table: 'chatusers',
-					query: {userName: props.userstate.username, channel: props.channel},
-					dataToUse
-				};
-				await database.update(propsForUpdate);
-				return;
-			}
-			throw new Error('failed trying to remove ' + props.pointsToRemove + ' points from ' + props.userstate.username);
-		}
 	}
 
 	async getUserPointCount(props) {
