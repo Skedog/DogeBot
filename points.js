@@ -248,6 +248,7 @@ class Points {
 	async gamble(props) {
 		props.ignoreMessageParamsForUserString = true;
 		let userPoints = await this.getUserPointCount(props);
+		userPoints = Math.floor(userPoints);
 		let amountToGamble = 0;
 		if (!isNaN(props.messageParams[1])) {
 			amountToGamble = props.messageParams[1];
@@ -273,7 +274,7 @@ class Points {
 				};
 				await database.update(propsForUpdate);
 				let userPoints = await this.getUserPointCount(props);
-				return 'Congrats! You won ' + amountToGamble + ' points, taking you to a total of ' + userPoints + '!';
+				return 'Congrats! You won ' + amountToGamble + ' points, taking you to a total of ' + Math.floor(userPoints) + '!';
 			} else {
 				const propsForUpdate = {
 					table: 'chatusers',
@@ -285,10 +286,10 @@ class Points {
 				if (userPoints === 0) {
 					return 'Hahaha! You lost all your points!';
 				}
-				return 'Hahaha! You lost ' + amountToGamble + ' points, leaving you with a measly ' + userPoints + '!';
+				return 'Hahaha! You lost ' + amountToGamble + ' points, leaving you with a measly ' + Math.floor(userPoints) + '!';
 			}
 		}
-		return functions.buildUserString(props) + 'You don\'t have enough points to do that! You have ' + userPoints + ' points!';
+		return functions.buildUserString(props) + 'You don\'t have enough points to do that! You have ' + Math.floor(userPoints) + ' points!';
 	}
 }
 
