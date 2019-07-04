@@ -793,7 +793,7 @@ class Songs {
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['added']);
 			return await this.buildMessageToSendForAddSong(props) + '!';
 		} catch (err) {
-			return await functions.buildUserString(props) + err;
+			return await functions.buildUserString(props) + err + '!';
 		}
 	}
 
@@ -850,6 +850,7 @@ class Songs {
 	async requestCommaListOfSongs(props) {
 		props.ignoreMessageParamsForUserString = true;
 		props.songStatusArray = [];
+		let numberOfSongsNotFound = 0;
 		for (let x = 0; x <= props.songsToAdd.length - 1; x++) {
 			try {
 				const youTubeID = await this.getYouTubeVideoIDFromChatMessage(props.songsToAdd[x]);
@@ -859,6 +860,8 @@ class Songs {
 					break;
 				}
 			} catch (err) {
+				// This is only hit if there is a problem finding a song that was requested
+				numberOfSongsNotFound++;
 				console.log(err);
 				break;
 			}
@@ -866,6 +869,12 @@ class Songs {
 		await cache.del(props.channel + 'songlist');
 		await cache.del(props.channel + 'songcache');
 		socket.io.in(functions.stripHash(props.channel)).emit('songs', ['added']);
+		if (numberOfSongsNotFound > 0) {
+			if (numberOfSongsNotFound === 1) {
+				return await this.buildMessageToSendForAddSong(props) + ', and ' + numberOfSongsNotFound + ' song was not found!';
+			}
+			return await this.buildMessageToSendForAddSong(props) + ', and ' + numberOfSongsNotFound + ' songs were not found!';
+		}
 		return await this.buildMessageToSendForAddSong(props) + '!';
 	}
 
