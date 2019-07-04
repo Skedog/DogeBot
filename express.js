@@ -481,6 +481,7 @@ async function setupRoutes() {
 		'firstseen',
 		'followage',
 		'game',
+		'gamble',
 		'giveaway',
 		'lastseen',
 		'lastsong',
