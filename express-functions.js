@@ -134,6 +134,7 @@ async function createChannel(props) {
 	dataToUse.ChannelCountry = 'US';
 	dataToUse.lastSong = 'No previous song found, try requesting some music with !sr';
 	dataToUse.timedMessages = [];
+	dataToUse.currentlyLive = false;
 	dataToUse.monitorOnly = false; // This is only used via whisper/admin commands to monitor a channel's chat
 	const propsForAdd = {
 		table: 'channels',

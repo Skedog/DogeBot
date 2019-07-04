@@ -73,6 +73,14 @@ function buildUserString(props) {
 	return userStr;
 }
 
+function chunkArray(myArray, chunkSize) {
+	const results = [];
+	while (myArray.length) {
+		results.push(myArray.splice(0, chunkSize));
+	}
+	return results;
+}
+
 module.exports = {
 	isNumber,
 	getRandomItemFromArray,
@@ -81,5 +89,6 @@ module.exports = {
 	generateListOfRandomNumbers,
 	getRandomInt,
 	buildUserString,
-	stripHash
+	stripHash,
+	chunkArray
 };

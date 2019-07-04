@@ -36,6 +36,21 @@ async function getListOfJoinedChannels() {
 	return channelArray;
 }
 
+async function getListOfJoinedChannelIDs() {
+	const props = {
+		table: 'channels',
+		query: {inChannel: true}
+	};
+	const channels = await database.select(props);
+	const channelArray = [];
+	for (const channel of channels) {
+		if (channel.ChannelName !== '#ygtskedogtest') {
+			channelArray.push('user_id=' + channel.twitchUserID);
+		}
+	}
+	return channelArray;
+}
+
 async function connectToTwitch() {
 	dbConstants = await database.constants();
 	const channelsToJoin = await getListOfJoinedChannels();
@@ -280,25 +295,80 @@ async function handleLoyalty(channel) {
 }
 
 async function checkIfChannelIsLive(channel) {
-	let URLtoUse;
-	if (constants.testMode) {
-		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchTestClientID;
-	} else {
-		URLtoUse = 'https://api.twitch.tv/kraken/streams/' + channel + '?client_id=' + dbConstants.twitchClientID;
-	}
-	const options = {
-		uri: URLtoUse,
-		json: true
+	const propsForSelect = {
+		table: 'channels',
+		query: {ChannelName: '#' + channel}
 	};
-	return rp(options).then(body => {
-		if (body.stream !== null) {
-			return true;
+	const results = await database.select(propsForSelect);
+	if (results) {
+		return results[0].currentlyLive;
+	}
+}
+
+async function getAllLiveChannels() {
+	const liveChannels = [];
+	if (!constants.testMode) {
+		const joinedChannels = await getListOfJoinedChannelIDs();
+		// Chunk the channels into limited arrays because the Twitch API has a limit of 100 per request
+		const chunkedChannels = functions.chunkArray(joinedChannels, 99);
+		const options = {
+			headers: {
+				'Client-ID': dbConstants.twitchTestClientID
+			}
+		};
+		for (let i = chunkedChannels.length - 1; i >= 0; i--) {
+			const channeList = chunkedChannels[i].join('&');
+			options.uri = 'https://api.twitch.tv/helix/streams?' + channeList;
+			await rp(options).then(returnedBody => {
+				const currentLiveChannels = JSON.parse(returnedBody);
+				if (currentLiveChannels.data.length > 0) {
+					for (let x = currentLiveChannels.data.length - 1; x >= 0; x--) {
+						liveChannels.push(parseInt(currentLiveChannels.data[x].user_id, 10));
+					}
+				}
+			}).catch(err => {
+				console.log('Error with getting live channels: ' + err);
+			});
 		}
-		return false;
-	}).catch(err => {
-		log.error('checkIfChannelIsLive(' + channel + ') produced an error: ' + err);
-		return false;
-	});
+	}
+	return liveChannels;
+}
+
+async function setLiveChannels(liveChannels) {
+	let dataToUse = {};
+	let propsForUpdate = {};
+	if (liveChannels.length > 0) {
+		dataToUse = {
+			currentlyLive: true
+		};
+		propsForUpdate = {
+			table: 'channels',
+			query: {twitchUserID: {$in: liveChannels}},
+			dataToUse
+		};
+		await database.updateall(propsForUpdate);
+		// Mark all channels not LIVE that are not in liveChannels array
+		dataToUse = {
+			currentlyLive: false
+		};
+		propsForUpdate = {
+			table: 'channels',
+			query: {twitchUserID: {$nin: liveChannels}},
+			dataToUse
+		};
+		await database.updateall(propsForUpdate);
+	} else if (!constants.testMode) {
+		// No live channels, set all channels to currentlyLive: false
+		dataToUse = {
+			currentlyLive: false
+		};
+		propsForUpdate = {
+			table: 'channels',
+			query: {},
+			dataToUse
+		};
+		await database.updateall(propsForUpdate);
+	}
 }
 
 async function getCurrentChatUsers(channel) {
@@ -328,6 +398,11 @@ async function start() {
 		monitorChat();
 		monitorWhispers();
 		monitorUsersInChat();
+		// Setup timer for checking which channels are live
+		this.checkLiveChannelsInterval = setInterval(async () => {
+			const liveChannels = await getAllLiveChannels();
+			await setLiveChannels(liveChannels);
+		}, 60000); // 1 minute
 		log.info('Now monitoring Twitch chat, whispers, and users');
 	} catch (err) {
 		throw err;
