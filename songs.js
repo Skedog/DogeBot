@@ -734,7 +734,8 @@ class Songs {
 				if (numberOfAddedSongs === 1) {
 					// Only one song requested, and added
 					const numberOfSongsInQueue = await this.getNumberOfSongsInQueue(props);
-					return userStr + 'The song ' + props.YTData[0].songTitle + ' has been added to the queue as #' + numberOfSongsInQueue;
+					const amountOfTimeInQueue = await this.getTimeInQueue(props);
+					return userStr + 'The song ' + props.YTData[0].songTitle + ' has been added to the queue as #' + numberOfSongsInQueue + '! It will be about ' + amountOfTimeInQueue + ' until it plays';
 				}
 				// More than one song requested, and all added
 				return userStr + numberOfAddedSongs + ' songs added';
@@ -912,6 +913,37 @@ class Songs {
 			return results.length;
 		}
 		return 0;
+	}
+
+	async getTimeInQueue(props) {
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel: props.channel}
+		};
+		const results = await database.select(propsForSelect);
+		let totalTime = 0;
+		if (results) {
+			for (const song in results) {
+				let minutes;
+				if (props.songToAdd !== results[song].songID) {
+					const songLength = results[song].songLength;
+					if ((songLength.includes('H') || songLength.includes('M'))) {
+						minutes = songLength.replace('H', ' ').split('M');
+						minutes = minutes[0].split(' ');
+						minutes = minutes[0].replace('PT', '');
+					} else if (songLength !== 'PT0S') {
+						minutes = 0;
+					}
+					totalTime = totalTime + parseInt(minutes, 10);
+				}
+			}
+		}
+		if (totalTime > 60) {
+			totalTime = (totalTime/60).toFixed(2) + ' hours'
+		} else {
+			totalTime = totalTime + ' minutes'
+		}
+		return totalTime;
 	}
 
 	async getNumberOfSongsInQueuePerUser(props) {
