@@ -489,3 +489,36 @@ it('test !points remove ygtskedogtest 1', async function() {
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('Removed 1 point(s) from ygtskedogtest!');
 });
+
+it('test !gamble 0', async function() {
+	props.messageParams = ['!gamble','0'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('Please pick a number of points greater than 0 to gamble, or use !gamble all');
+});
+
+it('test !gamble -10', async function() {
+	props.messageParams = ['!gamble','-10'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('Please pick a number of points greater than 0 to gamble, or use !gamble all');
+});
+
+it('test !gamble 10', async function() {
+	props.messageParams = ['!gamble','10'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('You don\'t have enough points to do that!');
+});
+
+it('test !gamble 50', async function() {
+
+	// Set these to be the 'channel owner' to test a 'success' case
+	userstate.username = 'ygtskedogtest';
+	userstate['display-name'] = 'ygtskedogtest';
+
+	props.messageParams = ['!gamble','50'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string(' points, ');
+
+	// Reset this to 'default' for future tests
+	userstate.username = 'dogebot';
+	userstate['display-name'] = 'dogebot';
+});

@@ -302,6 +302,8 @@ class Chat {
 					return await giveaway.call(props);
 				case '!points':
 					return await points.call(props);
+				case '!gamble':
+					return await points.gamble(props);
 				default:
 					throw new Error('missing a break; inside switch for callDefaultCommand!');
 			}

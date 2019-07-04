@@ -244,6 +244,52 @@ class Points {
 		}
 		return functions.buildUserString(props) + 'You currently have ' + Math.floor(numberOfPoints) + ' points!';
 	}
+
+	async gamble(props) {
+		props.ignoreMessageParamsForUserString = true;
+		let userPoints = await this.getUserPointCount(props);
+		let amountToGamble = 0;
+		if (!isNaN(props.messageParams[1])) {
+			amountToGamble = props.messageParams[1];
+		} else if (props.messageParams[1] === 'all') {
+			amountToGamble = userPoints;
+		} else {
+			return functions.buildUserString(props) + 'Please pick a number of points to gamble, or use !gamble all';
+		}
+		if (userPoints === 0 && props.messageParams[1] === 'all') {
+			return functions.buildUserString(props) + 'You don\'t have any points to gamble!';
+		}
+		if (amountToGamble <= 0 && props.messageParams[1] !== 'all') {
+			return functions.buildUserString(props) + 'Please pick a number of points greater than 0 to gamble, or use !gamble all';
+		}
+		if (userPoints >= amountToGamble) {
+			const randomNumber = functions.getRandomInt(1,100);
+			// set the win percentage here
+			if (randomNumber >= 60) {
+				const propsForUpdate = {
+					table: 'chatusers',
+					query: {userName: props.userstate.username, channel: props.channel},
+					inc: {loyaltyPoints: Number(amountToGamble)}
+				};
+				await database.update(propsForUpdate);
+				let userPoints = await this.getUserPointCount(props);
+				return 'Congrats! You won ' + amountToGamble + ' points, taking you to a total of ' + userPoints + '!';
+			} else {
+				const propsForUpdate = {
+					table: 'chatusers',
+					query: {userName: props.userstate.username, channel: props.channel},
+					inc: {loyaltyPoints: Number(amountToGamble * -1)}
+				};
+				await database.update(propsForUpdate);
+				let userPoints = await this.getUserPointCount(props);
+				if (userPoints === 0) {
+					return 'Hahaha! You lost all your points!';
+				}
+				return 'Hahaha! You lost ' + amountToGamble + ' points, leaving you with a measly ' + userPoints + '!';
+			}
+		}
+		return functions.buildUserString(props) + 'You don\'t have enough points to do that! You have ' + userPoints + ' points!';
+	}
 }
 
 module.exports = new Points();
