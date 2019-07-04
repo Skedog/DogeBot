@@ -313,7 +313,7 @@ async function getAllLiveChannels() {
 		const chunkedChannels = functions.chunkArray(joinedChannels, 99);
 		const options = {
 			headers: {
-				'Client-ID': dbConstants.twitchTestClientID
+				'Client-ID': dbConstants.twitchClientID
 			}
 		};
 		for (let i = chunkedChannels.length - 1; i >= 0; i--) {
