@@ -210,7 +210,7 @@ class Points {
 		try {
 			let passedUser = props.messageParams[1];
 			if (passedUser) {
-				passedUser = passedUser.replace('@', '');
+				passedUser = passedUser.replace('@', '').toLowerCase();
 				const propsForSelect = {
 					table: 'chatusers',
 					query: {userName: passedUser, channel: props.channel}

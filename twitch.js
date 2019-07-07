@@ -378,7 +378,7 @@ async function getCurrentChatUsers(channel) {
 	};
 	return rp(options).then(body => {
 		if (body.chatters) {
-			return body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
+			return body.chatters.broadcaster + ',' + body.chatters.moderators + ',' + body.chatters.staff + ',' + body.chatters.admins + ',' + body.chatters.global_mods + ',' + body.chatters.viewers;
 		}
 		throw new Error('body from getCurrentChatUsers request was empty');
 	}).catch(err => {
