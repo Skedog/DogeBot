@@ -95,6 +95,41 @@ it('test !commands add, edit, permissions and delete', async function() {
 	expect(res).to.equal('@dogebot -> The command !testcommand has been deleted!');
 });
 
+it('test $(list) commands', async function() {
+	let res;
+
+	props.messageParams = ['!commands', 'add', '!testlistcommand', '$(list)'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> The command !testlistcommand has been added!');
+
+	props.messageParams = ['!testlistcommand', 'add', 'first list item'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> Added successfully as #1!');
+
+	props.messageParams = ['!testlistcommand', 'add', 'second list item'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> Added successfully as #2!');
+
+	props.messageParams = ['!testlistcommand', 'edit', '2', 'second list item edit'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> testlistcommand #2 has been updated!');
+
+	props.messageParams = ['!testlistcommand', 'delete', '2'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> testlistcommand #2 has been removed!');
+
+	props.messageParams = ['!testlistcommand', 'delete', '2'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> testlistcommand doesn\'t have a #2!');
+
+	props.messageParams = ['!testlistcommand', 'delete', '1'];
+	res = await chat.callCommand(props);
+	expect(res).to.equal('@dogebot -> You can\'t remove the last item in a list. You can however delete the command with !delcom !testlistcommand');
+
+	props.messageParams = ['!commands', 'delete', '!testlistcommand'];
+	res = await chat.callCommand(props);
+});
+
 it('test !regulars add and remove', async function() {
 	props.messageParams = ['!regulars', 'add', 'dogebot'];
 	res = await chat.callCommand(props);
