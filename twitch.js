@@ -192,8 +192,9 @@ async function callCommandFromChat(props) {
 		}
 	} catch (err) {
 		// Don't want to see an error for every message that isn't a command
-		if (!String(err).includes('Command doesn\'t exist')) {
-			log.error('Command was called and produced an error: ' + err);
+		// Also hide errors around 'ignored' users
+		if (!String(err).includes('Command doesn\'t exist') && !String(err).includes('has been ignored')) {
+			log.error('Command (' + props.messageParams + ') was called in ' + props.channel + ' by "' + props.userstate.username + '" and produced an error: ' + err);
 		}
 	}
 }
