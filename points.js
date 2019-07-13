@@ -250,8 +250,8 @@ class Points {
 		let userPoints = await this.getUserPointCount(props);
 		userPoints = Math.floor(userPoints);
 		let amountToGamble = 0;
-		if (!isNaN(props.messageParams[1])) {
-			amountToGamble = props.messageParams[1];
+		if (functions.isNumber(props.messageParams[1])) {
+			amountToGamble = parseInt(props.messageParams[1], 10);
 		} else if (props.messageParams[1] === 'all') {
 			amountToGamble = userPoints;
 		} else {
@@ -261,6 +261,9 @@ class Points {
 			return functions.buildUserString(props) + 'You don\'t have any points to gamble!';
 		}
 		if (amountToGamble <= 0 && props.messageParams[1] !== 'all') {
+			if (props.messageParams[1].includes('.')) {
+				return functions.buildUserString(props) + 'Please pick a whole number!';
+			}
 			return functions.buildUserString(props) + 'Please pick a number of points greater than 0 to gamble, or use !gamble all';
 		}
 		if (userPoints >= amountToGamble) {
@@ -282,13 +285,14 @@ class Points {
 				inc: {loyaltyPoints: Number(amountToGamble * -1)}
 			};
 			await database.update(propsForUpdate);
-			const userPoints = await this.getUserPointCount(props);
+			let userPoints = await this.getUserPointCount(props);
+			userPoints = Math.floor(userPoints);
 			if (userPoints === 0) {
 				return 'Hahaha! You lost all your points!';
 			}
-			return 'Hahaha! You lost ' + amountToGamble + ' points, leaving you with a measly ' + Math.floor(userPoints) + '!';
+			return 'Hahaha! You lost ' + amountToGamble + ' points, leaving you with a measly ' + userPoints + '!';
 		}
-		return functions.buildUserString(props) + 'You don\'t have enough points to do that! You have ' + Math.floor(userPoints) + ' points!';
+		return functions.buildUserString(props) + 'You don\'t have enough points to do that! You have ' + userPoints + ' points!';
 	}
 }
 
