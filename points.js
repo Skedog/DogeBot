@@ -9,6 +9,7 @@ class Points {
 		switch (props.messageParams[1]) {
 			case 'add':
 			case 'gift':
+			case 'give':
 				return this.addPoints(props);
 			case 'remove':
 			case 'take':
