@@ -408,8 +408,13 @@ class Songs {
 		props.shouldPromote = true;
 		const returnedMessage = await this.requestSongs(props);
 		if (returnedMessage.includes('has been added to the queue')) {
-			// Song was added to the queue, now call promote on it maybe?
-			const queuePosition = returnedMessage.substring(returnedMessage.lastIndexOf('#') + 1, returnedMessage.lastIndexOf('!'));
+			// Song was added to the queue, now call promote on it
+			const propsForSelect = {
+				table: 'songs',
+				query: {channel: props.channel}
+			};
+			const results = await database.select(propsForSelect);
+			const queuePosition = results.length;
 			const messageParams = ['!promote', queuePosition];
 			const fakeUserstate = [];
 			fakeUserstate['display-name'] = 'promotedfromweb';
@@ -924,8 +929,8 @@ class Songs {
 		let totalTime = 0;
 		if (results) {
 			for (const song in results) {
-				let minutes;
 				if (props.songToAdd !== results[song].songID) {
+					let minutes;
 					const songLength = results[song].songLength;
 					if ((songLength.includes('H') || songLength.includes('M'))) {
 						minutes = songLength.replace('H', ' ').split('M');
@@ -934,14 +939,14 @@ class Songs {
 					} else if (songLength !== 'PT0S') {
 						minutes = 0;
 					}
-					totalTime = totalTime + parseInt(minutes, 10);
+					totalTime += parseInt(minutes, 10);
 				}
 			}
 		}
 		if (totalTime > 60) {
-			totalTime = (totalTime/60).toFixed(2) + ' hours'
+			totalTime = (totalTime / 60).toFixed(2) + ' hours';
 		} else {
-			totalTime = totalTime + ' minutes'
+			totalTime += ' minutes';
 		}
 		return totalTime;
 	}
