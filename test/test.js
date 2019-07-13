@@ -419,6 +419,16 @@ it('test !wrongsong', async function() {
 	expect(res).to.have.string('has been removed');
 });
 
+it('test !srp', async function() {
+	this.timeout(5000);
+	props.messageParams = ['!srp', 'Buckethead Siege Engine'];
+	res = await chat.callCommand(props);
+	expect(res).to.have.string('has been added to the queue and has been promoted');
+	// Remove the song we just added to ensure the rest of the tests don't have problems
+	props.messageParams = ['!removesong', '2'];
+	tempRes = await chat.callCommand(props);
+});
+
 it('test !mute', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!mute'];

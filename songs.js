@@ -409,13 +409,8 @@ class Songs {
 		const returnedMessage = await this.requestSongs(props);
 		if (returnedMessage.includes('has been added to the queue')) {
 			// Song was added to the queue, now call promote on it
-			const propsForSelect = {
-				table: 'songs',
-				query: {channel: props.channel}
-			};
-			const results = await database.select(propsForSelect);
-			const queuePosition = results.length;
-			const messageParams = ['!promote', queuePosition];
+			// We can promote by the songID
+			const messageParams = ['!promote', props.dataToAdd.songID];
 			const fakeUserstate = [];
 			fakeUserstate['display-name'] = 'promotedfromweb';
 			const propsForPromote = {
