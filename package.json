@@ -1,6 +1,6 @@
 {
   "name": "DogeBot",
-  "version": "4.6.1",
+  "version": "4.6.2",
   "description": "DogeBot is a Twitch/Discord chat bot developed by Skedog!",
   "main": "app.js",
   "dependencies": {
@@ -29,7 +29,7 @@
   "devDependencies": {},
   "resolutions": {
     "sshpk": "1.13.2",
-    "lodash": "4.17.11"
+    "lodash": "4.17.13"
   },
   "scripts": {
     "test": "mocha"
