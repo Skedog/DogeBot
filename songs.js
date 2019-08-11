@@ -175,6 +175,9 @@ class Songs {
 			await database.update(propsForUpdate);
 			await cache.del(props.channel + 'songlist');
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['skipped', songToPassToEmit]);
+			if (!props.skipSocket) {
+				socket.io.in(functions.stripHash(props.channel)).emit('songs', ['twitchSkip', songToPassToEmit]);
+			}
 			const msgToSend = songTitle + ' has been skipped!';
 			return functions.buildUserString(props) + msgToSend;
 		}
@@ -439,7 +442,7 @@ class Songs {
 			}
 			const getPlaylistItemsByID = await promisify(youTube.getPlayListsItemsById);
 			const result = await getPlaylistItemsByID(props.playlistIDToRequest, 50);
-			if (props.playlistItems.length === 0) {
+			if (props.playlistItems.length === 0 && props.sendPlaylistMessage !== false) {
 				props.messageToSend = 'Gathering playlist data, please wait...';
 				await messages.send(props);
 			}

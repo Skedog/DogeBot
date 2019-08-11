@@ -138,6 +138,9 @@ async function loadNextSong(channel) {
 		channel = '#' + channel;
 	}
 	let dataToUse;
+	if (typeof player !== 'undefined') {
+		player.loadVideoById(null);
+	}
 	await $.ajax({
 		url: '/loadnextsong',
 		data: 'channel=' + channel,

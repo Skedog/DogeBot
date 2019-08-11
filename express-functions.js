@@ -1,6 +1,9 @@
 const database = require('./database.js');
 const twitch = require('./twitch.js');
 const cache = require('./cache.js');
+const songs = require('./songs.js');
+const functions = require('./functions.js');
+const chat = require('./chat-commands.js');
 
 // Middleware
 function checkIfUserIsLoggedIn(req, res, next) {
@@ -537,11 +540,63 @@ async function getFormattedSonglist(channel, page) {
 	return builtSonglist;
 }
 
+async function getSongFromDefaultPlaylist(channel, userData) {
+	if (userData.channelInfo[0].defaultPlaylist !== '') {
+		const cachedDefaultPlaylistItems = await cache.get(channel + 'cachedDefaultPlaylistItems');
+		if (cachedDefaultPlaylistItems) {
+			const singleSong = await functions.getRandomItemFromArray(cachedDefaultPlaylistItems);
+			return {songID: singleSong[1]};
+		}
+		const dbConstants = await database.constants();
+		const apiKey = dbConstants.YouTubeAPIKey;
+		const tempProps = {
+			messageParams: ['!pr', userData.channelInfo[0].defaultPlaylist]
+		};
+		const playlistID = await songs.getYouTubePlaylistIDFromChatMessage(tempProps);
+		const propsToSend = {
+			sendPlaylistMessage: false,
+			playlistIDToRequest: playlistID,
+			playlistItems: []
+		};
+		const listOfPlaylistItems = await songs.getPlaylistItems(propsToSend, apiKey);
+
+		const createdArray = [];
+		for (let x = 0; x < listOfPlaylistItems.length; x++) {
+			createdArray.push(listOfPlaylistItems[x].resourceId.videoId);
+		}
+		await cache.set(channel + 'cachedDefaultPlaylistItems', createdArray);
+		const singleSong = await functions.getRandomItemFromArray(createdArray);
+		return {songID: singleSong[1]};
+	}
+}
+
 async function getFirstSongFromSonglist(channel) {
 	channel = addHashToChannel(channel);
 	const songlist = await getSonglist(channel);
 	if (songlist) {
 		return songlist[0];
+	}
+}
+
+async function requestDefaultPlaylistSong(channel, userData) {
+	const singleSongToRequest = await getSongFromDefaultPlaylist(channel, userData);
+	if (singleSongToRequest !== undefined) {
+		const fakeUserState = {
+			username: 'DefaultPlaylist',
+			'display-name': 'DefaultPlaylist',
+			mod: true,
+			subscriber: false
+		};
+		const srProps = {
+			channel,
+			userstate: fakeUserState,
+			messageParams: ['!sr', singleSongToRequest.songID]
+		};
+		await chat.callCommand(srProps);
+		const songlist = await getSonglist(channel);
+		if (songlist) {
+			return songlist[0].songID;
+		}
 	}
 }
 
@@ -925,5 +980,6 @@ module.exports = {
 	checkPassedCommand,
 	addHashToChannel,
 	getStatsForStatsPage,
-	getTopChattersForStatsPage
+	getTopChattersForStatsPage,
+	requestDefaultPlaylistSong
 };

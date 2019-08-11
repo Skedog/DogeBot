@@ -147,9 +147,9 @@ async function setupRoutes() {
 
 	app.get('/player', [expressFunctions.checkIfUserIsLoggedIn], async (req, res) => {
 		const userData = await expressFunctions.getUserData(req);
+		const firstSongInSonglist = await expressFunctions.getFirstSongFromSonglist(userData.channel);
 		const formattedSonglist = await expressFunctions.getFormattedSonglist(userData.channel, 'player');
 		const formattedFirstSongInSonglist = await expressFunctions.getFormattedFirstSongFromSonglist(userData.channel);
-		const firstSongInSonglist = await expressFunctions.getFirstSongFromSonglist(userData.channel);
 		const currentVolume = userData.channelInfo[0].volume;
 		res.render('player', {userData, formattedSonglist, formattedFirstSongInSonglist, firstSongInSonglist, currentVolume});
 	});
@@ -334,6 +334,7 @@ async function setupRoutes() {
 		dataToUse.songNumberLimit = parseInt(req.body.songNumberLimit, 10);
 		dataToUse.maxSongLength = parseInt(req.body.maxSongLength, 10);
 		dataToUse.ChannelCountry = req.body.channelCountry;
+		dataToUse.defaultPlaylist = req.body.defaultPlaylist;
 		const propsForUpdate = {
 			table: 'channels',
 			query: {ChannelName: req.body.channel},
@@ -349,7 +350,8 @@ async function setupRoutes() {
 		const propsForSkip = {
 			channel: req.body.channel,
 			userstate: fakeUserstate,
-			messageParams: ['!skipsong']
+			messageParams: ['!skipsong'],
+			skipSocket: true
 		};
 		await songs.skip(propsForSkip);
 		const propsForSelect = {
@@ -359,6 +361,10 @@ async function setupRoutes() {
 		const songResults = await database.select(propsForSelect);
 		if (songResults) {
 			res.send(songResults[0].songID);
+		} else {
+			const userData = await expressFunctions.getUserData(req);
+			const songToReturn = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
+			res.send(songToReturn);
 		}
 	});
 

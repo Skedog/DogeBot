@@ -13,6 +13,9 @@ async function startSocket(socketURL, page, channelData, channelName) {
 	socket.on('songs', async function(data) {
 		if (data[0] === 'skipped') {
 			handleSkippedSocket(data, page, channelData);
+		} else if (data[0] === 'twitchSkip') {
+			const currentChannel = channelData.slice(8);
+			loadNextSong(currentChannel);
 		} else if (data[0] === 'volumeupdated') {
 			handleVolumeUpdatedSocket(data, page, channelData);
 		} else if (data[0] === 'statuschange') {
@@ -67,11 +70,6 @@ async function handleSkippedSocket(data, page, channelData) {
 		const formattedfirstsong = await loadSocketData(channelData, page, 'formattedfirstsong');
 		$('.currentsong').html(formattedfirstsong);
 	}
-	if (page === 'player' || page === 'moderation') {
-		if (typeof player !== 'undefined') {
-			player.loadVideoById(data[1]);
-		}
-	}
 }
 
 async function handleVolumeUpdatedSocket(data, page, channelData) {
@@ -118,6 +116,8 @@ async function handleSonglistChangeSocket(data, page, channelData) {
 			$('.currentsong').html('');
 			$('.currentvolume').html('');
 			$('.datatable tbody').html('<tr class="odd"><td colspan="4" class="tac">No songs in songlist!</td></tr>');
+			const currentChannel = channelData.slice(8);
+			loadNextSong(currentChannel);
 		};
 		const songToPlay = await loadSocketData(channelData, page, 'firstsonginsonglist');
 		if (typeof player !== 'undefined') {

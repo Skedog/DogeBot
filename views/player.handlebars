@@ -38,6 +38,9 @@ $(document).ready(function() {
 
 async function loadPlayer() {
 	let songlist;
+	if ('{{{firstSongInSonglist.songID}}}' === '') {
+		loadNextSong('{{userData.urlChannel}}');
+	}
 	player = new YT.Player('player', {
 		videoId: '{{{firstSongInSonglist.songID}}}',
 		events: {
