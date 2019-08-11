@@ -341,7 +341,10 @@ class Songs {
 				await database.update(propsForUpdate);
 				await cache.del(props.channel + 'songlist');
 				socket.io.in(functions.stripHash(props.channel)).emit('songs', ['promoted']);
-				return functions.buildUserString(props) + 'Song #' + indexToMove + ' has been promoted!';
+				if (functions.isNumber(indexToMove)) {
+					return functions.buildUserString(props) + 'Song #' + indexToMove + ' has been promoted!';
+				}
+				return functions.buildUserString(props) + 'Song "' + indexToMove + '" has been promoted!';
 			}
 		}
 	}
@@ -738,7 +741,10 @@ class Songs {
 					// Only one song requested, and added
 					const numberOfSongsInQueue = await this.getNumberOfSongsInQueue(props);
 					const amountOfTimeInQueue = await this.getTimeInQueue(props);
-					return userStr + 'The song ' + props.YTData[0].songTitle + ' has been added to the queue as #' + numberOfSongsInQueue + '! It will be about ' + amountOfTimeInQueue + ' until it plays';
+					if (amountOfTimeInQueue !== '0 minutes') {
+						return userStr + 'The song ' + props.YTData[0].songTitle + ' has been added to the queue as #' + numberOfSongsInQueue + '! It will be about ' + amountOfTimeInQueue + ' until it plays';
+					}
+					return userStr + 'The song ' + props.YTData[0].songTitle + ' has been added to the queue as #' + numberOfSongsInQueue;
 				}
 				// More than one song requested, and all added
 				return userStr + numberOfAddedSongs + ' songs added';

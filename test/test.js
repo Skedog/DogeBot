@@ -444,7 +444,7 @@ it('test !promote QeBaxc4Cglo', async function() {
 	this.timeout(5000);
 	props.messageParams = ['!promote','QeBaxc4Cglo'];
 	res = await chat.callCommand(props);
-	expect(res).to.have.string('@dogebot -> Song #QeBaxc4Cglo has been promoted!');
+	expect(res).to.have.string('@dogebot -> Song "QeBaxc4Cglo" has been promoted!');
 });
 
 it('test !wrongsong', async function() {
