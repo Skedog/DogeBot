@@ -229,7 +229,7 @@ class Points {
 			if (results) {
 				return results[0].loyaltyPoints;
 			}
-			throw new Error('failed to get points');
+			return 0;
 		} catch (err) {
 			throw err;
 		}
