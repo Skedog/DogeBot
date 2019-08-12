@@ -356,31 +356,33 @@ class Songs {
 		};
 		const results = await database.select(propsForSelect);
 		if (results) {
-			let songsToShuffle = '';
-			for (let i = 0; i < results.length; i++) {
-				if (results[i].sortOrder >= 200000) {
-					songsToShuffle = songsToShuffle + results[i]._id + ',';
+			if (results.length > 1) {
+				let songsToShuffle = '';
+				for (let i = 0; i < results.length; i++) {
+					if (results[i].sortOrder >= 200000) {
+						songsToShuffle = songsToShuffle + results[i]._id + ',';
+					}
 				}
+				songsToShuffle = songsToShuffle.substring(0, songsToShuffle.length - 1);
+				const arrayOfIDs = songsToShuffle.split(',');
+				const shuffledArray = await functions.shuffleArray(arrayOfIDs);
+				let i = 0;
+				for (const shuffledSongID of shuffledArray) {
+					const dataToUse = {};
+					dataToUse.sortOrder = parseInt((i + 2) + '00000', 10);
+					const propsForUpdate = {
+						table: 'songs',
+						query: {channel: props.channel, _id: objectId(shuffledSongID)},
+						dataToUse
+					};
+					await database.update(propsForUpdate);
+					i++;
+				}
+				const msgToSend = 'Songs shuffled!';
+				await cache.del(props.channel + 'songlist');
+				socket.io.in(functions.stripHash(props.channel)).emit('songs', ['shuffled']);
+				return functions.buildUserString(props) + msgToSend;
 			}
-			songsToShuffle = songsToShuffle.substring(0, songsToShuffle.length - 1);
-			const arrayOfIDs = songsToShuffle.split(',');
-			const shuffledArray = await functions.shuffleArray(arrayOfIDs);
-			let i = 0;
-			for (const shuffledSongID of shuffledArray) {
-				const dataToUse = {};
-				dataToUse.sortOrder = parseInt((i + 2) + '00000', 10);
-				const propsForUpdate = {
-					table: 'songs',
-					query: {channel: props.channel, _id: objectId(shuffledSongID)},
-					dataToUse
-				};
-				await database.update(propsForUpdate);
-				i++;
-			}
-			const msgToSend = 'Songs shuffled!';
-			await cache.del(props.channel + 'songlist');
-			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['shuffled']);
-			return functions.buildUserString(props) + msgToSend;
 		}
 	}
 
