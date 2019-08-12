@@ -175,7 +175,7 @@ class Songs {
 			await database.update(propsForUpdate);
 			await cache.del(props.channel + 'songlist');
 			socket.io.in(functions.stripHash(props.channel)).emit('songs', ['skipped', songToPassToEmit]);
-			if (!props.skipSocket) {
+			if (props.skipSocket === undefined) {
 				socket.io.in(functions.stripHash(props.channel)).emit('songs', ['twitchSkip', songToPassToEmit]);
 			}
 			const msgToSend = songTitle + ' has been skipped!';

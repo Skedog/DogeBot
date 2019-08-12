@@ -14,8 +14,13 @@ async function startSocket(socketURL, page, channelData, channelName) {
 		if (data[0] === 'skipped') {
 			handleSkippedSocket(data, page, channelData);
 		} else if (data[0] === 'twitchSkip') {
-			const currentChannel = channelData.slice(8);
-			loadNextSong(currentChannel);
+			if (page === 'player') {
+				const songlist = await loadSocketData(channelData, page, 'formattedsonglist');
+				if (songlist.length === 0) {
+					const currentChannel = channelData.slice(8);
+					loadNextSong(currentChannel);
+				}
+			}
 		} else if (data[0] === 'volumeupdated') {
 			handleVolumeUpdatedSocket(data, page, channelData);
 		} else if (data[0] === 'statuschange') {
@@ -62,6 +67,16 @@ async function handleSkippedSocket(data, page, channelData) {
 			$('.nosongs').hide();
 			const userData = await loadUserData(channelData);
 			updateOnScreenVolume(userData.channelInfo[0].volume);
+			const songToPlay = await loadSocketData(channelData, page, 'firstsonginsonglist');
+			if (typeof player !== 'undefined') {
+				if (player.getVideoData().video_id !== songToPlay.songID) {
+					player.loadVideoById(songToPlay.songID);
+				}
+			} else if (page === 'player') {
+				loadPlayer();
+			}
+			const formattedfirstsong = await loadSocketData(channelData, page, 'formattedfirstsong');
+			$('.currentsong').html(formattedfirstsong);
 		} else {
 			$('.currentsong').html('');
 			$('.currentvolume').html('');
