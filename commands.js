@@ -461,6 +461,7 @@ class Commands {
 		return permissionLevelsToReturn;
 	}
 
+	// This function is ONLY used for checking commands passed into a default command
 	async doesUserAddedCommandExist(props) {
 		if (props.messageParams[2]) {
 			const propsForSelect = {
@@ -469,6 +470,28 @@ class Commands {
 			};
 			const res = await database.select(propsForSelect);
 			if (res) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	async doesCommandExist(props) {
+		if (props.messageParams[0] !== '') {
+			const propsForDefaultCommands = {
+				table: 'defaultCommands',
+				query: {trigger: props.messageParams[0].toLowerCase()}
+			};
+			const defaultCommandRes = await database.select(propsForDefaultCommands);
+			if (defaultCommandRes) {
+				return true;
+			}
+			const propsForUserCommands = {
+				table: 'commands',
+				query: {channel: props.channel, trigger: props.messageParams[0].toLowerCase()}
+			};
+			const userCommandRes = await database.select(propsForUserCommands);
+			if (userCommandRes) {
 				return true;
 			}
 		}

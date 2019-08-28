@@ -130,7 +130,7 @@ async function leaveSingleChannel(channelToLeave) {
 }
 
 function monitorChat() {
-	twitchClient.on('chat', (channel, userstate, message, self) => {
+	twitchClient.on('chat', async (channel, userstate, message, self) => {
 		stats.addChatMessage(channel, userstate, message);
 		if (!self) {
 			const props = {
@@ -141,9 +141,11 @@ function monitorChat() {
 				statTableToUpdate: 'commandmessages',
 				statFieldToUpdate: 'numberOfCommandMessages'
 			};
-			if (commands.doesUserAddedCommandExist(props)) {
+			const doesCommandExist = await commands.doesCommandExist(props);
+			if (doesCommandExist) {
 				callCommandFromChat(props);
 			} else {
+				// If a command doesn't exist, we only update stats tables
 				const props = {
 					channel,
 					userstate,
@@ -184,6 +186,7 @@ async function callCommandFromChat(props) {
 		props.pointsToRemove = await points.commandPointCost(props);
 		await points.canUserCallCommand(props);
 		await points.removePoints(props);
+		// We only track stats on 'successful' command calls
 		stats.addCounterStat(props);
 		stats.updateUserCounter(props);
 		props.messageToSend = await chat.callCommand(props);
@@ -191,9 +194,10 @@ async function callCommandFromChat(props) {
 			messages.send(props);
 		}
 	} catch (err) {
-		// Don't want to see an error for every message that isn't a command
-		// Also hide errors around 'ignored' users
-		if (!String(err).includes('Command doesn\'t exist') && !String(err).includes('has been ignored')) {
+		// Hide errors around 'ignored' users and errors around channels in "monitor only mode"
+		// Note: We do not track number of failed command calls in stats
+		// Also: this should never be hit by non-existing commands, only things such as failed permissions or not enough points
+		if (!String(err).includes('has been ignored') && !String(err).includes('monitor only mode')) {
 			log.error('Command (' + props.messageParams + ') was called in ' + props.channel + ' by "' + props.userstate.username + '" and produced an error: ' + err);
 		}
 	}
