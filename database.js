@@ -42,7 +42,7 @@ class Database {
 			if (props.groupby === undefined) {
 				props.groupby = '';
 			}
-			const result = await module.exports.db.collection(props.table).aggregate([{"$match":props.query},{ "$group": props.groupby}]).sort(props.sortBy).toArray();
+			const result = await module.exports.db.collection(props.table).aggregate([{$match: props.query}, {$group: props.groupby}]).sort(props.sortBy).toArray();
 			if (result.length > 0) {
 				return result;
 			}

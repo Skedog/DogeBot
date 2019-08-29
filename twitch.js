@@ -103,7 +103,8 @@ async function joinSingleChannel(channelToJoin) {
 		const res = await database.update(propsForUpdate);
 		if (res === 'updated') {
 			log.info('Joined channel: ' + channelToJoin);
-			getCurrentChatUsers(channelToJoin.substring(1));
+			startTimedMessages(channelToJoin.substring(1));
+			startChatUserTracking(channelToJoin.substring(1));
 		}
 	} catch (err) {
 		log.info(err);
@@ -123,6 +124,8 @@ async function leaveSingleChannel(channelToLeave) {
 		const res = await database.update(propsForUpdate);
 		if (res === 'updated') {
 			log.info('Left channel: ' + channelToLeave);
+			stopTimedMessages(channelToLeave.substring(1));
+			stopChatUserTracking(channelToLeave.substring(1));
 		}
 	} catch (err) {
 		log.info(err);
@@ -265,6 +268,14 @@ async function startChatUserTracking(channel) {
 		}
 	}, 60000); // 1 minute
 	// }, 600000); // 10 minutes
+}
+
+async function stopTimedMessages(channel) {
+	clearInterval(this[channel + '_interval']);
+}
+
+async function stopChatUserTracking(channel) {
+	clearInterval(this[channel + '_interval_chatusers']);
 }
 
 async function handleLoyalty(channel) {
