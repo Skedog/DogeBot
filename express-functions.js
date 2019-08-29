@@ -786,7 +786,7 @@ async function getChatlog(channel, start, end, offset) {
 	};
 	const results = await database.select(propsForSelect);
 	if (results) {
-		await cache.set(cacheName, results);
+		await cache.set(cacheName, results, 60);
 	}
 	return results;
 }
