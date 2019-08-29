@@ -34,6 +34,24 @@ class Database {
 		}
 	}
 
+	async selectGroupBy(props) {
+		try {
+			if (props.sortBy === undefined) {
+				props.sortBy = {sortOrder: 1, _id: 1};
+			}
+			if (props.groupby === undefined) {
+				props.groupby = '';
+			}
+			const result = await module.exports.db.collection(props.table).aggregate([{"$match":props.query},{ "$group": props.groupby}]).sort(props.sortBy).toArray();
+			if (result.length > 0) {
+				return result;
+			}
+			return;
+		} catch (err) {
+			throw new Error(err);
+		}
+	}
+
 	async selectDistinct(props) {
 		try {
 			if (props.sortBy === undefined) {
