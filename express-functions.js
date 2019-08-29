@@ -800,7 +800,7 @@ function parseBadgesFromMessage(message) {
 		if (message.moderator) {
 			parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1" alt="Moderator" title="Moderator" />';
 		}
-		if (message.subscriber === '0') {
+		if (message.subscriber) {
 			parsedBadges += '<img src="https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1" alt="Subscriber" title="Subscriber" />';
 		}
 	}
