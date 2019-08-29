@@ -135,7 +135,7 @@ async function leaveSingleChannel(channelToLeave) {
 function monitorChat() {
 	twitchClient.on('chat', async (channel, userstate, message, self) => {
 		stats.addChatMessage(channel, userstate, message);
-		if (!self) {
+		if (!self && userstate.username !== 'dogebot') {
 			const props = {
 				channel,
 				messageParams: message.split(' '),
