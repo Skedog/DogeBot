@@ -353,7 +353,7 @@ async function getTopChatters(channel) {
 	}
 	const propsForSelect = {
 		table: 'chatusers',
-		query: {channel, userName: {$nin: ['skedogbot', 'dogebot']}},
+		query: {channel, userName: {$nin: ['skedogbot', 'dogebot']}, numberOfChatMessages: {$gt: 0}},
 		sortBy: {numberOfChatMessages: -1},
 		limit: 5
 	};
@@ -391,7 +391,7 @@ async function getTopChattersForStatsPage(channel) {
 	}
 	const propsForSelect = {
 		table: 'chatusers',
-		query: {channel, userName: {$nin: ['skedogbot', 'dogebot', origChannel]}},
+		query: {channel, userName: {$nin: ['skedogbot', 'dogebot', origChannel]}, numberOfChatMessages: {$gt: 0}},
 		sortBy: {numberOfChatMessages: -1},
 		limit: 50
 	};
