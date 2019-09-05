@@ -73,9 +73,13 @@ class API {
 	}
 
 	async getUserID(props) {
+		let channelToGet = props.channel;
+		if (!channelToGet.includes('#')) {
+			channelToGet = '#' + channelToGet.toLowerCase();
+		}
 		const propsForSelect = {
 			table: 'channels',
-			query: {ChannelName: props.channel}
+			query: {ChannelName: channelToGet}
 		};
 		const results = await database.select(propsForSelect);
 		if (results) {
@@ -111,8 +115,14 @@ class API {
 				return 'Error setting the game, try again in a few minutes!';
 			});
 		}
+		const userID = await this.getUserID(props);
 		const options = {
-			uri: 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID,
+			method: 'GET',
+			uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+			headers: {
+				'Client-ID': dbConstants.twitchClientID,
+				Accept: 'application/vnd.twitchtv.v5+json'
+			},
 			json: true
 		};
 		return rp(options).then(body => {
@@ -129,8 +139,17 @@ class API {
 	async getLastPlayedGame(channel) {
 		if (channel) {
 			const dbConstants = await database.constants();
+			const propsToPass = {
+				channel
+			};
+			const userID = await this.getUserID(propsToPass);
 			const options = {
-				uri: 'https://api.twitch.tv/kraken/channels/' + channel + '?client_id=' + dbConstants.twitchClientID,
+				method: 'GET',
+				uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+				headers: {
+					'Client-ID': dbConstants.twitchClientID,
+					Accept: 'application/vnd.twitchtv.v5+json'
+				},
 				json: true
 			};
 			return rp(options).then(body => {
@@ -169,8 +188,14 @@ class API {
 				return 'Error setting the title, try again in a few minutes!';
 			});
 		}
+		const userID = await this.getUserID(props);
 		const options = {
-			uri: 'https://api.twitch.tv/kraken/channels/' + props.channel.slice(1) + '?client_id=' + dbConstants.twitchClientID,
+			method: 'GET',
+			uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+			headers: {
+				'Client-ID': dbConstants.twitchClientID,
+				Accept: 'application/vnd.twitchtv.v5+json'
+			},
 			json: true
 		};
 		return rp(options).then(body => {
