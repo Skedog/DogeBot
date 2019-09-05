@@ -237,11 +237,15 @@ async function setupRoutes() {
 	app.post('/handlelogin', async (req, res) => {
 		// This whole post request is for handling initial logins
 		// Token comes from the Twitch API login request
-		console.log('got to /handlelogin');
 		const token = req.body.token;
 		req.session.token = token;
 		const options = {
+			method: 'GET',
 			uri: 'https://api.twitch.tv/kraken/user/?oauth_token=' + token,
+			headers: {
+				'Client-ID': dbConstants.twitchClientID,
+				Accept: 'application/vnd.twitchtv.v5+json'
+			},
 			json: true
 		};
 		return rp(options).then(async body => {
