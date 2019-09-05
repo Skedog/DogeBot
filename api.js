@@ -30,7 +30,7 @@ class API {
 		if (props.messageParams[1]) {
 			userToCheck = props.messageParams[1];
 		} else {
-			userToCheck = props.userstate['display-name'];
+			userToCheck = props.userstate['username'];
 		}
 		if (props.channel.slice(1) === userToCheck) {
 			return 'You can\'t follow your own channel!';
