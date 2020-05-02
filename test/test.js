@@ -193,12 +193,13 @@ it('test !winner', async function() {
 	expect(res).to.have.string(' ');
 });
 
-it('test !bf4stats YgTSkedog', async function() {
-	this.timeout(10000);
-	props.messageParams = ['!bf4stats', 'YgTSkedog'];
-	res = await chat.callCommand(props);
-	expect(res).to.have.string('YgTSkedog has played');
-});
+// This API is now dead
+// it('test !bf4stats YgTSkedog', async function() {
+// 	this.timeout(10000);
+// 	props.messageParams = ['!bf4stats', 'YgTSkedog'];
+// 	res = await chat.callCommand(props);
+// 	expect(res).to.have.string('YgTSkedog has played');
+// });
 
 it('test !8ball', async function() {
 	props.messageParams = ['!8ball'];
@@ -334,7 +335,7 @@ it('test !sr multi', async function() {
 
 it('test !sr multi fails', async function() {
 	this.timeout(10000);
-	props.messageParams = ['!sr', '8i-tonOhzSg,3pKGYqCK5yg,Jwux_c8cIQ8,z--CnoHrkds,KX8U8guRLSk,KX8U8guRlSk,kqUpnHEdjn0'];
+	props.messageParams = ['!sr', '6Gd87JmkAkE,8i-tonOhzSg,3pKGYqCK5yg,Jwux_c8cIQ8,z--CnoHrkds,KX8U8guRLSk,kqUpnHEdjn0'];
 	res = await chat.callCommand(props);
 	expect(res).to.have.string('@dogebot -> 1 song was added, but 1 song is too long, 2 songs already exist, 1 song was unavailable for playback in your country, 1 song was not allowed to be embedded, and 1 ID was invalid!');
 });
