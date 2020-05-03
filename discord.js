@@ -16,9 +16,16 @@ async function connect() {
 	const dbConstants = await database.constants();
 	discordClient.login(dbConstants.discordAPIKey);
 	discordClient.on('ready', () => {
-		schedule.scheduleJob('0 59 04 * * *', () => {
-			sendDailyReport();
-		});
+		// Apparently 'ready' can be called more than once
+		// Which was causing duplicate reports to be sent
+		// So now I check to ensure there is no scheduled
+		// Task before setting up a new one
+		if (Object.keys(schedule.scheduledJobs).length === 0) {
+			log.info('Setup scheduled task to send daily reports');
+			schedule.scheduleJob('0 59 04 * * *', () => {
+				sendDailyReport();
+			});
+		}
 	});
 }
 
