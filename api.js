@@ -255,6 +255,7 @@ class API {
 	}
 
 	async bf4stats(props) {
+		return 'This API is no longer supported, as the stats website has been shut down. See this: https://endof.p-stats.com/';
 		props.ignoreMessageParamsForUserString = true;
 		const plat = props.messageParams[2] ? props.messageParams[2] : 'pc';
 		const userToCheck = props.messageParams[1] ? props.messageParams[1] : props.userstate.username;
