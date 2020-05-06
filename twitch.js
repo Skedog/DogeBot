@@ -329,7 +329,7 @@ async function getAllLiveChannels() {
 		const chunkedChannels = functions.chunkArray(joinedChannels, 99);
 		const options = {
 			headers: {
-				Authorization: 'OAuth ' + dbConstants.twitchOauthPass,
+				Authorization: 'Bearer ' + dbConstants.twitchOauthPass,
 				'Client-ID': dbConstants.twitchClientID
 			}
 		};
