@@ -187,10 +187,9 @@ class API {
 				if (err.error.message === 'invalid oauth token') {
 					console.log('Error updating !title (' + props.channel + ') due to invalid oauth token.');
 					return 'Error setting the title, please login to https://thedogebot.com/login to refresh your session, and then try again!';
-				} else {
-					console.log('Error updating !title (' + props.channel + ') ' + err);
-					return 'Error setting the title, try again in a few minutes!';
 				}
+				console.log('Error updating !title (' + props.channel + ') ' + err);
+				return 'Error setting the title, try again in a few minutes!';
 			});
 		}
 		const userID = await this.getUserID(props);
