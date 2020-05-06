@@ -417,7 +417,7 @@ class Chat {
 		const channelToCheck = props.channel;
 		const propsForSelect = {
 			table: 'defaultCommands',
-			query: {trigger: props.messageParams[0]}
+			query: {trigger: props.messageParams[0].toLowerCase()}
 		};
 		const results = await database.select(propsForSelect);
 		let isEnabled = false;
