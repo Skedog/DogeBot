@@ -189,7 +189,8 @@ class Database {
 			YouTubeAPIKey: constants[0].YouTubeAPIKey,
 			discordAPIKey: constants[0].discordAPIKey,
 			sessionKey: constants[0].sessionKey,
-			twitchOauthPassTest: constants[0].twitchOauthPassTest
+			twitchOauthPassTest: constants[0].twitchOauthPassTest,
+			twitchOauthScoped: constants[0].twitchOauthScoped
 		};
 	}
 }
