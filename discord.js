@@ -1,5 +1,5 @@
 const log = require('npmlog');
-const schedule = require('node-schedule');
+const CronJob = require('cron').CronJob;
 const Discord = require('discord.js');
 const database = require('./database.js');
 const lists = require('./lists.js');
@@ -8,24 +8,24 @@ const functions = require('./functions.js');
 const discordClient = new Discord.Client();
 async function start() {
 	await connect();
-	log.info('Now monitoring Discord chat');
 	monitorDiscordChat();
+	const scheduledJob = new CronJob({
+		cronTime: '0 59 23 * * *',
+		onTick: () => {
+			sendDailyReport();
+		},
+		start: true,
+		timeZone: 'US/Eastern'
+	});
+	scheduledJob.start();
+	log.info('Setup scheduled task to send daily reports');
 }
 
 async function connect() {
 	const dbConstants = await database.constants();
 	discordClient.login(dbConstants.discordAPIKey);
 	discordClient.on('ready', () => {
-		// Apparently 'ready' can be called more than once
-		// Which was causing duplicate reports to be sent
-		// So now I check to ensure there is no scheduled
-		// Task before setting up a new one
-		if (Object.keys(schedule.scheduledJobs).length === 0) {
-			log.info('Setup scheduled task to send daily reports');
-			schedule.scheduleJob('0 59 04 * * *', () => {
-				sendDailyReport();
-			});
-		}
+		log.info('Now monitoring Discord chat');
 	});
 }
 
