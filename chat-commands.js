@@ -433,7 +433,7 @@ class Chat {
 			// Command not found in defaultCommands, check userAdded commands next
 			const propsForUserSelect = {
 				table: 'commands',
-				query: {trigger: props.messageParams[0], channel: channelToCheck, isEnabled: true}
+				query: {trigger: props.messageParams[0].toLowerCase(), channel: channelToCheck, isEnabled: true}
 			};
 			const userResults = await database.select(propsForUserSelect);
 			if (userResults) {
