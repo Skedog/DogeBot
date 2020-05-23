@@ -87,13 +87,23 @@ async function sendDailyReport() {
 	const numberOfAllCachedSongs = await database.count(propsForSongCacheCounting);
 
 	// Build the report
-	let report = '';
-	report += '```Number of logged in channels: ' + numberOfChannelsThatHaveLoggedIn + '\n';
-	report += 'Number of joined channels: ' + numberOfJoinedChannels + '\n';
-	report += 'Number of users seen in all chats: ' + numberOfUsersInAllChats + '\n';
-	report += 'Number of messages seen today: ' + numberOfMessagesSeenToday + '\n';
-	report += 'Number of messages sent today: ' + numberOfMessagesSentToday + '\n';
-	report += 'Number of all cached songs: ' + numberOfAllCachedSongs + '\n```';
+	const report = new Discord.RichEmbed()
+	.setColor('#428bca')
+	.setTitle('DogeBot Daily Report')
+	.setURL('https://thedogebot.com/')
+	.setDescription('Daily bot stats report')
+	.setThumbnail('https://thedogebot.com/img/logo.png')
+	.addField('Logged in Channels', numberOfChannelsThatHaveLoggedIn, true)
+	.addField('Joined Channels', numberOfJoinedChannels, true)
+	.addField('\u200B', '\u200B', true)
+	.addField('Total Chatters Seen', numberOfUsersInAllChats, true)
+	.addField('Total Cached Songs', numberOfAllCachedSongs, true)
+	.addField('\u200B', '\u200B', true)
+	.addField('Messages Seen Today', numberOfMessagesSeenToday, true)
+	.addField('Messages Sent Today', numberOfMessagesSentToday, true)
+	.addField('\u200B', '\u200B', true)
+	.setTimestamp()
+	.setFooter('DogeBot Stats', 'https://thedogebot.com/img/logo.png');
 
 	// Send report to me in a DM
 	discordClient.fetchUser('153273593738952704').then(user => {
