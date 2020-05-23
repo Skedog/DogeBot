@@ -601,6 +601,9 @@ class Songs {
 		const channelMaxSongLength = await this.getChannelMaxSongLength(props);
 		const songLength = props.YTData[0].songLength;
 		let minutes;
+		if (songLength === 'P0D') {
+			throw 'failed length';
+		}
 		if ((songLength.includes('H') || songLength.includes('M'))) {
 			minutes = songLength.replace('H', ' ').split('M');
 			minutes = minutes[0].split(' ');
