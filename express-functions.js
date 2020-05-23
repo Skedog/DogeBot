@@ -222,7 +222,7 @@ async function createChannel(props) {
 // Helpers
 async function handleLogin(props) {
 	const sessionData = {};
-	sessionData.twitchUserID = props.twitchUserID;
+	sessionData.twitchUserID = props.twitchUserID.toString();
 	sessionData.token = props.token;
 	const propsForAdd = {
 		table: 'sessions',

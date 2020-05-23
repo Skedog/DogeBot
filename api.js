@@ -60,10 +60,11 @@ class API {
 		};
 		const results = await database.select(propsForSelect);
 		if (results) {
-			const twitchUserID = results[0].twitchUserID;
+			const twitchUserID = results[0].twitchUserID.toString();
 			propsForSelect = {
 				table: 'sessions',
-				query: {twitchUserID}
+				query: {twitchUserID},
+				sortBy: {_id: -1}
 			};
 			const res = await database.select(propsForSelect);
 			if (res) {
