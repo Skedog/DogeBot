@@ -67,9 +67,15 @@
 				type: 'POST',
 				success: function(data) {
 					if (data === 'error') {
-						$('.mfp-content #commandEdit').append('<span><i class="fa fa-times-circle-o" style="font-size:1.5em;color:#bb0000;"></i> &nbsp;Invalid Permissions</span>');
+						$('.mfp-content #commandEdit').append('<span class="messageFromBot"><i class="fa fa-times-circle-o" style="font-size:1.5em;color:#bb0000;"></i> &nbsp;Invalid Permissions</span>');
+						setTimeout(function() {
+							$('.messageFromBot').remove();
+						}, 3500);
 					} else {
-						$('.mfp-content #commandEdit').append('<span><i class="fa fa-check-square-o" style="font-size:1.5em;color:#66CD00;"></i>&nbsp;Updated Successfully</span>');
+						$('.mfp-content #commandEdit').append('<span class="messageFromBot"><i class="fa fa-check-square-o" style="font-size:1.5em;color:#66CD00;"></i>&nbsp;Updated Successfully</span>');
+						setTimeout(function() {
+							$('.messageFromBot').remove();
+						}, 3500);
 					}
 				}
 			});
