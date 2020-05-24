@@ -203,6 +203,7 @@ async function callCommandFromChat(props) {
 		if (!String(err).includes('has been ignored') && !String(err).includes('monitor only mode')) {
 			log.error('Command (' + props.messageParams + ') was called in ' + props.channel + ' by "' + props.userstate.username + '" and produced an error: ' + err);
 		}
+		console.log(err);
 	}
 }
 

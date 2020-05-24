@@ -96,6 +96,7 @@ it('test !commands add, edit, permissions and delete', async function() {
 });
 
 it('test $(list) commands', async function() {
+	this.timeout(10000);
 	let res;
 
 	props.messageParams = ['!commands', 'add', '!testlistcommand', '$(list)'];
@@ -482,6 +483,7 @@ it('test !unmute', async function() {
 // - - - - - - PERMISSIONS FUNCTIONS - - - - - - - -//
 
 it('test permissions', async function() {
+	this.timeout(20000);
 	props.messageParams = ['!commands', 'add'];
 	props.permissionLevelNeeded = await permissions.commandPermissionLevel(props);
 	expect(props.permissionLevelNeeded).to.equal(300);

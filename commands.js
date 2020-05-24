@@ -204,6 +204,8 @@ class Commands {
 					dataToUse
 				};
 				await database.update(propsForUpdate);
+				await cache.del(props.channel + 'commands');
+				socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
 				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been enabled!';
 			}
 		}
@@ -245,6 +247,8 @@ class Commands {
 					dataToUse
 				};
 				await database.update(propsForUpdate);
+				await cache.del(props.channel + 'commands');
+				socket.io.in(functions.stripHash(props.channel)).emit('commands', ['updated']);
 				return functions.buildUserString(props) + 'The command ' + props.messageParams[2] + ' has been disabled!';
 			}
 		}

@@ -49,6 +49,11 @@ async function checkModStatus(req, res, next) {
 	let channelToCheckMods;
 	if (req.params.channel !== undefined) {
 		channelToCheckMods = req.params.channel;
+	} else if (req.body.channel !== undefined) {
+		channelToCheckMods = req.body.channel;
+		if (channelToCheckMods.includes('#')) {
+			channelToCheckMods = channelToCheckMods.substring(1);
+		}
 	} else if (userDetails[2].includes('#')) {
 		channelToCheckMods = userDetails[2].substring(1); // Has #, needs to be removed
 	} else {
@@ -71,10 +76,12 @@ async function checkModStatus(req, res, next) {
 				next();
 			} else {
 				// User is not a mod
-				return res.redirect('/login');
+				res.status(401).send('not a mod');
+				// return res.redirect('/login');
 			}
 		} else {
-			return res.redirect('/login');
+			res.status(401).send('not a mod');
+			// return res.redirect('/login');
 		}
 	}
 }
@@ -684,16 +691,35 @@ async function getCommands(channel) {
 	return results;
 }
 
+async function getPermissionLevels() {
+	propsForSelect = {
+		table: 'permissions',
+		query: {},
+		sortBy: {permissionLevel: 1}
+	};
+	return await database.select(propsForSelect);
+}
+
+async function lookupPermissionLevelName(permissionLevels,levelToLookup) {
+	for (const optionToCheck in permissionLevels) {
+		if (levelToLookup === permissionLevels[optionToCheck].permissionLevel) {
+			return permissionLevels[optionToCheck].permissionName;
+		}
+	}
+}
+
 async function getFormattedCommandlist(channel) {
 	channel = addHashToChannel(channel);
 	const commands = await getCommands(channel);
 	let builtCommandList = '';
+	const permissionOptions = await getPermissionLevels(channel);
 	for (const command in commands) {
 		if (Object.prototype.hasOwnProperty.call(commands, command)) {
+			const permissionLevelToShow = await lookupPermissionLevelName(permissionOptions, commands[command].permissionsLevel);
 			if (commands[command].chatmessage === '$(list)') {
-				builtCommandList += '<tr id="' + commands[command].trigger + '"><td>' + commands[command].trigger + '</td><td><a href="#" class="view-list">View List</a></td><td>' + commands[command].commandcounter + '</td><td>' + commands[command].permissionsLevel + '</td></tr>';
+				builtCommandList += '<tr id="' + commands[command].trigger + '"><td><a href="#" class="edit-command">' + commands[command].trigger + '</a></td><td><a href="#" class="view-list">View List</a></td><td>' + commands[command].commandcounter + '</td><td>' + permissionLevelToShow + '</td></tr>';
 			} else {
-				builtCommandList += '<tr id="' + commands[command].trigger + '"><td>' + commands[command].trigger + '</td><td>' + commands[command].chatmessage + '</td><td>' + commands[command].commandcounter + '</td><td>' + commands[command].permissionsLevel + '</td></tr>';
+				builtCommandList += '<tr id="' + commands[command].trigger + '"><td><a href="#" class="edit-command">' + commands[command].trigger + '</a></td><td>' + commands[command].chatmessage + '</td><td>' + commands[command].commandcounter + '</td><td>' + permissionLevelToShow + '</td></tr>';
 			}
 		}
 	}
@@ -721,6 +747,52 @@ async function getListCommandItems(channel, passedCommand) {
 		if (Object.prototype.hasOwnProperty.call(commands, command)) {
 			if (commands[command].trigger === passedCommand) {
 				return formatListItems(commands[command].listArray);
+			}
+		}
+	}
+	return '';
+}
+
+async function getCommandEditForm(channel, passedCommand) {
+	channel = addHashToChannel(channel);
+	const commands = await getCommands(channel);
+	let dataToReturn = '';
+	const permissionOptions = await getPermissionLevels(channel);
+	for (const command in commands) {
+		if (Object.prototype.hasOwnProperty.call(commands, command)) {
+			if (commands[command].trigger === passedCommand) {
+				dataToReturn = dataToReturn + '<form action="#" name="commandEdit" id="commandEdit">';
+				dataToReturn = dataToReturn + '<label for="trigger"><span>Trigger: </span><input type="text" disabled="disabled" name="trigger" id="trigger" value="' + passedCommand + '"></label>';
+				dataToReturn = dataToReturn + '<label for="commandText"><span>Text: </span><input type="text" name="commandText" id="commandText" value="' + commands[command].chatmessage.replace(/"/g, '&quot;') + '"></label>';
+				dataToReturn = dataToReturn + '<label for="commandPermissions"><span>Permission Level: </span><select name="commandPermissions" id="commandPermissions">';
+
+				for (const optionToShow in permissionOptions) {
+					let sel = '';
+					if (commands[command].permissionsLevel === permissionOptions[optionToShow].permissionLevel) {
+						sel = 'selected="selected"';
+					}
+					dataToReturn = dataToReturn + '<option value="' + permissionOptions[optionToShow].permissionName + '" ' + sel + '>' + permissionOptions[optionToShow].permissionName + '</option>';
+				}
+				dataToReturn = dataToReturn + '</select></label>';
+
+				dataToReturn = dataToReturn + '<label for="commandEnabled"><span>Enabled?: </span><select name="commandEnabled" id="commandEnabled">';
+				let enabledSelect = '';
+				let disabledSelect = '';
+				if (commands[command].isEnabled === true) {
+					enabledSelect = 'selected="selected"';
+					disabledSelect = '';
+				} else {
+					enabledSelect = '';
+					disabledSelect = 'selected="selected"'
+				}
+				dataToReturn = dataToReturn + '<option value="true" ' + enabledSelect + '>Yes</option>';
+				dataToReturn = dataToReturn + '<option value="false" ' + disabledSelect + '>No</option>';
+				dataToReturn = dataToReturn + '</select></label>';
+
+				// dataToReturn = dataToReturn + '<label for="commandText"><span>Text: </span><input type="text" name="commandText" id="commandText" value="' + commands[command].chatmessage + '"></label>';
+				dataToReturn = dataToReturn + '<input type="submit" name="submit" value="Submit" class="blue-styled-button">';
+				dataToReturn = dataToReturn + '</form>';
+				return dataToReturn;
 			}
 		}
 	}
@@ -974,6 +1046,7 @@ module.exports = {
 	getCommands,
 	getFormattedCommandlist,
 	getListCommandItems,
+	getCommandEditForm,
 	getBlacklist,
 	getFormattedBlacklist,
 	getSongCache,

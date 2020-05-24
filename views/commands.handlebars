@@ -34,4 +34,66 @@
 		$('.mfp-hide').html('<h1><i class="fa fa-magic"></i> List items for '+ trigger + '</h1>' + listCommandItems);
 		$('.hiddenTrigger').click();
 	});
+	$('.datatable').on('click', '.edit-command', async function(e) {
+		e.preventDefault();
+		try {
+			const trigger = $(this).parent().parent().attr('id');
+			const channel = $('.urlChannel').text();
+			let editCommandForm = await loadEditCommandForm(channel, trigger);
+			$('.mfp-hide').html('<h1><i class="fa fa-magic"></i> Edit '+ trigger + '</h1>' + editCommandForm);
+			$('.hiddenTrigger').click();
+		} catch (err) {
+			if (err.responseText === 'not a mod') {
+				console.log('nope');
+			}
+		}
+	});
+	$('body').on('submit', '#commandEdit', async function(e) {
+		e.preventDefault();
+		let channel = $('.urlChannel').text();
+		const loggedInChannelName = $('.loggedInChannelName').text();
+		const triggerToUpdate = $('#commandEdit #trigger').val();
+		const updatedText = $('#commandEdit #commandText').val();
+		const updatedPermissionLevel = $('#commandEdit #commandPermissions').val();
+		const updatedEnabledStatus = $('#commandEdit #commandEnabled').val();
+
+		if (!channel.includes('#')) {
+			channel = '#' + channel;
+		}
+		try {
+			await $.ajax({
+				url: '/updatecommand',
+				data: 'channel=' + channel + '&trigger=' + triggerToUpdate + '&updatedText=' + updatedText + '&updatedPermissionLevel=' + updatedPermissionLevel + '&updatedEnabledStatus=' + updatedEnabledStatus + '&loggedInChannelName=' + loggedInChannelName,
+				type: 'POST',
+				success: function(data) {
+					if (data === 'error') {
+						$('.mfp-content #commandEdit').append('<span><i class="fa fa-times-circle-o" style="font-size:1.5em;color:#bb0000;"></i> &nbsp;Invalid Permissions</span>');
+					} else {
+						$('.mfp-content #commandEdit').append('<span><i class="fa fa-check-square-o" style="font-size:1.5em;color:#66CD00;"></i>&nbsp;Updated Successfully</span>');
+					}
+				}
+			});
+		} catch (err) {
+			if (err.responseText === 'not a mod') {
+				console.log('nope');
+			}
+		}
+	});
+
+
+	// function handleCommandEditSubmission(channel) {
+	// 	let dataToReturn = '';
+	// 	if (!channel.includes('#')) {
+	// 		channel = '#' + channel;
+	// 	}
+	// 	await $.ajax({
+	// 		url: '/updatevolume',
+	// 		data: 'channel=' + channel + '&volume=' + newVol,
+	// 		type: 'POST',
+	// 		success: function(data) {
+	// 			dataToReturn = newVol;
+	// 		}
+	// 	});
+	// 	return dataToReturn;
+	// }
 </script>

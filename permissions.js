@@ -7,7 +7,12 @@ const djs = require('./djs.js');
 class Permissions {
 
 	async commandPermissionLevel(props) {
-		const sentCommand = props.messageParams[0].toLowerCase();
+		let sentCommand = '';
+		if (props.recursiveCommandCall !== undefined) {
+			sentCommand = props.recursiveCommandCall.toLowerCase();
+		} else {
+			sentCommand = props.messageParams[0].toLowerCase();
+		}
 		let propsForSelect;
 		let results;
 		propsForSelect = {
@@ -27,6 +32,20 @@ class Permissions {
 			const modifier = props.messageParams[1];
 			// If adding/modifying a command
 			if ((sentCommand === '!commands' && (modifier === 'add' || modifier === 'edit' || modifier === 'delete' || modifier === 'remove' || modifier === 'permissions' || modifier === 'permission' || modifier === 'perms' || modifier === 'addalias' || modifier === 'setcost' || modifier === 'cost' || modifier === 'points' || modifier === 'enable' || modifier === 'disable')) || (sentCommand === '!addcom') || (sentCommand === '!editcom') || (sentCommand === '!deletecom') || (sentCommand === '!delcom') || (sentCommand === '!addalias') || (sentCommand === '!enablecom') || (sentCommand === '!disablecom')) {
+				// need to check if the commands permission level is higher than the edit permissions
+				// if so, we need to return the higher of the two
+				if ((sentCommand === '!commands' && modifier === 'edit') || sentCommand === '!editcom') {
+					props.recursiveCommandCall = props.messageParams[2];
+					if (sentCommand === '!editcom') {
+						props.recursiveCommandCall = props.messageParams[1];
+					}
+					const moderationLevel = await this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
+					const editCommandPermissionLevel = await this.commandPermissionLevel(props);
+					if (editCommandPermissionLevel > moderationLevel) {
+						return editCommandPermissionLevel;
+					}
+					return moderationLevel;
+				}
 				return this.getModerationPermissionLevelForCommand(props, results[0].permissionsPerChannel);
 			}
 			// If modifying volume

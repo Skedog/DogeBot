@@ -629,6 +629,25 @@ table.datatable a:hover {
 	settings
    ========================================================================== */
 
+#commandEdit {
+	display:flex;
+	justify-content:space-between;
+	flex-wrap:wrap;
+}
+#commandEdit label {
+	text-align: left;
+	flex-basis:48%;
+	justify-content:space-between;
+	margin:10px 0;
+	display: flex;
+	align-items: center;
+}
+#commandEdit input[type="text"], #commandEdit select {
+	padding:3px 5px;
+	flex-grow:1;
+	margin-left: 5px;
+}
+
 #settings label, #settings label {
 	text-align: left;
 	flex-basis:48%;

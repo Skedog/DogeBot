@@ -193,3 +193,16 @@ async function loadListCommandItems(channel, passedCommand) {
 	});
 	return dataToReturn;
 }
+
+async function loadEditCommandForm(channel, passedCommand) {
+	let dataToReturn;
+	await $.ajax({
+		url: '/getcommandeditform',
+		data: 'channel=' + channel + '&command=' + passedCommand,
+		type: 'POST',
+		success: function(data) {
+			dataToReturn = data;
+		}
+	});
+	return dataToReturn;
+}
