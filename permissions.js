@@ -8,10 +8,10 @@ class Permissions {
 
 	async commandPermissionLevel(props) {
 		let sentCommand = '';
-		if (props.recursiveCommandCall !== undefined) {
-			sentCommand = props.recursiveCommandCall.toLowerCase();
-		} else {
+		if (props.recursiveCommandCall === undefined) {
 			sentCommand = props.messageParams[0].toLowerCase();
+		} else {
+			sentCommand = props.recursiveCommandCall.toLowerCase();
 		}
 		let propsForSelect;
 		let results;
@@ -32,7 +32,7 @@ class Permissions {
 			const modifier = props.messageParams[1];
 			// If adding/modifying a command
 			if ((sentCommand === '!commands' && (modifier === 'add' || modifier === 'edit' || modifier === 'delete' || modifier === 'remove' || modifier === 'permissions' || modifier === 'permission' || modifier === 'perms' || modifier === 'addalias' || modifier === 'setcost' || modifier === 'cost' || modifier === 'points' || modifier === 'enable' || modifier === 'disable')) || (sentCommand === '!addcom') || (sentCommand === '!editcom') || (sentCommand === '!deletecom') || (sentCommand === '!delcom') || (sentCommand === '!addalias') || (sentCommand === '!enablecom') || (sentCommand === '!disablecom')) {
-				// need to check if the commands permission level is higher than the edit permissions
+				// Need to check if the commands permission level is higher than the edit permissions
 				// if so, we need to return the higher of the two
 				if ((sentCommand === '!commands' && modifier === 'edit') || sentCommand === '!editcom') {
 					props.recursiveCommandCall = props.messageParams[2];

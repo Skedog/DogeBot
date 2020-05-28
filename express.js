@@ -304,11 +304,11 @@ async function setupRoutes() {
 		let messageParams = commandToRun.split(' ');
 		const fakeUserstate = [];
 		fakeUserstate['display-name'] = req.body.loggedInChannelName;
-		fakeUserstate['username'] = req.body.loggedInChannelName;
+		fakeUserstate.username = req.body.loggedInChannelName;
 		// We can safely assume the user is a mod because they passed the middleware check via Twitch
 		// We still have to check permissions though, because we don't want users edited commands that are set
 		// To a higher permission level than mod
-		fakeUserstate['mod'] = true;
+		fakeUserstate.mod = true;
 		let propsForCommandUpdate = {
 			channel: req.body.channel,
 			messageParams,
@@ -319,7 +319,7 @@ async function setupRoutes() {
 			propsForCommandUpdate.permissionLevelNeeded = await permissions.commandPermissionLevel(propsForCommandUpdate);
 			await permissions.canUserCallCommand(propsForCommandUpdate);
 			// Call the edit command first
-			const returnFromEdit = await commands.call(propsForCommandUpdate);
+			await commands.call(propsForCommandUpdate);
 			// Call the permissions change next
 			commandToRun = '!commands permissions ' + req.body.trigger + ' ' + req.body.updatedPermissionLevel;
 			messageParams = commandToRun.split(' ');
@@ -328,9 +328,9 @@ async function setupRoutes() {
 				messageParams,
 				userstate: fakeUserstate
 			};
-			const returnFromPermissions = await commands.call(propsForCommandUpdate);
+			await commands.call(propsForCommandUpdate);
 			// Call the enable/disable command next
-			if (req.body.updatedEnabledStatus === "true") {
+			if (req.body.updatedEnabledStatus === 'true') {
 				commandToRun = '!commands enable ' + req.body.trigger;
 				messageParams = commandToRun.split(' ');
 				propsForCommandUpdate = {
@@ -338,7 +338,7 @@ async function setupRoutes() {
 					messageParams,
 					userstate: fakeUserstate
 				};
-				const returnFromEnable = await commands.call(propsForCommandUpdate);
+				await commands.call(propsForCommandUpdate);
 			} else {
 				commandToRun = '!commands disable ' + req.body.trigger;
 				messageParams = commandToRun.split(' ');
@@ -347,12 +347,12 @@ async function setupRoutes() {
 					messageParams,
 					userstate: fakeUserstate
 				};
-				const returnFromDisable = await commands.call(propsForCommandUpdate);
+				await commands.call(propsForCommandUpdate);
 			}
 
 			res.send('success');
 		} catch (err) {
-			// this is hit if the user is a mod (so has access to the edit panel), but doesn't have access
+			// This is hit if the user is a mod (so has access to the edit panel), but doesn't have access
 			// To edit the command in question - this can happen if the command is set to supermods or owner
 			res.send('error');
 		}

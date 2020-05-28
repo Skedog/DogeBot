@@ -41,11 +41,9 @@ function setRedirectTo(req) {
 		if (req.session) {
 			req.session.redirectTo = req.originalUrl;
 		}
-	} else {
+	} else if (req.headers.referer) {
 		// Request came from an invalid source, set the redirect to the referrer instead
-		if (req.headers.referer) {
-			req.session.redirectTo = req.headers.referer;
-		}
+		req.session.redirectTo = req.headers.referer;
 	}
 }
 
@@ -82,11 +80,10 @@ async function checkModStatus(req, res, next) {
 			} else {
 				// User is not a mod
 				res.status(401).send('not a mod');
-				// return res.redirect('/login');
 			}
 		} else {
+			// User is not a mod
 			res.status(401).send('not a mod');
-			// return res.redirect('/login');
 		}
 	}
 }
@@ -697,15 +694,15 @@ async function getCommands(channel) {
 }
 
 async function getPermissionLevels() {
-	propsForSelect = {
+	const propsForSelect = {
 		table: 'permissions',
 		query: {},
 		sortBy: {permissionLevel: 1}
 	};
-	return await database.select(propsForSelect);
+	return database.select(propsForSelect);
 }
 
-async function lookupPermissionLevelName(permissionLevels,levelToLookup) {
+async function lookupPermissionLevelName(permissionLevels, levelToLookup) {
 	for (const optionToCheck in permissionLevels) {
 		if (levelToLookup === permissionLevels[optionToCheck].permissionLevel) {
 			return permissionLevels[optionToCheck].permissionName;
@@ -758,6 +755,20 @@ async function getListCommandItems(channel, passedCommand) {
 	return '';
 }
 
+async function getPermissionsLevelsToShowForCommand(permissionOptions, commandPermissionLevel) {
+	let dataToReturn = '';
+	for (const optionToShow in permissionOptions) {
+		if (Object.prototype.hasOwnProperty.call(permissionOptions, optionToShow)) {
+			let sel = '';
+			if (commandPermissionLevel === permissionOptions[optionToShow].permissionLevel) {
+				sel = 'selected="selected"';
+			}
+			dataToReturn += '<option value="' + permissionOptions[optionToShow].permissionName + '" ' + sel + '>' + permissionOptions[optionToShow].permissionName + '</option>';
+		}
+	}
+	return dataToReturn;
+}
+
 async function getCommandEditForm(channel, passedCommand) {
 	channel = addHashToChannel(channel);
 	const commands = await getCommands(channel);
@@ -766,21 +777,16 @@ async function getCommandEditForm(channel, passedCommand) {
 	for (const command in commands) {
 		if (Object.prototype.hasOwnProperty.call(commands, command)) {
 			if (commands[command].trigger === passedCommand) {
-				dataToReturn = dataToReturn + '<form action="#" name="commandEdit" id="commandEdit">';
-				dataToReturn = dataToReturn + '<label for="trigger"><span>Trigger: </span><input type="text" disabled="disabled" name="trigger" id="trigger" value="' + passedCommand + '"></label>';
-				dataToReturn = dataToReturn + '<label for="commandText"><span>Text: </span><input type="text" name="commandText" id="commandText" value="' + commands[command].chatmessage.replace(/"/g, '&quot;') + '"></label>';
-				dataToReturn = dataToReturn + '<label for="commandPermissions"><span>Permission Level: </span><select name="commandPermissions" id="commandPermissions">';
+				dataToReturn += '<form action="#" name="commandEdit" id="commandEdit">';
+				dataToReturn += '<label for="trigger"><span>Trigger: </span><input type="text" disabled="disabled" name="trigger" id="trigger" value="' + passedCommand + '"></label>';
+				dataToReturn += '<label for="commandText"><span>Text: </span><input type="text" name="commandText" id="commandText" value="' + commands[command].chatmessage.replace(/"/g, '&quot;') + '"></label>';
+				dataToReturn += '<label for="commandPermissions"><span>Permission Level: </span><select name="commandPermissions" id="commandPermissions">';
 
-				for (const optionToShow in permissionOptions) {
-					let sel = '';
-					if (commands[command].permissionsLevel === permissionOptions[optionToShow].permissionLevel) {
-						sel = 'selected="selected"';
-					}
-					dataToReturn = dataToReturn + '<option value="' + permissionOptions[optionToShow].permissionName + '" ' + sel + '>' + permissionOptions[optionToShow].permissionName + '</option>';
-				}
-				dataToReturn = dataToReturn + '</select></label>';
+				dataToReturn += await getPermissionsLevelsToShowForCommand(permissionOptions, commands[command].permissionsLevel);
 
-				dataToReturn = dataToReturn + '<label for="commandEnabled"><span>Enabled?: </span><select name="commandEnabled" id="commandEnabled">';
+				dataToReturn += '</select></label>';
+
+				dataToReturn += '<label for="commandEnabled"><span>Enabled?: </span><select name="commandEnabled" id="commandEnabled">';
 				let enabledSelect = '';
 				let disabledSelect = '';
 				if (commands[command].isEnabled === true) {
@@ -788,15 +794,13 @@ async function getCommandEditForm(channel, passedCommand) {
 					disabledSelect = '';
 				} else {
 					enabledSelect = '';
-					disabledSelect = 'selected="selected"'
+					disabledSelect = 'selected="selected"';
 				}
-				dataToReturn = dataToReturn + '<option value="true" ' + enabledSelect + '>Yes</option>';
-				dataToReturn = dataToReturn + '<option value="false" ' + disabledSelect + '>No</option>';
-				dataToReturn = dataToReturn + '</select></label>';
-
-				// dataToReturn = dataToReturn + '<label for="commandText"><span>Text: </span><input type="text" name="commandText" id="commandText" value="' + commands[command].chatmessage + '"></label>';
-				dataToReturn = dataToReturn + '<input type="submit" name="submit" value="Submit" class="blue-styled-button">';
-				dataToReturn = dataToReturn + '</form>';
+				dataToReturn += '<option value="true" ' + enabledSelect + '>Yes</option>';
+				dataToReturn += '<option value="false" ' + disabledSelect + '>No</option>';
+				dataToReturn += '</select></label>';
+				dataToReturn += '<input type="submit" name="submit" value="Submit" class="blue-styled-button">';
+				dataToReturn += '</form>';
 				return dataToReturn;
 			}
 		}
