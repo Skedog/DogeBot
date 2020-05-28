@@ -18,7 +18,7 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 			type: 'POST',
 			success: function(data) {
 				if (data == 'useradded' || data == 'userupdated') {
-					var redirect = '{{{redirectTo}}}';
+					var redirect = '{{redirectTo}}';
 					if (redirect !== '' && redirect.includes('login') === false) {
 						window.location.assign('{{{redirectTo}}}');
 					} else {
@@ -30,10 +30,11 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 			}
 		});
 	} else {
-		var urlError = getUrlVars()['urlError'];
+		var urlError = getUrlVars()['error'];
 		if (urlError == undefined) {
 			Twitch.login({
-				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions']
+				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions'],
+				redirect_uri: '{{postURL}}/login'
 			});
 		} else {
 			var errorDesc = getUrlVars()['error_description'];

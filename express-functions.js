@@ -37,9 +37,14 @@ async function validatePassedUser(req, res, next) {
 }
 
 function setRedirectTo(req) {
-	if (req.path !== '/getsocketdata') {
+	if (req.originalUrl !== '/getsocketdata' && req.originalUrl !== '/getcommandeditform') {
 		if (req.session) {
 			req.session.redirectTo = req.originalUrl;
+		}
+	} else {
+		// Request came from an invalid source, set the redirect to the referrer instead
+		if (req.headers.referer) {
+			req.session.redirectTo = req.headers.referer;
 		}
 	}
 }
