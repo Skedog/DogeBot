@@ -245,7 +245,7 @@ async function setupRoutes() {
 			method: 'GET',
 			uri: 'https://api.twitch.tv/helix/users',
 			headers: {
-				'Client-ID': dbConstants.twitchTestClientID,
+				'Client-ID': dbConstants.twitchClientID,
 				'Accept': 'application/vnd.twitchtv.v5+json',
 				'Authorization': 'Bearer ' + token
 			},
