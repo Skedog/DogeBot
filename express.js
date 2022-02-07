@@ -243,19 +243,21 @@ async function setupRoutes() {
 		req.session.token = token;
 		const options = {
 			method: 'GET',
-			uri: 'https://api.twitch.tv/kraken/user/?oauth_token=' + token,
+			uri: 'https://api.twitch.tv/helix/users',
 			headers: {
-				'Client-ID': dbConstants.twitchClientID,
-				Accept: 'application/vnd.twitchtv.v5+json'
+				'Client-ID': dbConstants.twitchTestClientID,
+				'Accept': 'application/vnd.twitchtv.v5+json',
+				'Authorization': 'Bearer ' + token
 			},
 			json: true
 		};
 		return rp(options).then(async body => {
+			const twitchRetData = body.data[0];
 			const props = {
-				userEmail: body.email,
-				twitchUserID: body._id,
-				userLogo: body.logo,
-				ChannelName: body.name,
+				userEmail: twitchRetData.email,
+				twitchUserID: twitchRetData.id,
+				userLogo: twitchRetData.profile_image_url,
+				ChannelName: twitchRetData.login,
 				token
 			};
 			const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
