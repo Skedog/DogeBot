@@ -4,7 +4,7 @@
   "description": "DogeBot is a Twitch/Discord chat bot developed by Skedog!",
   "main": "app.js",
   "dependencies": {
-    "bl": "2.2.1",
+    "bl": "3.0.1",
     "body-parser": "^1.18.3",
     "bottleneck": "^2.15.3",
     "chai": "^4.1.1",
