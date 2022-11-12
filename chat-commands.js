@@ -407,7 +407,7 @@ class Chat {
 		if (results) {
 			for (let x = 0; x < results.length; x++) {
 				if (results[x].ChannelName.toLowerCase() === '#' + userToCheck) {
-					throw new Error('User has been ignored');
+					throw new Error('User (' + userToCheck + ') has been ignored');
 				}
 			}
 		}

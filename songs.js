@@ -477,9 +477,9 @@ class Songs {
 			for (let x = 0; x < props.playlistItems.length; x++) {
 				createdArray.push(props.playlistItems[x].resourceId.videoId);
 			}
-			const shuffledSongs = await functions.shuffleArray(createdArray);
+			// const shuffledSongs = await functions.shuffleArray(createdArray);
 			const songNumberLimit = await _this.getChannelSongNumberLimit(props);
-			const randomList = shuffledSongs.slice(0, songNumberLimit + 10);
+			const randomList = createdArray.slice(0, songNumberLimit + 10);
 			const finalList = randomList.join(',');
 			props.messageParams = ['!sr', finalList];
 			return await _this.requestSongs(props);
