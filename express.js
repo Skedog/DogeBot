@@ -433,7 +433,14 @@ async function setupRoutes() {
 		};
 		const songResults = await database.select(propsForSelect);
 		if (songResults) {
-			res.send(songResults[0].songID);
+			if (songResults.length <= 1) {
+				// only one song left in the queue, request a default playlist song to avoid lag in the future
+				res.send(songResults[0].songID);
+				const userData = await expressFunctions.getUserData(req);
+				const songToReturn = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
+			} else {
+				res.send(songResults[0].songID);
+			}
 		} else {
 			const userData = await expressFunctions.getUserData(req);
 			const songToReturn = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
