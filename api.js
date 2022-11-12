@@ -1,6 +1,7 @@
 const rp = require('request-promise');
 const database = require('./database.js');
 const functions = require('./functions.js');
+const constants = require('./constants.js');
 
 class API {
 
@@ -41,7 +42,7 @@ class API {
 		const errMsg = 'Error getting followage, try again in a few minutes!';
 		return rp(options).then(returnedBody => {
 			if (returnedBody.length < 40) {
-				if (returnedBody.includes('is not following') || returnedBody.includes('cannot follow themself') || returnedBody.includes('Follow not found') || returnedBody.includes('No user with')) {
+				if (returnedBody.includes('is not following') || returnedBody.includes('cannot follow themself') || returnedBody.includes('Follow not found') || returnedBody.includes('No user with') || returnedBody.includes('does not follow')) {
 					return functions.buildUserString(props) + userToCheck + ' is not following! BibleThump';
 				}
 				return functions.buildUserString(props) + userToCheck + ' has been following for ' + returnedBody + '!';
@@ -90,44 +91,65 @@ class API {
 
 	async game(props) {
 		const dbConstants = await database.constants();
+		let clientIDToUse = '';
+		if (constants.testMode) {
+			clientIDToUse = dbConstants.twitchTestClientID;
+		} else {
+			clientIDToUse = dbConstants.twitchClientID;
+		}
+		const token = await this.getUserOAuthToken(props);
 		if (props.messageParams[1]) {
 			props.ignoreMessageParamsForUserString = true;
 			const newGame = props.messageParams.slice(1, props.messageParams.length).join(' ');
-			const token = await this.getUserOAuthToken(props);
 			const userID = await this.getUserID(props);
-			const options = {
-				method: 'PUT',
-				uri: 'https://api.twitch.tv/kraken/channels/' + userID,
-				form: {'channel[game]': newGame},
+			const optForGetGameID = {
+				method: 'GET',
+				uri: 'https://api.twitch.tv/helix/games?name=' + newGame,
 				headers: {
-					Authorization: 'OAuth ' + token,
-					'Client-ID': dbConstants.twitchClientID,
-					Accept: 'application/vnd.twitchtv.v5+json'
+					'Client-ID': clientIDToUse,
+					'Accept': 'application/vnd.twitchtv.v5+json',
+					'Authorization': 'Bearer ' + token
 				},
 				json: true
 			};
-			return rp(options).then(body => {
-				const updatedGame = body.game;
-				if (updatedGame) {
+			return rp(optForGetGameID).then(body => {
+				const gameIDtoSet = body.data[0].id;
+				const options = {
+					method: 'PATCH',
+					uri: 'https://api.twitch.tv/helix/channels?broadcaster_id=' + userID,
+					body: {game_id:gameIDtoSet},
+					headers: {
+						'Client-ID': clientIDToUse,
+						'Accept': 'application/vnd.twitchtv.v5+json',
+						'Authorization': 'Bearer ' + token
+					},
+					json: true
+				};
+				return rp(options).then(body => {
 					return functions.buildUserString(props) + 'The current game has been updated to ' + newGame + '!';
-				}
+				}).catch(err => {
+					console.log('Error with !game: ' + err);
+					return 'Error setting the game, try again in a few minutes!';
+				});
 			}).catch(err => {
 				console.log('Error with !game: ' + err);
 				return 'Error setting the game, try again in a few minutes!';
 			});
 		}
 		const userID = await this.getUserID(props);
+
 		const options = {
 			method: 'GET',
-			uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+			uri: 'https://api.twitch.tv/helix/channels?broadcaster_id=' + userID,
 			headers: {
-				'Client-ID': dbConstants.twitchClientID,
-				Accept: 'application/vnd.twitchtv.v5+json'
+				'Client-ID': clientIDToUse,
+				'Accept': 'application/vnd.twitchtv.v5+json',
+				'Authorization': 'Bearer ' + token
 			},
 			json: true
 		};
 		return rp(options).then(body => {
-			const currentGame = body.game;
+			const currentGame = body.data[0].game_name;
 			if (currentGame) {
 				return functions.buildUserString(props) + 'The current game is ' + currentGame + '!';
 			}
@@ -146,7 +168,7 @@ class API {
 			const userID = await this.getUserID(propsToPass);
 			const options = {
 				method: 'GET',
-				uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+				uri: 'https://api.twitch.tv/helix/channels/' + userID,
 				headers: {
 					'Client-ID': dbConstants.twitchClientID,
 					Accept: 'application/vnd.twitchtv.v5+json'
@@ -166,19 +188,25 @@ class API {
 
 	async title(props) {
 		const dbConstants = await database.constants();
+		let clientIDToUse = '';
+		if (constants.testMode) {
+			clientIDToUse = dbConstants.twitchTestClientID;
+		} else {
+			clientIDToUse = dbConstants.twitchClientID;
+		}
+		const token = await this.getUserOAuthToken(props);
 		if (props.messageParams[1]) {
 			props.ignoreMessageParamsForUserString = true;
 			const newTitle = props.messageParams.slice(1, props.messageParams.length).join(' ');
-			const token = await this.getUserOAuthToken(props);
 			const userID = await this.getUserID(props);
 			const options = {
-				method: 'PUT',
-				uri: 'https://api.twitch.tv/kraken/channels/' + userID,
-				form: {'channel[status]': newTitle},
+				method: 'PATCH',
+				uri: 'https://api.twitch.tv/helix/channels?broadcaster_id=' + userID,
+				body: {title:newTitle},
 				headers: {
-					Authorization: 'OAuth ' + token,
-					'Client-ID': dbConstants.twitchClientID,
-					Accept: 'application/vnd.twitchtv.v5+json'
+					'Client-ID': clientIDToUse,
+					'Accept': 'application/vnd.twitchtv.v5+json',
+					'Authorization': 'Bearer ' + token
 				},
 				json: true
 			};
@@ -196,15 +224,16 @@ class API {
 		const userID = await this.getUserID(props);
 		const options = {
 			method: 'GET',
-			uri: 'https://api.twitch.tv/kraken/channels/' + userID,
+			uri: 'https://api.twitch.tv/helix/channels?broadcaster_id=' + userID,
 			headers: {
-				'Client-ID': dbConstants.twitchClientID,
-				Accept: 'application/vnd.twitchtv.v5+json'
+				'Client-ID': clientIDToUse,
+				'Accept': 'application/vnd.twitchtv.v5+json',
+				'Authorization': 'Bearer ' + token
 			},
 			json: true
 		};
 		return rp(options).then(body => {
-			const currentTitle = body.status;
+			const currentTitle = body.data[0].title;
 			if (currentTitle) {
 				return functions.buildUserString(props) + 'The title is ' + currentTitle + '!';
 			}
