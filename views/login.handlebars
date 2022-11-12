@@ -25,7 +25,7 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 						window.location.assign('/dashboard');
 					}
 				} else {
-					window.location.assign('/error?passedError=loginFailed&errorDesc=An&nbsp;error&nbsp;occurred&nbsp;in&nbsp;/handlelogin');
+					window.location.assign('/error?passedError=loginFailed&errorDesc=' + encodeURIComponent('An error occurred in /handlelogin'));
 				};
 			}
 		});

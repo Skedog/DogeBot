@@ -241,11 +241,17 @@ async function setupRoutes() {
 		// Token comes from the Twitch API login request
 		const token = req.body.token;
 		req.session.token = token;
+		let clientIDToUse = '';
+		if (constants.testMode) {
+			clientIDToUse = dbConstants.twitchTestClientID;
+		} else {
+			clientIDToUse = dbConstants.twitchClientID;
+		}
 		const options = {
 			method: 'GET',
 			uri: 'https://api.twitch.tv/helix/users',
 			headers: {
-				'Client-ID': dbConstants.twitchClientID,
+				'Client-ID': clientIDToUse,
 				'Accept': 'application/vnd.twitchtv.v5+json',
 				'Authorization': 'Bearer ' + token
 			},
@@ -261,7 +267,7 @@ async function setupRoutes() {
 				token
 			};
 			const userDetails = props.userEmail + ',' + props.userLogo + ',#' + props.ChannelName + ',' + props.twitchUserID;
-			console.log('channel logging in: ' + props.ChannelName);
+			log.info('channel logging in: ' + props.ChannelName);
 			// Set the userDetails as a session
 			req.session.userDetails = userDetails;
 			const returnVal = await expressFunctions.handleLogin(props);
@@ -270,7 +276,7 @@ async function setupRoutes() {
 				username: props.ChannelName
 			};
 			await stats.addTrackedUser(propsForUser);
-			console.log('returnVal: ' + returnVal);
+			log.info('returnVal: ' + returnVal);
 			res.send(returnVal);
 		}).catch(err => {
 			log.error('/handleLogin produced an error: ' + err);

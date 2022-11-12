@@ -8,11 +8,7 @@ const chat = require('./chat-commands.js');
 // Middleware
 function checkIfUserIsLoggedIn(req, res, next) {
 	if (req.session && req.session.userDetails) {
-		if (req.path === '/login') {
-			// User is already logged in and has a valid session
-			// No need to run login code again
-			return res.redirect('/dashboard');
-		}
+		// User is logged in and has a valid session
 		next();
 	} else {
 		if (req.path !== '/login') {
@@ -241,7 +237,7 @@ async function handleLogin(props) {
 	// Handle user adding and updating
 	const propsForSelect = {
 		table: 'channels',
-		query: {ChannelName: '#' + props.ChannelName.toLowerCase()}
+		query: {twitchUserID: parseInt(props.twitchUserID)}
 	};
 	const results = await database.select(propsForSelect);
 	if (!results) {
@@ -252,60 +248,20 @@ async function handleLogin(props) {
 		// Channel does exist, but it was a monitor only channel, delete current channel record then add it fully
 		const propsForDelete = {
 			table: 'channels',
-			query: {ChannelName: '#' + props.ChannelName.toLowerCase()}
+			query: {ChannelName: '#' + results[0].ChannelName.toLowerCase()}
 		};
 		await database.delete(propsForDelete);
 		return createChannel(props);
 	}
-	const userToUpdate = '#' + props.ChannelName;
+	// Add the # to the username as this isn't passed in from Twitch
+	const userToUpdate = '#' + props.ChannelName.toLowerCase();
+	const currentDatabaseUserName = results[0].ChannelName.toLowerCase();
 	let propsForUpdate;
 	let dataToUse;
-	if (results[0].ChannelName.toLowerCase() !== userToUpdate.toLowerCase()) {
+	if (currentDatabaseUserName !== userToUpdate) {
 		// This should only fire if a user has changed their username on Twitch
 		// We need to update all the tables that contain the username
-		dataToUse = {};
-		dataToUse.channel = userToUpdate;
-		propsForUpdate = {
-			table: 'commands',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'regulars',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'chatusers',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'songs',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'songcache',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'chatmessages',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'commandmessages',
-			dataToUse
-		};
-		database.updateall(propsForUpdate);
-		propsForUpdate = {
-			table: 'defaultCommands',
-			query: {permissionsPerChannel: {$elemMatch: {channel: results[0].ChannelName}}},
-			dataToUse: {'permissionsPerChannel.$.channel': userToUpdate}
-		};
-		await database.updateall(propsForUpdate);
+		await updateTwitchUsernameChange(currentDatabaseUserName, userToUpdate);
 	}
 	dataToUse = {};
 	dataToUse.ChannelEmail = props.userEmail;
@@ -317,6 +273,61 @@ async function handleLogin(props) {
 		dataToUse
 	};
 	await database.update(propsForUpdate);
+	return 'userupdated';
+}
+
+async function updateTwitchUsernameChange(oldName, newName) {
+	log.info('Starting to update for namechange: ' + oldName + ' to ' + newName);
+	dataToUse = {};
+	dataToUse.channel = newName;
+	propsForUpdate = {
+		table: 'commands',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'regulars',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'chatusers',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'songs',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'songcache',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'chatmessages',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'commandmessages',
+		query: {channel: oldName},
+		dataToUse
+	};
+	database.updateall(propsForUpdate);
+	propsForUpdate = {
+		table: 'defaultCommands',
+		query: {permissionsPerChannel: {$elemMatch: {channel: oldName}}},
+		dataToUse: {'permissionsPerChannel.$.channel': newName}
+	};
+	await database.updateall(propsForUpdate);
 	return 'userupdated';
 }
 
