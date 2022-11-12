@@ -58,7 +58,8 @@ async function onPlayerReady(event) {
 
 async function onPlayerStateChange(event) {
 	if (event.data === 0) {
-		loadNextSong('{{userData.urlChannel}}');
+		player.loadVideoById(null);
+		await loadNextSong('{{userData.urlChannel}}');
 		const currentStatus = await getMusicStatus('{{userData.urlChannel}}');
 		applyMusicStatus(currentStatus);
 	} else if (event.data === 1 || event.data === 2) {

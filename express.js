@@ -433,18 +433,29 @@ async function setupRoutes() {
 		};
 		const songResults = await database.select(propsForSelect);
 		if (songResults) {
-			if (songResults.length <= 1) {
-				// only one song left in the queue, request a default playlist song to avoid lag in the future
-				res.send(songResults[0].songID);
-				const userData = await expressFunctions.getUserData(req);
-				const songToReturn = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
-			} else {
-				res.send(songResults[0].songID);
-			}
+			res.send(songResults[0].songID);
 		} else {
+			// no songs are currently in the queue, request 2 songs and return the first one
 			const userData = await expressFunctions.getUserData(req);
 			const songToReturn = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
+			const songToReturn2 = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
 			res.send(songToReturn);
+		}
+	});
+
+	app.post('/defaultPlaylistCheck', [expressFunctions.checkIfUserIsLoggedIn, expressFunctions.checkModStatus], async (req, res) => {
+		// Ensure we always have at least 2 songs in the queue
+		const propsForSelect = {
+			table: 'songs',
+			query: {channel: req.body.channel}
+		};
+		const songResults = await database.count(propsForSelect);
+		if (songResults <= 1) {
+			const userData = await expressFunctions.getUserData(req);
+			const songToReturn = await expressFunctions.requestDefaultPlaylistSong(req.body.channel, userData);
+			res.send('success added song');
+		} else {
+			res.send('success no song needed');
 		}
 	});
 

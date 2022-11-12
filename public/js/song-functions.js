@@ -154,6 +154,22 @@ async function loadNextSong(channel) {
 			player.loadVideoById(dataToUse);
 		}
 	};
+	defaultPlaylistCheck(channel);
+}
+
+async function defaultPlaylistCheck(channel) {
+	if (!channel.includes('#')) {
+		channel = '#' + channel;
+	}
+	let dataToUse;
+	await $.ajax({
+		url: '/defaultPlaylistCheck',
+		data: 'channel=' + channel,
+		type: 'POST',
+		success: function(data) {
+			dataToUse = data;
+		}
+	});
 }
 
 async function shuffleSongs(channel) {
