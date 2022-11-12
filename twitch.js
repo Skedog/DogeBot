@@ -202,8 +202,8 @@ async function callCommandFromChat(props) {
 		// Also: this should never be hit by non-existing commands, only things such as failed permissions or not enough points
 		if (!String(err).includes('has been ignored') && !String(err).includes('monitor only mode')) {
 			log.error('Command (' + props.messageParams + ') was called in ' + props.channel + ' by "' + props.userstate.username + '" and produced an error: ' + err);
+			console.log(err);
 		}
-		console.log(err);
 	}
 }
 
