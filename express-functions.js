@@ -4,6 +4,7 @@ const cache = require('./cache.js');
 const songs = require('./songs.js');
 const functions = require('./functions.js');
 const chat = require('./chat-commands.js');
+const log = require('npmlog');
 
 // Middleware
 function checkIfUserIsLoggedIn(req, res, next) {
@@ -269,7 +270,7 @@ async function handleLogin(props) {
 	dataToUse.ChannelName = userToUpdate;
 	propsForUpdate = {
 		table: 'channels',
-		query: {twitchUserID: props.twitchUserID},
+		query: {twitchUserID: parseInt(props.twitchUserID)},
 		dataToUse
 	};
 	await database.update(propsForUpdate);
