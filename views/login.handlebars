@@ -33,7 +33,7 @@ Twitch.init({clientId: '{{apiKey}}'}, function(error, statusInit) {
 		var urlError = getUrlVars()['error'];
 		if (urlError == undefined) {
 			Twitch.login({
-				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions'],
+				scope: ['user_read','channel_editor','channel_commercial','channel_subscriptions', 'moderation:read'],
 				redirect_uri: '{{postURL}}/login'
 			});
 		} else {

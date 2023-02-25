@@ -55,9 +55,14 @@ class API {
 	}
 
 	async getUserOAuthToken(props) {
+		let channelToGet = '';
+		channelToGet = props.channel;
+		if (!channelToGet.includes('#')) {
+			channelToGet = '#' + channelToGet.toLowerCase();
+		}
 		let propsForSelect = {
 			table: 'channels',
-			query: {ChannelName: props.channel}
+			query: {ChannelName: channelToGet}
 		};
 		const results = await database.select(propsForSelect);
 		if (results) {

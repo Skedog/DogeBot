@@ -10,6 +10,7 @@ const chat = require('./chat-commands.js');
 const messages = require('./chat-messages.js');
 const functions = require('./functions.js');
 const commands = require('./commands.js');
+const api = require('./api.js');
 
 let twitchClient;
 let dbConstants;
@@ -352,6 +353,40 @@ async function getAllLiveChannels() {
 	return liveChannels;
 }
 
+async function getChannelMods(channelToCheck) {
+	let clientIDToUse = '';
+	if (constants.testMode) {
+		clientIDToUse = dbConstants.twitchTestClientID;
+	} else {
+		clientIDToUse = dbConstants.twitchClientID;
+	}
+	const tempProps = {};
+	tempProps.channel = channelToCheck;
+	const token = await api.getUserOAuthToken(tempProps);
+	const userID = await api.getUserID(tempProps);
+
+	const options = {
+		method: 'GET',
+		uri: 'https://api.twitch.tv/helix/moderation/moderators?broadcaster_id=' + userID,
+		headers: {
+			'Client-ID': clientIDToUse,
+			'Accept': 'application/vnd.twitchtv.v5+json',
+			'Authorization': 'Bearer ' + token
+		},
+		json: true
+	};
+	return rp(options).then(body => {
+		let arrayOfMods = [];
+		for (const mod of body.data) {
+			arrayOfMods.push(mod.user_login);
+		}
+		return arrayOfMods;
+	}).catch(err => {
+		console.log('Error getting list of mods: ' + err);
+		return 'Error getting the list of mods, try again in a few minutes!';
+	});
+}
+
 async function setLiveChannels(liveChannels) {
 	let dataToUse = {};
 	let propsForUpdate = {};
@@ -431,3 +466,4 @@ module.exports.start = start;
 module.exports.connectToTwitch = connectToTwitch;
 module.exports.joinSingleChannel = joinSingleChannel;
 module.exports.leaveSingleChannel = leaveSingleChannel;
+module.exports.getChannelMods = getChannelMods;

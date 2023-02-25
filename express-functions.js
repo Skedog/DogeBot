@@ -69,7 +69,7 @@ async function checkModStatus(req, res, next) {
 		const results = await database.select(propsForSelect);
 		if (results) {
 			const loggedInChannel = results[0].ChannelName.substring(1); // Remove #
-			const modRes = await twitch.twitchClient.mods(channelToCheckMods);
+			const modRes = await twitch.getChannelMods(channelToCheckMods);
 			const temp = modRes.indexOf(loggedInChannel);
 			if (temp > -1 || channelToCheckMods === loggedInChannel) {
 				// User is a mod or the channel owner
