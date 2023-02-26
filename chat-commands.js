@@ -75,6 +75,16 @@ class Chat {
 					}
 				}
 				break;
+			case '!disconnectallchannels':
+				try {
+					await maintenance.disconnectAllChannels(props);
+					log.info('Disconnected from all channels');
+					props.twitchClient.whisper(props.from, 'Deleted channel: ' + props.messageParams[1]);
+				} catch (err) {
+					log.error(err);
+					props.twitchClient.whisper(props.from, 'Error deleting channel ' + props.messageParams[1] + ': ' + err);
+				}
+				break;
 			case 'getids': {
 				const propsForIDupdate = {
 					twitchClient: props.twitchClient

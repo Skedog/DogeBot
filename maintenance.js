@@ -10,6 +10,18 @@ class Maintenance {
 		return database.deleteall(propsForDelete);
 	}
 
+	async disconnectAllChannels(props) {
+		const dataToUse = {};
+		dataToUse.inChannel = false;
+		// Leave all channels except monitorOnly channels
+		const propsForUpdate = {
+			table: 'channels',
+			query: {ChannelName: {$nin: ['#ygtskedog']}, monitorOnly: {$nin: [true]}},
+			dataToUse
+		};
+		return database.updateall(propsForUpdate);
+	}
+
 	async deleteChannel(props) {
 		let propsForDelete = {
 			query: {channel: props.channel}
