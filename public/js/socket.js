@@ -103,12 +103,19 @@ async function handleStatusChangeSocket(data, page, channelData) {
 				player.pauseVideo();
 			}
 		}
+		if (page === 'currentsonginfo') {
+			$('.songtitle').text('In-Game Music');
+		}
 		$('.togglePlay').html('<i class="fa fa-play" title="Play"></i>');
 	} else if (data[1] === 'play') {
 		if (page === 'player') {
 			if (typeof player != 'undefined') {
 				player.playVideo();
 			}
+		}
+		if (page === 'currentsonginfo') {
+			const firstSongInQueue = await loadSocketData(channelData, page, 'firstsonginsonglist');
+			$('.songtitle').text(firstSongInQueue.songTitle);
 		}
 		$('.togglePlay').html('<i class="fa fa-pause" title="Pause"></i>');
 	};

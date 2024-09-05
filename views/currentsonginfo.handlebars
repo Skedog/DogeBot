@@ -9,5 +9,8 @@ $(document).ready(function() {
 	if ($('.commandssection').text() === '' || $('.commandssection').text() === 'Current Song: ') {
 		$('.commandssection').text('No song currently requested!');
 	}
+	if ('{{{userData.channelInfo.0.musicStatus}}}' === 'pause') {
+		$('.songtitle').text('In-Game Music');
+	}
 });
 </script>
