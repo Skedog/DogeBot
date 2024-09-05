@@ -48,6 +48,7 @@ function setupApp() {
 	app.use(subdomain('stats', statsPage));
 	app.disable('x-powered-by');
 	app.use('/css', express.static(path.join(__dirname, '/public/css')));
+	app.use('/webfonts', express.static(path.join(__dirname, '/public/webfonts')));
 	app.use('/img', express.static(path.join(__dirname, '/public/img')));
 	app.use('/js', express.static(path.join(__dirname, '/public/js')));
 	app.use('/favicon.ico', express.static('public/img/favicon.ico'));

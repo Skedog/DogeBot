@@ -1,7 +1,7 @@
 <h1><i class="fa fa-comments"></i> Chatlog <small>{{{userData.urlChannel}}}</small></h1>
 <p>Below is a list of your channel's chatlog!</p>
 <div class="chat-search">
-	<label for="chat-date"><span>Jump to date: <i class="fa fa-calendar"></i></span><input type="date" name="chat-date" id="chat-date" /></label>
+	<label for="chat-date"><span>Jump to date: <i class="fa fa-calendar"></i></span><span><i class="fas fa-chevron-left moveDateBack"></i></span><input type="date" name="chat-date" id="chat-date" /><span><i class="fas fa-chevron-right moveDateForward"></i></span></label>
 </div>
 <div class="chatlog-box"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
@@ -12,11 +12,29 @@ $(document).ready(function() {
     const start = moment().startOf('day');
 	const end = moment().endOf('day');
     getChatLog(start, end);
+
+	$('.moveDateBack').click(function(e) {
+		e.preventDefault();
+		var newDate = moment($('#chat-date').val()).subtract(1, 'days');
+		$('#chat-date').val(newDate.format("YYYY-MM-DD"));
+		getUpdatedDate();
+	});
+	$('.moveDateForward').click(function(e) {
+		e.preventDefault();
+		var newDate = moment($('#chat-date').val()).add(1, 'days');
+		$('#chat-date').val(newDate.format("YYYY-MM-DD"));
+		getUpdatedDate();
+	});
 });
-$('#chat-date').change(async function(e) {
+
+function getUpdatedDate() {
 	var start = moment($('#chat-date').val()).startOf('day');
 	var end = moment($('#chat-date').val()).endOf('day');
 	getChatLog(start, end);
+}
+
+$('#chat-date').change(async function(e) {
+	getUpdatedDate();
 });
 async function getChatLog(start, end) {
 	showLoader($('.chatlog-box'));
