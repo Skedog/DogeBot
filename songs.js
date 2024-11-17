@@ -446,7 +446,8 @@ class Songs {
 				youTube.addParam('pageToken', props.nextPageToken);
 			}
 			const getPlaylistItemsByID = await promisify(youTube.getPlayListsItemsById);
-			const result = await getPlaylistItemsByID(props.playlistIDToRequest, 50);
+			const songsToGetPerCall = 50;
+			const result = await getPlaylistItemsByID(props.playlistIDToRequest, songsToGetPerCall);
 			if (props.playlistItems.length === 0 && props.sendPlaylistMessage !== false) {
 				props.messageToSend = 'Gathering playlist data, please wait...';
 				await messages.send(props);
@@ -455,7 +456,7 @@ class Songs {
 				props.playlistItems.push(result.items[x].snippet);
 			}
 			props.nextPageToken = result.nextPageToken;
-			if (props.nextPageToken) {
+			if (props.nextPageToken && (songsToGetPerCall < result.pageInfo.totalResults)) {
 				return await this.getPlaylistItems(props, apiKey);
 			}
 			return props.playlistItems;
