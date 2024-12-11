@@ -604,24 +604,28 @@ async function getFirstSongFromSonglist(channel) {
 }
 
 async function requestDefaultPlaylistSong(channel, userData) {
-	const singleSongToRequest = await getSongFromDefaultPlaylist(channel, userData);
-	if (singleSongToRequest !== undefined) {
-		const fakeUserState = {
-			username: 'DefaultPlaylist',
-			'display-name': 'DefaultPlaylist',
-			mod: true,
-			subscriber: false
-		};
-		const srProps = {
-			channel,
-			userstate: fakeUserState,
-			messageParams: ['!sr', singleSongToRequest.songID]
-		};
-		await chat.callCommand(srProps);
-		const songlist = await getSonglist(channel);
-		if (songlist) {
-			return songlist[0].songID;
+	try {
+		const singleSongToRequest = await getSongFromDefaultPlaylist(channel, userData);
+		if (singleSongToRequest !== undefined) {
+			const fakeUserState = {
+				username: 'DefaultPlaylist',
+				'display-name': 'DefaultPlaylist',
+				mod: true,
+				subscriber: false
+			};
+			const srProps = {
+				channel,
+				userstate: fakeUserState,
+				messageParams: ['!sr', singleSongToRequest.songID]
+			};
+			await chat.callCommand(srProps);
+			const songlist = await getSonglist(channel);
+			if (songlist) {
+				return songlist[0].songID;
+			}
 		}
+	} catch (err) {
+		return '';
 	}
 }
 
