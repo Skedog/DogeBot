@@ -59,7 +59,9 @@ async function checkModStatus(req, res, next) {
 	} else {
 		channelToCheckMods = userDetails[2];
 	}
+	console.log('checkModStatus: channel to check mods: ' + channelToCheckMods);
 	const twitchUserID = userDetails[3];
+	console.log('checkModStatus: twitch user ID to look for: ' + twitchUserID);
 	if (twitchUserID) {
 		// Select channelName from database
 		const propsForSelect = {
@@ -76,11 +78,13 @@ async function checkModStatus(req, res, next) {
 				next();
 			} else {
 				// User is not a mod
+				console.log('checkModStatus: user is not a mod');
 				res.status(401).send('not a mod');
 			}
 		} else {
 			// User is not a mod
 			res.status(401).send('not a mod');
+			console.log('checkModStatus: channel not found');
 		}
 	}
 }

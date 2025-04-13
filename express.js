@@ -262,7 +262,7 @@ async function setupRoutes() {
 			const twitchRetData = body.data[0];
 			const props = {
 				userEmail: twitchRetData.email,
-				twitchUserID: twitchRetData.id,
+				twitchUserID: parseInt(twitchRetData.id),
 				userLogo: twitchRetData.profile_image_url,
 				ChannelName: twitchRetData.login,
 				token
