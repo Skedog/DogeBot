@@ -266,7 +266,8 @@ async function startChatUserTracking(channel) {
 		const results = await checkIfChannelIsLive(channel);
 		if (results) {
 			// Channel is live, get currently active users, increase points, etc
-			handleLoyalty(channel);
+			// handleLoyalty(channel);
+			// Had to disable this due to Twitch killing the API route for this
 		}
 	}, 60000); // 1 minute
 	// }, 600000); // 10 minutes
