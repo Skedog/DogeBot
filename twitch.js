@@ -452,11 +452,12 @@ async function start() {
 		monitorChat();
 		monitorWhispers();
 		monitorUsersInChat();
-		// Setup timer for checking which channels are live
-		this.checkLiveChannelsInterval = setInterval(async () => {
-			const liveChannels = await getAllLiveChannels();
-			await setLiveChannels(liveChannels);
-		}, 60000); // 1 minute
+		// Killed the timedMessages as well due to constant errors that are not worth fixing atm
+		// Setup 1 minute timer for checking which channels are live
+		// this.checkLiveChannelsInterval = setInterval(async () => {
+		// 	const liveChannels = await getAllLiveChannels();
+		// 	await setLiveChannels(liveChannels);
+		// }, 60000);
 		log.info('Now monitoring Twitch chat, whispers, and users');
 	} catch (err) {
 		throw err;
