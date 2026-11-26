@@ -27,6 +27,9 @@ async function connect() {
 	discordClient.on('ready', () => {
 		log.info('Now monitoring Discord chat');
 	});
+	discordClient.on('error', (err) => {
+		log.error('Discord client error', err);
+	});
 }
 
 function monitorDiscordChat() {
